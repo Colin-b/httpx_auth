@@ -1,0 +1,1 @@
+from httpx_auth.version import __version__
