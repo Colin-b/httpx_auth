@@ -6,10 +6,7 @@ from urllib.parse import parse_qs, urlsplit, urlunsplit, urlencode
 from typing import Optional, Generator
 
 import httpx
-import httpx.auth
 import warnings
-
-from httpx import Request, Response
 
 from httpx_auth import oauth2_authentication_responses_server, oauth2_tokens
 from httpx_auth.errors import InvalidGrantRequest, GrantNotProvided
@@ -128,7 +125,7 @@ class BrowserAuth:
         )
 
 
-class OAuth2ResourceOwnerPasswordCredentials(httpx.auth.Auth, SupportMultiAuth):
+class OAuth2ResourceOwnerPasswordCredentials(httpx.Auth, SupportMultiAuth):
     """
     Resource Owner Password Credentials Grant
 
@@ -192,7 +189,9 @@ class OAuth2ResourceOwnerPasswordCredentials(httpx.auth.Auth, SupportMultiAuth):
         all_parameters_in_url = _add_parameters(self.token_url, self.data)
         self.state = sha512(all_parameters_in_url.encode("unicode_escape")).hexdigest()
 
-    def auth_flow(self, request: Request) -> Generator[Request, Response, None]:
+    def auth_flow(
+        self, request: httpx.Request
+    ) -> Generator[httpx.Request, httpx.Response, None]:
         token = OAuth2.token_cache.get_token(self.state, self.request_new_token)
         request.headers[self.header_name] = self.header_value.format(token=token)
         yield request
@@ -210,7 +209,7 @@ class OAuth2ResourceOwnerPasswordCredentials(httpx.auth.Auth, SupportMultiAuth):
         return (self.state, token, expires_in) if expires_in else (self.state, token)
 
 
-class OAuth2ClientCredentials(httpx.auth.Auth, SupportMultiAuth):
+class OAuth2ClientCredentials(httpx.Auth, SupportMultiAuth):
     """
     Client Credentials Grant
 
@@ -270,7 +269,9 @@ class OAuth2ClientCredentials(httpx.auth.Auth, SupportMultiAuth):
         all_parameters_in_url = _add_parameters(self.token_url, self.data)
         self.state = sha512(all_parameters_in_url.encode("unicode_escape")).hexdigest()
 
-    def auth_flow(self, request: Request) -> Generator[Request, Response, None]:
+    def auth_flow(
+        self, request: httpx.Request
+    ) -> Generator[httpx.Request, httpx.Response, None]:
         token = OAuth2.token_cache.get_token(self.state, self.request_new_token)
         request.headers[self.header_name] = self.header_value.format(token=token)
         yield request
@@ -288,7 +289,7 @@ class OAuth2ClientCredentials(httpx.auth.Auth, SupportMultiAuth):
         return (self.state, token, expires_in) if expires_in else (self.state, token)
 
 
-class OAuth2AuthorizationCode(httpx.auth.Auth, SupportMultiAuth, BrowserAuth):
+class OAuth2AuthorizationCode(httpx.Auth, SupportMultiAuth, BrowserAuth):
     """
     Authorization Code Grant
 
@@ -398,7 +399,9 @@ class OAuth2AuthorizationCode(httpx.auth.Auth, SupportMultiAuth, BrowserAuth):
         }
         self.token_data.update(kwargs)
 
-    def auth_flow(self, request: Request) -> Generator[Request, Response, None]:
+    def auth_flow(
+        self, request: httpx.Request
+    ) -> Generator[httpx.Request, httpx.Response, None]:
         token = OAuth2.token_cache.get_token(self.state, self.request_new_token)
         request.headers[self.header_name] = self.header_value.format(token=token)
         yield request
@@ -423,9 +426,7 @@ class OAuth2AuthorizationCode(httpx.auth.Auth, SupportMultiAuth, BrowserAuth):
         return (self.state, token, expires_in) if expires_in else (self.state, token)
 
 
-class OAuth2AuthorizationCodePKCE(
-    httpx.auth.Auth, SupportMultiAuth, BrowserAuth
-):
+class OAuth2AuthorizationCodePKCE(httpx.Auth, SupportMultiAuth, BrowserAuth):
     """
     Proof Key for Code Exchange
 
@@ -543,7 +544,9 @@ class OAuth2AuthorizationCodePKCE(
         }
         self.token_data.update(kwargs)
 
-    def auth_flow(self, request: Request) -> Generator[Request, Response, None]:
+    def auth_flow(
+        self, request: httpx.Request
+    ) -> Generator[httpx.Request, httpx.Response, None]:
         token = OAuth2.token_cache.get_token(self.state, self.request_new_token)
         request.headers[self.header_name] = self.header_value.format(token=token)
         yield request
@@ -596,7 +599,7 @@ class OAuth2AuthorizationCodePKCE(
         return base64.urlsafe_b64encode(digest).rstrip(b"=")
 
 
-class OAuth2Implicit(httpx.auth.Auth, SupportMultiAuth, BrowserAuth):
+class OAuth2Implicit(httpx.Auth, SupportMultiAuth, BrowserAuth):
     """
     Implicit Grant
 
@@ -687,7 +690,9 @@ class OAuth2Implicit(httpx.auth.Auth, SupportMultiAuth, BrowserAuth):
             self.redirect_uri_port,
         )
 
-    def auth_flow(self, request: Request) -> Generator[Request, Response, None]:
+    def auth_flow(
+        self, request: httpx.Request
+    ) -> Generator[httpx.Request, httpx.Response, None]:
         token = OAuth2.token_cache.get_token(
             self.state,
             oauth2_authentication_responses_server.request_new_grant,
@@ -1047,7 +1052,7 @@ class OktaClientCredentials(OAuth2ClientCredentials):
         )
 
 
-class HeaderApiKey(httpx.auth.Auth, SupportMultiAuth):
+class HeaderApiKey(httpx.Auth, SupportMultiAuth):
     """Describes an API Key requests authentication."""
 
     def __init__(self, api_key: str, header_name: str = None):
@@ -1060,12 +1065,14 @@ class HeaderApiKey(httpx.auth.Auth, SupportMultiAuth):
             raise Exception("API Key is mandatory.")
         self.header_name = header_name or "X-API-Key"
 
-    def auth_flow(self, request: Request) -> Generator[Request, Response, None]:
+    def auth_flow(
+        self, request: httpx.Request
+    ) -> Generator[httpx.Request, httpx.Response, None]:
         request.headers[self.header_name] = self.api_key
         yield request
 
 
-class QueryApiKey(httpx.auth.Auth, SupportMultiAuth):
+class QueryApiKey(httpx.Auth, SupportMultiAuth):
     """Describes an API Key requests authentication."""
 
     def __init__(self, api_key: str, query_parameter_name: str = None):
@@ -1078,25 +1085,31 @@ class QueryApiKey(httpx.auth.Auth, SupportMultiAuth):
             raise Exception("API Key is mandatory.")
         self.query_parameter_name = query_parameter_name or "api_key"
 
-    def auth_flow(self, request: Request) -> Generator[Request, Response, None]:
-        request.url = httpx.URL(request.url, params={self.query_parameter_name: self.api_key})
+    def auth_flow(
+        self, request: httpx.Request
+    ) -> Generator[httpx.Request, httpx.Response, None]:
+        request.url = httpx.URL(
+            request.url, params={self.query_parameter_name: self.api_key}
+        )
         yield request
 
 
-class Basic(httpx.auth.BasicAuth, SupportMultiAuth):
+class Basic(httpx.BasicAuth, SupportMultiAuth):
     """Describes a basic requests authentication."""
 
     def __init__(self, username: str, password: str):
-        httpx.auth.BasicAuth.__init__(self, username, password)
+        httpx.BasicAuth.__init__(self, username, password)
 
 
-class _MultiAuth(httpx.auth.Auth):
+class _MultiAuth(httpx.Auth):
     """Authentication using multiple authentication methods."""
 
     def __init__(self, *authentication_modes):
         self.authentication_modes = authentication_modes
 
-    def auth_flow(self, request: Request) -> Generator[Request, Response, None]:
+    def auth_flow(
+        self, request: httpx.Request
+    ) -> Generator[httpx.Request, httpx.Response, None]:
         for authentication_mode in self.authentication_modes:
             next(authentication_mode.auth_flow(request))
         yield request

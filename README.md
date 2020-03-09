@@ -9,6 +9,10 @@
 <a href="https://pypi.org/project/httpx-auth/"><img alt="Number of downloads" src="https://img.shields.io/pypi/dm/httpx_auth"></a>
 </p>
 
+> Version 1.0.0 will be released once httpx is considered as stable (release of 1.0.0).
+>
+> However current state can be considered as stable.
+
 Provides authentication classes to be used with [`httpx`][1] [authentication parameter][2].
 
 <p align="center">
