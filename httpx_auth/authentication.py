@@ -6,7 +6,6 @@ from urllib.parse import parse_qs, urlsplit, urlunsplit, urlencode
 from typing import Optional, Generator
 
 import httpx
-import warnings
 
 from httpx_auth import oauth2_authentication_responses_server, oauth2_tokens
 from httpx_auth.errors import InvalidGrantRequest, GrantNotProvided
@@ -1123,12 +1122,3 @@ class _MultiAuth(httpx.Auth):
         if isinstance(other, _MultiAuth):
             return _MultiAuth(*self.authentication_modes, *other.authentication_modes)
         return _MultiAuth(*self.authentication_modes, other)
-
-
-class Auths(_MultiAuth):
-    def __init__(self, *authentication_modes):
-        warnings.warn(
-            "Auths class will be removed in the future. Use + instead.",
-            DeprecationWarning,
-        )
-        super().__init__(*authentication_modes)

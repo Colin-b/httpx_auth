@@ -2,7 +2,6 @@ from httpx_auth.authentication import (
     Basic,
     HeaderApiKey,
     QueryApiKey,
-    Auths,
     OAuth2,
     OAuth2AuthorizationCodePKCE,
     OktaAuthorizationCodePKCE,
