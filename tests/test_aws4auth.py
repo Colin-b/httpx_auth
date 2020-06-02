@@ -832,6 +832,7 @@ class AWS4Auth_GetCanonicalHeaders_Test(unittest.TestCase):
             "My-header1:    a   b   c ",
             "x-amz-date:20120228T030031Z",
             'My-Header2:    "a   b   c"',
+            "user-agent:python-httpx",
         ]
         headers = dict([item.split(":") for item in hdr_text])
         req = httpx.Request("GET", "http://iam.amazonaws.com", headers=headers)
@@ -846,7 +847,7 @@ class AWS4Auth_GetCanonicalHeaders_Test(unittest.TestCase):
             "host:iam.amazonaws.com",
             "my-header1:a b c",
             'my-header2:"a   b   c"',
-            "user-agent:python-httpx/0.12.1",
+            "user-agent:python-httpx",
             "x-amz-date:20120228T030031Z",
         ]
         expected = "\n".join(expected) + "\n"
@@ -971,6 +972,7 @@ class AWS4Auth_RequestSign_Test(unittest.TestCase):
             "POST https://iam.amazonaws.com/ HTTP/1.1",
             "Host: iam.amazonaws.com",
             "Content-Type: application/x-www-form-urlencoded; charset=utf-8",
+            "User-Agent:python-httpx",
             "X-Amz-Date: 20110909T233600Z",
             "",
             "Action=ListUsers&Version=2010-05-08",
@@ -985,9 +987,7 @@ class AWS4Auth_RequestSign_Test(unittest.TestCase):
         sreq = next(auth.auth_flow(req))
         signature = sreq.headers["Authorization"].split("=")[3]
         print(sreq.headers["Authorization"])
-        expected = "d825b8356720a0bd1d1a78d60ae2dbdaf4ed3b13575656448415487371b80376"
-        # expected = "ced6826de92d2bdeed8f846f0bf508e8559e98e4b0199114b84c541" "74deb456c"
-
+        expected = "98ea85c76b6cdfbf10726c3fe0edf82b42be91d2b6622cd427fcad82ab40e25e"
         self.assertEqual(signature, expected)
 
     def test_generate_empty_body_signature(self):
