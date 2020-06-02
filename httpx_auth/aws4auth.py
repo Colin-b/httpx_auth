@@ -373,7 +373,7 @@ class AWS4Auth(httpx.Auth):
         # in the signed headers, but Requests doesn't include it in a
         # PreparedRequest
         if "host" not in headers:
-            headers["host"] = urlparse(req.url).netloc.split(":")[0]
+            headers["host"] = req.url.host
         # Aggregate for upper/lowercase header name collisions in header names,
         # AMZ requires values of colliding headers be concatenated into a
         # single header with lowercase name.  Although this is not possible with
@@ -505,19 +505,6 @@ class StrictAWS4Auth(AWS4Auth):
         StrictAWS4Auth.regenerate_signing_key().
         """
         raise DateMismatchError
-
-
-class PassiveAWS4Auth(AWS4Auth):
-    """
-    This subclass does not perform any special handling of a mismatched request
-    and scope date, it signs the request and allows Requests to send it. It is
-    up to the calling code to handle a failed authentication response from AWS.
-    This behaviour mimics the behaviour of AWS4Auth for versions 0.7 and
-    earlier.
-    """
-
-    def handle_date_mismatch(self, req):
-        pass
 
 
 class AWS4SigningKey:

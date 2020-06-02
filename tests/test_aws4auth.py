@@ -51,9 +51,9 @@ except ImportError:
 import httpx
 
 sys.path = ["../../"] + sys.path
-from httpx_auth import AWS4Auth
+from httpx_auth import AWS4Auth, StrictAWS4Auth
 from httpx_auth.aws4auth import AWS4SigningKey
-from httpx_auth.aws4auth import DateFormatError, NoSecretKeyError
+from httpx_auth.aws4auth import DateFormatError, NoSecretKeyError, DateMismatchError
 
 live_access_id = os.getenv("AWS_ACCESS_KEY_ID")
 live_secret_key = os.getenv("AWS_SECRET_ACCESS_KEY")
@@ -172,10 +172,12 @@ def request_from_text(text):
         )
     body = "\n".join(lines[idx + 1 :])
     req = httpx.Request(method, url, headers=headers, data=body)
+    # ensure content field is useable
+    req.read()
     return req
 
 
-class AWS4_SigningKey_Test:
+class AWS4_SigningKey_Test(unittest.TestCase):
     def test_basic_instantiation(self):
         obj = AWS4SigningKey("secret_key", "region", "service", "date")
         self.assertEqual(obj.region, "region")
@@ -437,6 +439,24 @@ class AWS4_SigningKey_Test:
 
 
 class AWS4Auth_Instantiate_Test(unittest.TestCase):
+    def test_bad_instantiate_from_args_type_error(self):
+        with self.assertRaises(TypeError) as context:
+            auth = AWS4Auth("bogus argument", "bogus argument")
+
+    def test_bad_instantiate_from_args_value_error(self):
+        with self.assertRaises(ValueError) as context:
+            test_date = datetime.datetime.utcnow().strftime("%Y%m%d")
+            test_inc_hdrs = ["a", "b", "c"]
+            auth = AWS4Auth(
+                "access_id",
+                "secret_key",
+                "region",
+                "service",
+                include_hdrs=test_inc_hdrs,
+                raise_invalid_date=2,
+                session_token="sessiontoken",
+            )
+
     def test_instantiate_from_args(self):
         test_date = datetime.datetime.utcnow().strftime("%Y%m%d")
         test_inc_hdrs = ["a", "b", "c"]
@@ -657,6 +677,19 @@ class AWS4Auth_Date_Test(unittest.TestCase):
         result = AWS4Auth.get_request_date(req)
         self.assertEqual(result, check)
 
+    def test_replace_bad_dates(self):
+        req = httpx.Request("GET", "http://blah.com")
+        req.headers["x-amz-date"] = ""
+        req.headers["date"] = ""
+        secret_key = "dummy"
+        region = "us-east-1"
+        service = "iam"
+        key = AWS4SigningKey(secret_key, region, service)
+        auth = AWS4Auth("dummy", key)
+        sreq = next(auth.auth_flow(req))
+        self.assertIn("x-amz-date", sreq.headers)
+        self.assertIsNotNone(AWS4Auth.get_request_date(sreq))
+
     def test_aws4auth_add_header(self):
         req = httpx.Request("GET", "http://blah.com")
         if "date" in req.headers:
@@ -855,6 +888,39 @@ class AWS4Auth_GetCanonicalHeaders_Test(unittest.TestCase):
         expected = "accept;accept-encoding;connection;content-type;host;my-header1;my-header2;user-agent;x-amz-date"
         self.assertEqual(signed_headers, expected)
 
+    def test_no_host_header(self):
+        hdr_text = [
+            "Content-type:application/x-www-form-urlencoded; charset=utf-8",
+            "Host:iam.amazonaws.com",
+            "My-header1:    a   b   c ",
+            "x-amz-date:20120228T030031Z",
+            'My-Header2:    "a   b   c"',
+            "user-agent:python-httpx",
+        ]
+        headers = dict([item.split(":") for item in hdr_text])
+        req = httpx.Request("GET", "http://iam.amazonaws.com", headers=headers)
+        include = list(req.headers)
+        # remove host for test
+        if "host" in req.headers:
+            del req.headers["host"]
+        result = AWS4Auth.get_canonical_headers(req, include=include)
+        cano_headers, signed_headers = result
+        expected = [
+            "accept:*/*",
+            "accept-encoding:gzip, deflate",
+            "connection:keep-alive",
+            "content-type:application/x-www-form-urlencoded; charset=utf-8",
+            "host:iam.amazonaws.com",
+            "my-header1:a b c",
+            'my-header2:"a   b   c"',
+            "user-agent:python-httpx",
+            "x-amz-date:20120228T030031Z",
+        ]
+        expected = "\n".join(expected) + "\n"
+        self.assertEqual(cano_headers, expected)
+        expected = "accept;accept-encoding;connection;content-type;host;my-header1;my-header2;user-agent;x-amz-date"
+        self.assertEqual(signed_headers, expected)
+
     def test_duplicate_headers(self):
         """
         Tests case of duplicate headers with different cased names. Uses a
@@ -905,7 +971,7 @@ class AWS4Auth_GetCanonicalRequest_Test(unittest.TestCase):
             "Action=ListUsers&Version=2010-05-08",
         ]
         req = request_from_text("\n".join(req_text))
-        hsh = hashlib.sha256(req_text[6].encode("utf8"))
+        hsh = hashlib.sha256(req.content)
         req.headers["x-amz-content-sha256"] = hsh.hexdigest()
         include_hdrs = ["host", "content-type", "x-amz-date"]
         result = AWS4Auth.get_canonical_headers(req, include=include_hdrs)
@@ -982,12 +1048,12 @@ class AWS4Auth_RequestSign_Test(unittest.TestCase):
         del req.headers["content-length"]
         include_hdrs = list(req.headers)
         auth = AWS4Auth("dummy", key, include_hdrs=include_hdrs)
-        hsh = hashlib.sha256(req_text[5].encode("utf8"))
+        hsh = hashlib.sha256(req.content)
         req.headers["x-amz-content-sha256"] = hsh.hexdigest()
         sreq = next(auth.auth_flow(req))
         signature = sreq.headers["Authorization"].split("=")[3]
         print(sreq.headers["Authorization"])
-        expected = "98ea85c76b6cdfbf10726c3fe0edf82b42be91d2b6622cd427fcad82ab40e25e"
+        expected = "d50ec75eed10aeb2cb3ddf6702d65d3bce310464d99da6f1af092bbc0f238295"
         self.assertEqual(signature, expected)
 
     def test_generate_empty_body_signature(self):
@@ -1026,6 +1092,22 @@ class AWS4Auth_RequestSign_Test(unittest.TestCase):
     @staticmethod
     def check_auth(auth, req):
         sreq = next(auth.auth_flow(req))
+
+    def test_raise_date_mismatch_error_on_date_mismatch(self):
+
+        amzdate, scope_date = ("20001231T235959Z", "20010101")
+        req = httpx.Request("GET", "http://blah.com")
+        if "date" in req.headers:
+            del req.headers["date"]
+        req.headers["x-amz-date"] = amzdate
+        secret_key = "dummy"
+        region = "us-east-1"
+        service = "iam"
+        date = scope_date
+        key = AWS4SigningKey(secret_key, region, service, date)
+        orig_id = id(key)
+        auth = StrictAWS4Auth("dummy", key)
+        self.assertRaises(DateMismatchError, self.check_auth, auth, req)
 
     def test_date_mismatch_nosecretkey_raise(self):
         key = AWS4SigningKey("secret_key", "region", "service", "1999010", False)
