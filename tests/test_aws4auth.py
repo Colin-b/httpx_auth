@@ -1052,7 +1052,6 @@ class AWS4Auth_RequestSign_Test(unittest.TestCase):
         req.headers["x-amz-content-sha256"] = hsh.hexdigest()
         sreq = next(auth.auth_flow(req))
         signature = sreq.headers["Authorization"].split("=")[3]
-        print(sreq.headers["Authorization"])
         expected = "d50ec75eed10aeb2cb3ddf6702d65d3bce310464d99da6f1af092bbc0f238295"
         self.assertEqual(signature, expected)
 
@@ -1189,7 +1188,7 @@ class AWS4Auth_LiveService_Test(unittest.TestCase):
     services = {
         #   "AppStream": "appstream2.us-east-1.amazonaws.com/applications",
         "Auto-Scaling": "autoscaling.us-east-1.amazonaws.com/?Action=DescribeAutoScalingInstances&Version=2011-01-01",
-        # "CloudFormation": "cloudformation.us-east-1.amazonaws.com?Action=ListStacks",
+        # "CloudFormation": "cloudformation.us-east-1.amazonaws.com?Action=ListStacks&Version=2010-05-15&SignatureVersion=4",
         "CloudFront": "cloudfront.amazonaws.com/2014-11-06/distribution?MaxItems=1",
         #  "CloudHSM": {
         #     "method": "POST",
@@ -1390,13 +1389,12 @@ class AWS4Auth_LiveService_Test(unittest.TestCase):
         url = "https://" + path_qs
         region = "us-east-1"
         auth = AWS4Auth(live_access_id, live_secret_key, region, service)
-        print(f"connecting to {url}")
         response = httpx.request(method, url, auth=auth, data=body, headers=headers)
         self.assertEqual(response.status_code, httpx.codes.OK)
 
-    def test_mobileanalytics(self):
-        url = "https://mobileanalytics.us-east-1.amazonaws.com/2014-06-05/events"
-        service = "mobileanalytics"
+    def test_pinpoint(self):
+        url = "https://pinpoint.us-east-1.amazonaws.com/v1/apps"
+        service = "mobiletargeting"
         region = "us-east-1"
         dt = datetime.datetime.utcnow()
         date = dt.strftime("%Y%m%d")
@@ -1405,27 +1403,8 @@ class AWS4Auth_LiveService_Test(unittest.TestCase):
         headers = {
             "Content-Type": "application/json",
             "X-Amz-Date": dt.strftime("%Y%m%dT%H%M%SZ"),
-            "X-Amz-Client-Context": json.dumps(
-                {
-                    "client": {"client_id": "a", "app_title": "a"},
-                    "custom": {},
-                    "env": {"platform": "a"},
-                    "services": {},
-                }
-            ),
         }
-        body = json.dumps(
-            {
-                "events": [
-                    {
-                        "eventType": "a",
-                        "timestamp": dt.strftime("%Y-%m-%dT%H:%M:%S.000Z"),
-                        "session": {},
-                    }
-                ]
-            }
-        )
-        response = httpx.post(url, auth=auth, headers=headers, data=body)
+        response = httpx.get(url, auth=auth, headers=headers)
         self.assertEqual(response.status_code, httpx.codes.OK)
 
 
