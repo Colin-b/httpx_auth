@@ -677,6 +677,14 @@ class AWS4Auth_Date_Test(unittest.TestCase):
         result = AWS4Auth.get_request_date(req)
         self.assertEqual(result, check)
 
+    def test_get_request_date_value_errro(self):
+        check = None
+        req = httpx.Request("GET", "http://blah.com")
+        req.headers["x-amz-date"] = ""
+        req.headers["date"] = "Sun, 05 Jan 0000 01:01:01 GMT"
+        result = AWS4Auth.get_request_date(req)
+        self.assertEqual(result, check)
+
     def test_replace_bad_dates(self):
         req = httpx.Request("GET", "http://blah.com")
         req.headers["x-amz-date"] = ""
