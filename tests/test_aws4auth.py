@@ -43,17 +43,11 @@ import warnings
 import datetime
 from errno import ENOENT
 
-try:
-    from urllib.parse import urlparse
-except ImportError:
-    from urlparse import urlparse
+from urllib.parse import urlparse
 
 import httpx
 
-sys.path = ["../../"] + sys.path
-from httpx_auth import AWS4Auth, StrictAWS4Auth
-from httpx_auth.aws4auth import AWS4SigningKey
-from httpx_auth.aws4auth import DateFormatError, NoSecretKeyError, DateMismatchError
+import httpx_auth
 
 live_access_id = os.getenv("AWS_ACCESS_KEY_ID")
 live_secret_key = os.getenv("AWS_SECRET_ACCESS_KEY")
@@ -460,7 +454,7 @@ class AWS4Auth_Instantiate_Test(unittest.TestCase):
         self.assertEqual(auth.access_id, "access_id")
         self.assertEqual(auth.region, "region")
         self.assertEqual(auth.service, "service")
-        self.assertListEqual(auth.include_hdrs, test_inc_hdrs)
+        self.assertListEqual(auth.include_headers, test_inc_hdrs)
         self.assertEqual(auth.raise_invalid_date, True)
         self.assertEqual(auth.session_token, "sessiontoken")
         self.assertIsInstance(auth.signing_key, AWS4SigningKey)
@@ -496,7 +490,7 @@ class AWS4Auth_Instantiate_Test(unittest.TestCase):
     def test_default_include_hdrs(self):
         auth = AWS4Auth("access_id", "secret_key", "region", "service")
         check_set = {"host", "content-type", "date", "x-amz-*"}
-        self.assertSetEqual(set(auth.include_hdrs), check_set)
+        self.assertSetEqual(set(auth.include_headers), check_set)
 
 
 class AWS4Auth_Date_Test(unittest.TestCase):

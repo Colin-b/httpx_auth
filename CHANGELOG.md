@@ -9,9 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Mock an access token by default in `httpx_auth.testing.token_cache_mock`. Getting rid of `pyjwt` default dependency for testing.
 
 ### Added
-- `AWS4Auth` and `StrictAWS4` authentication classes for AWS. Ported from [`requests-aws4auth`](https://github.com/sam-washington/requests-aws4auth) by [`Michael E. Martinka`](https://github.com/martinka).
+- `AWS4Auth` authentication class for AWS. Ported from [`requests-aws4auth`](https://github.com/sam-washington/requests-aws4auth) by [`Michael E. Martinka`](https://github.com/martinka).
 Note that a few changes were made:
   - deprecated `amz_date` attribute has been removed.
+  - it is not possible to provide an `AWSSigningKey` instance, use explicit parameters instead.
+  - it is not possible to provide a `date`. It will default to now.
+  - it is not possible to provide `raise_invalid_date` parameter anymore as the date will always be valid.
+  - `include_hdrs` parameter was renamed into `include_headers`
+  - `host` is not considered as a specific Amazon service anymore (no test specific code).
+  - Each request now has it's own signing key and x-amz-date. Meaning you can use the same auth instance for more than one request.
 
 ## [0.3.0] - 2020-05-26
 ### Changed
