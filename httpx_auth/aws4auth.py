@@ -605,12 +605,3 @@ class AWS4SigningKey:
         if isinstance(msg, str):
             msg = msg.encode("utf-8")
         return hmac.new(key, msg, hashlib.sha256).digest()
-
-    @property
-    def amz_date(self):
-        msg = (
-            "This attribute has been renamed to 'date'. 'amz_date' is "
-            "deprecated and will be removed in a future version."
-        )
-        warn(msg, DeprecationWarning)
-        return self.date

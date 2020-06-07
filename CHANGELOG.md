@@ -8,6 +8,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Mock an access token by default in `httpx_auth.testing.token_cache_mock`. Getting rid of `pyjwt` default dependency for testing.
 
+### Added
+- `AWS4Auth` and `StrictAWS4` authentication classes for AWS. Ported from [`requests-aws4auth`](https://github.com/sam-washington/requests-aws4auth) by [`Michael E. Martinka`](https://github.com/martinka).
+Note that a few changes were made:
+  - deprecated `amz_date` attribute has been removed.
+
 ## [0.3.0] - 2020-05-26
 ### Changed
 - Requires [`httpx`](https://www.python-httpx.org)==0.13.*
