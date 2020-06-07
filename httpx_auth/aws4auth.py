@@ -8,12 +8,11 @@ import posixpath
 import re
 import shlex
 import datetime
-from warnings import warn
 from urllib.parse import urlparse, parse_qs, quote, unquote
 
 import httpx
 
-from typing import Optional, Generator
+from typing import Generator, Union
 
 
 # exceptions
@@ -89,8 +88,7 @@ class AWS4Auth(httpx.Auth):
         """
         l = len(args)
         if l not in [2, 4, 5]:
-            msg = "AWS4Auth() takes 2, 4 or 5 arguments, {} given".format(l)
-            raise TypeError(msg)
+            raise TypeError(f"AWS4Auth() takes 2, 4 or 5 arguments, {l} given")
         self.access_id = args[0]
         if isinstance(args[1], AWS4SigningKey) and l == 2:
             # instantiate from signing key
@@ -168,9 +166,9 @@ class AWS4Auth(httpx.Auth):
         hsh = hmac.new(self.signing_key.key, sig_string, hashlib.sha256)
         sig = hsh.hexdigest()
         auth_str = "AWS4-HMAC-SHA256 "
-        auth_str += "Credential={}/{}, ".format(self.access_id, self.signing_key.scope)
-        auth_str += "SignedHeaders={}, ".format(signed_headers)
-        auth_str += "Signature={}".format(sig)
+        auth_str += f"Credential={self.access_id}/{self.signing_key.scope}, "
+        auth_str += f"SignedHeaders={signed_headers}, "
+        auth_str += f"Signature={sig}"
         request.headers["Authorization"] = auth_str
         yield request
 
@@ -567,15 +565,20 @@ class AWS4SigningKey:
         self.region = region
         self.service = service
         self.date = date or datetime.datetime.utcnow().strftime("%Y%m%d")
-        self.scope = "{}/{}/{}/aws4_request".format(
-            self.date, self.region, self.service
-        )
+        self.scope = f"{self.date}/{self.region}/{self.service}/aws4_request"
         self.store_secret_key = store_secret_key
         self.secret_key = secret_key if self.store_secret_key else None
         self.key = self.generate_key(secret_key, self.region, self.service, self.date)
 
     @classmethod
-    def generate_key(cls, secret_key, region, service, date, intermediates=False):
+    def generate_key(
+        cls,
+        secret_key: str,
+        region: Union[bytes, str],
+        service: Union[bytes, str],
+        date: Union[bytes, str],
+        intermediates: bool = False,
+    ):
         """
         Generate the signing key string as bytes.
         If intermediate is set to True, returns a 4-tuple containing the key
@@ -595,7 +598,7 @@ class AWS4SigningKey:
             return key
 
     @staticmethod
-    def sign_sha256(key, msg):
+    def sign_sha256(key: bytes, msg: Union[bytes, str]) -> bytes:
         """
         Generate an SHA256 HMAC, encoding msg to UTF-8 if not
         already encoded.
