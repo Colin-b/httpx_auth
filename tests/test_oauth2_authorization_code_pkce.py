@@ -1,4 +1,4 @@
-from pytest_httpx import httpx_mock, HTTPXMock
+from pytest_httpx import HTTPXMock
 import pytest
 import httpx
 
@@ -28,7 +28,7 @@ def test_oauth2_pkce_flow_get_code_is_sent_in_authorization_header_by_default(
             "refresh_token": "tGzv3JOkF0XG5Qx2TlKWIA",
             "example_parameter": "example_value",
         },
-        match_content=b"code_verifier=MTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTEx&grant_type=authorization_code&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F&response_type=code&code=SplxlOBeZQQYbYS6WxSbIA"
+        match_content=b"code_verifier=MTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTEx&grant_type=authorization_code&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F&response_type=code&code=SplxlOBeZQQYbYS6WxSbIA",
     )
     assert (
         get_header(httpx_mock, auth).get("Authorization")
@@ -60,7 +60,7 @@ def test_expires_in_sent_as_str(
             "refresh_token": "tGzv3JOkF0XG5Qx2TlKWIA",
             "example_parameter": "example_value",
         },
-        match_content=b"code_verifier=MTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTEx&grant_type=authorization_code&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F&response_type=code&code=SplxlOBeZQQYbYS6WxSbIA"
+        match_content=b"code_verifier=MTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTEx&grant_type=authorization_code&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F&response_type=code&code=SplxlOBeZQQYbYS6WxSbIA",
     )
     assert (
         get_header(httpx_mock, auth).get("Authorization")
@@ -92,7 +92,7 @@ def test_nonce_is_sent_if_provided_in_authorization_url(
             "refresh_token": "tGzv3JOkF0XG5Qx2TlKWIA",
             "example_parameter": "example_value",
         },
-        match_content=b"code_verifier=MTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTEx&grant_type=authorization_code&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F&response_type=code&code=SplxlOBeZQQYbYS6WxSbIA"
+        match_content=b"code_verifier=MTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTEx&grant_type=authorization_code&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F&response_type=code&code=SplxlOBeZQQYbYS6WxSbIA",
     )
     assert (
         get_header(httpx_mock, auth).get("Authorization")
@@ -118,7 +118,7 @@ def test_with_invalid_grant_request_no_json(
         method="POST",
         url="http://provide_access_token",
         data="failure",
-        status_code=400
+        status_code=400,
     )
     with pytest.raises(httpx_auth.InvalidGrantRequest) as exception_info:
         httpx.get("http://authorized_only", auth=auth)
@@ -667,7 +667,7 @@ def test_response_type_can_be_provided_in_url(
             "refresh_token": "tGzv3JOkF0XG5Qx2TlKWIA",
             "example_parameter": "example_value",
         },
-        match_content=b"code_verifier=MTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTEx&grant_type=authorization_code&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F&response_type=my_code&code=SplxlOBeZQQYbYS6WxSbIA"
+        match_content=b"code_verifier=MTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTEx&grant_type=authorization_code&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F&response_type=my_code&code=SplxlOBeZQQYbYS6WxSbIA",
     )
     assert (
         get_header(httpx_mock, auth).get("Authorization")

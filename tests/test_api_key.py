@@ -1,5 +1,5 @@
 import pytest
-from pytest_httpx import httpx_mock, HTTPXMock
+from pytest_httpx import HTTPXMock
 import httpx
 
 
@@ -40,6 +40,8 @@ def test_header_api_key_can_be_sent_in_a_custom_field_name(httpx_mock: HTTPXMock
 def test_query_api_key_can_be_sent_in_a_custom_field_name(httpx_mock: HTTPXMock):
     auth = httpx_auth.QueryApiKey("my_provided_api_key", "X-API-QUERY-KEY")
     # Mock a dummy response
-    httpx_mock.add_response(url="http://authorized_only?X-API-QUERY-KEY=my_provided_api_key")
+    httpx_mock.add_response(
+        url="http://authorized_only?X-API-QUERY-KEY=my_provided_api_key"
+    )
     # Send a request to this dummy URL with authentication
     httpx.get("http://authorized_only", auth=auth)

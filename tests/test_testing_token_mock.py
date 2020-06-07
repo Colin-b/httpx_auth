@@ -1,4 +1,4 @@
-from pytest_httpx import httpx_mock, HTTPXMock
+from pytest_httpx import HTTPXMock
 
 import httpx_auth
 from httpx_auth.testing import token_cache_mock, token_mock

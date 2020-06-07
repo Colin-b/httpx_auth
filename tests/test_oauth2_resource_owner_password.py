@@ -1,4 +1,4 @@
-from pytest_httpx import httpx_mock, HTTPXMock
+from pytest_httpx import HTTPXMock
 import pytest
 import httpx
 
@@ -23,7 +23,7 @@ def test_oauth2_password_credentials_flow_token_is_sent_in_authorization_header_
             "refresh_token": "tGzv3JOkF0XG5Qx2TlKWIA",
             "example_parameter": "example_value",
         },
-        match_content=b"grant_type=password&username=test_user&password=test_pwd"
+        match_content=b"grant_type=password&username=test_user&password=test_pwd",
     )
     assert (
         get_header(httpx_mock, auth).get("Authorization")
@@ -45,7 +45,7 @@ def test_expires_in_sent_as_str(token_cache, httpx_mock: HTTPXMock):
             "refresh_token": "tGzv3JOkF0XG5Qx2TlKWIA",
             "example_parameter": "example_value",
         },
-        match_content=b"grant_type=password&username=test_user&password=test_pwd"
+        match_content=b"grant_type=password&username=test_user&password=test_pwd",
     )
     assert (
         get_header(httpx_mock, auth).get("Authorization")
@@ -70,7 +70,7 @@ def test_scope_is_sent_as_is_when_provided_as_str(token_cache, httpx_mock: HTTPX
             "refresh_token": "tGzv3JOkF0XG5Qx2TlKWIA",
             "example_parameter": "example_value",
         },
-        match_content=b"grant_type=password&username=test_user&password=test_pwd&scope=my_scope%2Bmy_other_scope"
+        match_content=b"grant_type=password&username=test_user&password=test_pwd&scope=my_scope%2Bmy_other_scope",
     )
     assert (
         get_header(httpx_mock, auth).get("Authorization")
@@ -78,9 +78,7 @@ def test_scope_is_sent_as_is_when_provided_as_str(token_cache, httpx_mock: HTTPX
     )
 
 
-def test_scope_is_sent_as_str_when_provided_as_list(
-    token_cache, httpx_mock: HTTPXMock
-):
+def test_scope_is_sent_as_str_when_provided_as_list(token_cache, httpx_mock: HTTPXMock):
     auth = httpx_auth.OAuth2ResourceOwnerPasswordCredentials(
         "http://provide_access_token",
         username="test_user",
@@ -97,7 +95,7 @@ def test_scope_is_sent_as_str_when_provided_as_list(
             "refresh_token": "tGzv3JOkF0XG5Qx2TlKWIA",
             "example_parameter": "example_value",
         },
-        match_content=b"grant_type=password&username=test_user&password=test_pwd&scope=my_scope+my_other_scope"
+        match_content=b"grant_type=password&username=test_user&password=test_pwd&scope=my_scope+my_other_scope",
     )
     assert (
         get_header(httpx_mock, auth).get("Authorization")
@@ -113,7 +111,7 @@ def test_with_invalid_grant_request_no_json(token_cache, httpx_mock: HTTPXMock):
         method="POST",
         url="http://provide_access_token",
         data="failure",
-        status_code=400
+        status_code=400,
     )
     with pytest.raises(httpx_auth.InvalidGrantRequest) as exception_info:
         httpx.get("http://authorized_only", auth=auth)
@@ -365,9 +363,7 @@ def test_without_expected_token(token_cache, httpx_mock: HTTPXMock):
 
 def test_token_url_is_mandatory():
     with pytest.raises(Exception) as exception_info:
-        httpx_auth.OAuth2ResourceOwnerPasswordCredentials(
-            "", "test_user", "test_pwd"
-        )
+        httpx_auth.OAuth2ResourceOwnerPasswordCredentials("", "test_user", "test_pwd")
     assert str(exception_info.value) == "Token URL is mandatory."
 
 

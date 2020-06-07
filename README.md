@@ -664,7 +664,7 @@ Use this fixture to mock authentication success for any of the following classes
  * OktaClientCredentials
  * OAuth2ResourceOwnerPasswordCredentials,
 
-By default, [`pyjwt`](https://pypi.org/project/PyJWT/) is a required dependency as it is used to generate the token returned by the authentication.
+By default, an access token with value `2YotnFZFEjr1zCsicMWpAA` is generated.
 
 You can however return your custom token by providing your own `token_mock` fixture as in the following sample:
 
@@ -676,7 +676,27 @@ from httpx_auth.testing import token_cache_mock
 
 @pytest.fixture
 def token_mock() -> str:
-    return "2YotnFZFEjr1zCsicMWpAA"
+    return "MyCustomTokenValue"
+
+
+def test_something(token_cache_mock):
+    # perform code using authentication
+    pass
+```
+
+You can even return a more complex token by using the `create_token` function.
+
+Note that [`pyjwt`](https://pypi.org/project/PyJWT/) is a required dependency in this case as it is used to generate the token returned by the authentication.
+
+```python
+import pytest
+from httpx_auth.testing import token_cache_mock, create_token
+
+
+@pytest.fixture
+def token_mock() -> str:
+    expiry = None  # TODO Compute your expiry
+    return create_token(expiry)
 
 
 def test_something(token_cache_mock):

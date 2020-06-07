@@ -1,4 +1,4 @@
-from pytest_httpx import httpx_mock, HTTPXMock
+from pytest_httpx import HTTPXMock
 
 import httpx_auth
 from tests.auth_helper import get_header
