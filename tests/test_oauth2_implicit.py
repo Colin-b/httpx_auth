@@ -3,7 +3,7 @@ import datetime
 
 import httpx
 import pytest
-from pytest_httpx import httpx_mock, HTTPXMock
+from pytest_httpx import HTTPXMock
 
 from httpx_auth.testing import BrowserMock, create_token, token_cache, browser_mock
 from tests.auth_helper import get_header
@@ -293,9 +293,7 @@ def test_oauth2_implicit_flow_can_send_a_custom_response_type_and_expects_token_
 def test_oauth2_implicit_flow_expects_token_in_id_token_if_response_type_is_id_token(
     token_cache, httpx_mock: HTTPXMock, browser_mock: BrowserMock
 ):
-    auth = httpx_auth.OAuth2Implicit(
-        "http://provide_token", response_type="id_token"
-    )
+    auth = httpx_auth.OAuth2Implicit("http://provide_token", response_type="id_token")
     expiry_in_1_hour = datetime.datetime.utcnow() + datetime.timedelta(hours=1)
     token = create_token(expiry_in_1_hour)
     tab = browser_mock.add_response(

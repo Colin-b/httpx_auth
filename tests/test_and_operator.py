@@ -1,6 +1,6 @@
 import datetime
 
-from pytest_httpx import httpx_mock, HTTPXMock
+from pytest_httpx import HTTPXMock
 import httpx
 
 import httpx_auth
@@ -100,7 +100,7 @@ def test_query_api_key_and_multiple_authentication_can_be_combined(
     # Mock a dummy response
     httpx_mock.add_response(
         url="http://authorized_only?api_key=my_provided_api_key&api_key2=my_provided_api_key2",
-        headers={"X-Api-Key3": "my_provided_api_key3"}
+        headers={"X-Api-Key3": "my_provided_api_key3"},
     )
     # Send a request to this dummy URL with authentication
     httpx.get(
