@@ -203,16 +203,6 @@ class AWS4_SigningKey_Test(unittest.TestCase):
             test_date = datetime.datetime.utcnow().strftime("%Y%m%d")
         self.assertEqual(obj.date, test_date)
 
-    def test_amz_date_warning(self):
-        """
-        Will be removed when deprecated amz_date attribute is removed
-        """
-        warnings.resetwarnings()
-        with warnings.catch_warnings(record=True) as w:
-            obj = AWS4SigningKey("secret_key", "region", "service")
-            warnings.simplefilter("ignore")
-            self.assertWarns(DeprecationWarning, getattr, obj, "amz_date")
-
     def test_sign_sha256_unicode_msg(self):
         key = b"The quick brown fox jumps over the lazy dog"
         msg = (
