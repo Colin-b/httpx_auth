@@ -18,6 +18,7 @@ Note that a few changes were made:
   - `include_hdrs` parameter was renamed into `include_headers`
   - `host` is not considered as a specific Amazon service anymore (no test specific code).
   - Each request now has it's own signing key and x-amz-date. Meaning you can use the same auth instance for more than one request.
+  - `session_token` was renamed into `security_token` for consistency with the underlying name at Amazon.
 
 ## [0.3.0] - 2020-05-26
 ### Changed

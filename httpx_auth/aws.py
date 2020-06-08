@@ -37,18 +37,19 @@ class AWS4Auth(httpx.Auth):
         :param service: The name of the service you're connecting to, as per endpoints at:
         http://docs.aws.amazon.com/general/latest/gr/rande.html
         e.g. elasticbeanstalk.
-        :param session_token: Used for the x-amz-security-token header, for use with STS temporary credentials.
+        :param security_token: Used for the x-amz-security-token header, for use with STS temporary credentials.
         """
         self.secret_key = secret_key
-        if self.secret_key is None:
+        if not self.secret_key:
             raise Exception("Secret key is mandatory.")
 
         self.access_id = access_id
         self.region = region
         self.service = service
 
-        self.session_token = kwargs.get("session_token")
-        if self.session_token:
+        self.security_token = kwargs.get("security_token")
+        # TODO Check if we really need to be able to override this default ?
+        if self.security_token:
             # TODO Avoid modifying shared variable
             self.default_include_headers.append("x-amz-security-token")
         self.include_headers = kwargs.get(
@@ -75,8 +76,8 @@ class AWS4Auth(httpx.Auth):
         else:
             content = b""
         request.headers["x-amz-content-sha256"] = hashlib.sha256(content).hexdigest()
-        if self.session_token:
-            request.headers["x-amz-security-token"] = self.session_token
+        if self.security_token:
+            request.headers["x-amz-security-token"] = self.security_token
 
         cano_headers, signed_headers = self.get_canonical_headers(
             request, self.include_headers
@@ -120,8 +121,7 @@ class AWS4Auth(httpx.Auth):
             signed_headers,
             payload_hash,
         ]
-        cano_req = "\n".join(req_parts)
-        return cano_req
+        return "\n".join(req_parts)
 
     @classmethod
     def get_canonical_headers(cls, req: httpx.Request, include: List[str]):
