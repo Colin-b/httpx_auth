@@ -150,7 +150,7 @@ class AWS4Auth(httpx.Auth):
         if req_scope_date != self.date:
             self.handle_date_mismatch(request)
 
-        # encode body and generate body hash
+        # generate body hash
         if hasattr(request, "_content") and request.content is not None:
             content_hash = hashlib.sha256(request.content)
         else:
@@ -427,6 +427,8 @@ class AWS4Auth(httpx.Auth):
         problem reports and testing against the live services.
         path -- request path
         """
+        if len(path) == 0:
+            path = "/"
         safe_chars = "/~"
         qs = ""
         fixed_path = path

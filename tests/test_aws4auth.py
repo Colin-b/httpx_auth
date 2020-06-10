@@ -665,6 +665,7 @@ class AWS4Auth_Date_Test(unittest.TestCase):
 
     def test_replace_bad_dates(self):
         req = httpx.Request("GET", "http://blah.com")
+        req.read()
         req.headers["x-amz-date"] = ""
         req.headers["date"] = ""
         secret_key = "dummy"
@@ -678,6 +679,7 @@ class AWS4Auth_Date_Test(unittest.TestCase):
 
     def test_aws4auth_add_header(self):
         req = httpx.Request("GET", "http://blah.com")
+        req.read()
         if "date" in req.headers:
             del req.headers["date"]
         secret_key = "dummy"
@@ -767,6 +769,11 @@ class AWS4Auth_AmzCanonicalPath_Test(unittest.TestCase):
         path = "/"
         encoded = self.nons3auth.amz_cano_path(path)
         self.assertEqual(encoded, path)
+
+    def test_empty(self):
+        path = ""
+        encoded = self.nons3auth.amz_cano_path(path)
+        self.assertEqual(encoded, "/")
 
     def test_handle_querystring(self):
         path = "/test/index.html?param1&param2=blah*"
@@ -1051,6 +1058,7 @@ class AWS4Auth_RequestSign_Test(unittest.TestCase):
         sreq = next(auth.auth_flow(req))
         signature = sreq.headers["Authorization"].split("=")[3]
         self.assertIsNotNone(signature)
+        self.assertFalse(hasattr(sreq, "_content"))
 
     def test_regen_key_on_date_mismatch(self):
         vals = [
@@ -1060,6 +1068,7 @@ class AWS4Auth_RequestSign_Test(unittest.TestCase):
         ]
         for amzdate, scope_date in vals:
             req = httpx.Request("GET", "http://blah.com")
+            req.read()
             if "date" in req.headers:
                 del req.headers["date"]
             req.headers["x-amz-date"] = amzdate
@@ -1107,6 +1116,7 @@ class AWS4Auth_RequestSign_Test(unittest.TestCase):
         key = AWS4SigningKey("secret_key", "region", "service", "1999010")
         auth = AWS4Auth("access_id", key, session_token="sessiontoken")
         req = httpx.Request("GET", "http://blah.com")
+        req.read()
         sreq = next(auth.auth_flow(req))
         self.assertIn("x-amz-security-token", sreq.headers)
         self.assertEqual(sreq.headers.get("x-amz-security-token"), "sessiontoken")
@@ -1174,7 +1184,7 @@ class AWS4Auth_LiveService_Test(unittest.TestCase):
     services = {
         #   "AppStream": "appstream2.us-east-1.amazonaws.com/applications",
         "Auto-Scaling": "autoscaling.us-east-1.amazonaws.com/?Action=DescribeAutoScalingInstances&Version=2011-01-01",
-        # "CloudFormation": "cloudformation.us-east-1.amazonaws.com?Action=ListStacks&Version=2010-05-15&SignatureVersion=4",
+        "CloudFormation": "cloudformation.us-east-1.amazonaws.com?Action=ListStacks",
         "CloudFront": "cloudfront.amazonaws.com/2014-11-06/distribution?MaxItems=1",
         #  "CloudHSM": {
         #     "method": "POST",
@@ -1185,27 +1195,29 @@ class AWS4Auth_LiveService_Test(unittest.TestCase):
         #     },
         #     "body": "{}",
         # },
-        # "CloudSearch": "cloudsearch.us-east-1.amazonaws.com?Action=ListDomainNames&Version=2013-01-01",
-        # "CloudTrail": "cloudtrail.us-east-1.amazonaws.com?Action=DescribeTrails",
-        # "CloudWatch (monitoring)": "monitoring.us-east-1.amazonaws.com?Action=ListMetrics",
-        # "CloudWatch (logs)": {
-        #    "method": "POST",
-        #    "req": "logs.us-east-1.amazonaws.com",
-        #    "headers": {
-        #        "X-Amz-Target": "Logs_20140328.DescribeLogGroups",
-        #        "Content-Type": "application/x-amz-json-1.1",
-        #    },
-        #    "body": "{}",
-        # },
-        # "CodeDeploy": {
-        #    "method": "POST",
-        #    "req": "codedeploy.us-east-1.amazonaws.com",
-        #    "headers": {
-        #        "X-Amz-Target": "CodeDeploy_20141006.ListApplications",
-        #        "Content-Type": "application/x-amz-json-1.1",
-        #    },
-        #    "body": "{}",
-        # },
+        "CloudSearch": "cloudsearch.us-east-1.amazonaws.com?Action=ListDomainNames&Version=2013-01-01",
+        "CloudTrail": "cloudtrail.us-east-1.amazonaws.com?Action=DescribeTrails",
+        "CloudWatch (monitoring)": (
+            "monitoring.us-east-1.amazonaws.com?Action=ListMetrics"
+        ),
+        "CloudWatch (logs)": {
+            "method": "POST",
+            "req": "logs.us-east-1.amazonaws.com",
+            "headers": {
+                "X-Amz-Target": "Logs_20140328.DescribeLogGroups",
+                "Content-Type": "application/x-amz-json-1.1",
+            },
+            "body": "{}",
+        },
+        "CodeDeploy": {
+            "method": "POST",
+            "req": "codedeploy.us-east-1.amazonaws.com",
+            "headers": {
+                "X-Amz-Target": "CodeDeploy_20141006.ListApplications",
+                "Content-Type": "application/x-amz-json-1.1",
+            },
+            "body": "{}",
+        },
         "Cognito Identity": {
             "method": "POST",
             "req": "cognito-identity.us-east-1.amazonaws.com",
@@ -1242,38 +1254,38 @@ class AWS4Auth_LiveService_Test(unittest.TestCase):
                 }
             ),
         },
-        # "Config": {
-        #    "method": "POST",
-        #    "req": "config.us-east-1.amazonaws.com",
-        #    "headers": {
-        #        "X-Amz-Target": "StarlingDoveService.DescribeDeliveryChannels",
-        #        "Content-Type": "application/x-amz-json-1.1",
-        #    },
-        #    "body": "{}",
-        # },
-        # "DataPipeline": {
-        #    "req": "datapipeline.us-east-1.amazonaws.com?Action=ListPipelines",
-        #    "headers": {"X-Amz-Target": "DataPipeline.ListPipelines"},
-        #    "body": "{}",
-        # },
-        # "Direct Connect": {
-        #    "method": "POST",
-        #    "req": "directconnect.us-east-1.amazonaws.com",
-        #    "headers": {
-        #        "X-Amz-Target": "OvertureService.DescribeConnections",
-        #        "Content-Type": "application/x-amz-json-1.1",
-        #    },
-        #    "body": "{}",
-        # },
-        # "DynamoDB": {
-        #    "method": "POST",
-        #    "req": "dynamodb.us-east-1.amazonaws.com",
-        #    "headers": {
-        #        "X-Amz-Target": "DynamoDB_20111205.ListTables",
-        #        "Content-Type": "application/x-amz-json-1.0",
-        #    },
-        #    "body": "{}",
-        # },
+        "Config": {
+            "method": "POST",
+            "req": "config.us-east-1.amazonaws.com",
+            "headers": {
+                "X-Amz-Target": "StarlingDoveService.DescribeDeliveryChannels",
+                "Content-Type": "application/x-amz-json-1.1",
+            },
+            "body": "{}",
+        },
+        "DataPipeline": {
+            "req": "datapipeline.us-east-1.amazonaws.com?Action=ListPipelines",
+            "headers": {"X-Amz-Target": "DataPipeline.ListPipelines"},
+            "body": "{}",
+        },
+        "Direct Connect": {
+            "method": "POST",
+            "req": "directconnect.us-east-1.amazonaws.com",
+            "headers": {
+                "X-Amz-Target": "OvertureService.DescribeConnections",
+                "Content-Type": "application/x-amz-json-1.1",
+            },
+            "body": "{}",
+        },
+        "DynamoDB": {
+            "method": "POST",
+            "req": "dynamodb.us-east-1.amazonaws.com",
+            "headers": {
+                "X-Amz-Target": "DynamoDB_20111205.ListTables",
+                "Content-Type": "application/x-amz-json-1.0",
+            },
+            "body": "{}",
+        },
         "Elastic Beanstalk": "elasticbeanstalk.us-east-1.amazonaws.com/?Action=ListAvailableSolutionStacks&Version=2010-12-01",
         "ElastiCache": "elasticache.us-east-1.amazonaws.com/?Action=DescribeCacheClusters&Version=2014-07-15",
         "EC2": "ec2.us-east-1.amazonaws.com/?Action=DescribeRegions&Version=2014-06-15",
@@ -1292,53 +1304,53 @@ class AWS4Auth_LiveService_Test(unittest.TestCase):
         "Identity and Access Management (IAM)": (
             "iam.amazonaws.com/?Action=ListUsers&Version=2010-05-08"
         ),
-        # "Key Management Service": {
-        #    "method": "POST",
-        #    "req": "kms.us-east-1.amazonaws.com",
-        #    "headers": {
-        #        "Content-Type": "application/x-amz-json-1.1",
-        #        "X-Amz-Target": "TrentService.ListKeys",
-        #    },
-        #    "body": "{}",
-        # },
-        # "Kinesis": {
-        #     "method": "POST",
-        #     "req": "kinesis.us-east-1.amazonaws.com",
-        #     "headers": {
-        #         "Content-Type": "application/x-amz-json-1.1",
-        #         "X-Amz-Target": "Kinesis_20131202.ListStreams",
-        #     },
-        #     "body": "{}",
-        # },
+        "Key Management Service": {
+            "method": "POST",
+            "req": "kms.us-east-1.amazonaws.com",
+            "headers": {
+                "Content-Type": "application/x-amz-json-1.1",
+                "X-Amz-Target": "TrentService.ListKeys",
+            },
+            "body": "{}",
+        },
+        "Kinesis": {
+            "method": "POST",
+            "req": "kinesis.us-east-1.amazonaws.com",
+            "headers": {
+                "Content-Type": "application/x-amz-json-1.1",
+                "X-Amz-Target": "Kinesis_20131202.ListStreams",
+            },
+            "body": "{}",
+        },
         "Lambda": "lambda.us-east-1.amazonaws.com/2014-11-13/functions/",
-        # "Opsworks": {
-        #    "method": "POST",
-        #    "req": "opsworks.us-east-1.amazonaws.com",
-        #    "headers": {
-        #        "Content-Type": "application/x-amz-json-1.1",
-        #        "X-Amz-Target": "OpsWorks_20130218.DescribeStacks",
-        #    },
-        #    "body": "{}",
-        # },
+        "Opsworks": {
+            "method": "POST",
+            "req": "opsworks.us-east-1.amazonaws.com",
+            "headers": {
+                "Content-Type": "application/x-amz-json-1.1",
+                "X-Amz-Target": "OpsWorks_20130218.DescribeStacks",
+            },
+            "body": "{}",
+        },
         "Redshift": "redshift.us-east-1.amazonaws.com/?Action=DescribeClusters&Version=2012-12-01",
         "Relational Database Service (RDS)": (
             "rds.us-east-1.amazonaws.com/?Action=DescribeDBInstances&Version=2012-09-17"
         ),
         "Route 53": "route53.amazonaws.com/2013-04-01/hostedzone",
-        # "Simple Storage Service (S3)": "s3.amazonaws.com",
+        "Simple Storage Service (S3)": "s3.us-east-1.amazonaws.com",
         "Simple Notification Service (SNS)": (
             "sns.us-east-1.amazonaws.com/?Action=ListTopics&Version=2010-03-31"
         ),
         "Simple Queue Service (SQS)": "sqs.us-east-1.amazonaws.com/?Action=ListQueues",
-        # "Storage Gateway": {
-        #    "method": "POST",
-        #    "req": "storagegateway.us-east-1.amazonaws.com",
-        #    "headers": {
-        #        "Content-Type": "application/x-amz-json-1.1",
-        #        "X-Amz-Target": "StorageGateway_20120630.ListGateways",
-        #    },
-        #    "body": "{}",
-        # },
+        "Storage Gateway": {
+            "method": "POST",
+            "req": "storagegateway.us-east-1.amazonaws.com",
+            "headers": {
+                "Content-Type": "application/x-amz-json-1.1",
+                "X-Amz-Target": "StorageGateway_20120630.ListGateways",
+            },
+            "body": "{}",
+        },
         "Security Token Service": (
             "sts.amazonaws.com/?Action=GetSessionToken&Version=2011-06-15"
         ),
@@ -1376,7 +1388,7 @@ class AWS4Auth_LiveService_Test(unittest.TestCase):
         region = "us-east-1"
         auth = AWS4Auth(live_access_id, live_secret_key, region, service)
         response = httpx.request(method, url, auth=auth, data=body, headers=headers)
-        self.assertEqual(response.status_code, httpx.codes.OK)
+        self.assertEqual(response.status_code, httpx.codes.OK, msg=service_name)
 
     def test_pinpoint(self):
         url = "https://pinpoint.us-east-1.amazonaws.com/v1/apps"
