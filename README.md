@@ -61,7 +61,7 @@ import httpx
 from httpx_auth import OAuth2AuthorizationCode
 
 with httpx.Client() as client:
-    client.get('http://www.example.com', auth=OAuth2AuthorizationCode('https://www.authorization.url', 'https://www.token.url'))
+    client.get('https://www.example.com', auth=OAuth2AuthorizationCode('https://www.authorization.url', 'https://www.token.url'))
 ```
 
 #### Parameters
@@ -112,7 +112,7 @@ from httpx_auth import OktaAuthorizationCode
 
 okta = OktaAuthorizationCode(instance='testserver.okta-emea.com', client_id='54239d18-c68c-4c47-8bdd-ce71ea1d50cd')
 with httpx.Client() as client:
-    client.get('http://www.example.com', auth=okta)
+    client.get('https://www.example.com', auth=okta)
 ```
 
 ###### Parameters
@@ -153,7 +153,7 @@ import httpx
 from httpx_auth import OAuth2AuthorizationCodePKCE
 
 with httpx.Client() as client:
-    client.get('http://www.example.com', auth=OAuth2AuthorizationCodePKCE('https://www.authorization.url', 'https://www.token.url'))
+    client.get('https://www.example.com', auth=OAuth2AuthorizationCodePKCE('https://www.authorization.url', 'https://www.token.url'))
 ```
 
 #### Parameters 
@@ -202,7 +202,7 @@ from httpx_auth import OktaAuthorizationCodePKCE
 
 okta = OktaAuthorizationCodePKCE(instance='testserver.okta-emea.com', client_id='54239d18-c68c-4c47-8bdd-ce71ea1d50cd')
 with httpx.Client() as client:
-    client.get('http://www.example.com', auth=okta)
+    client.get('https://www.example.com', auth=okta)
 ```
 
 ###### Parameters
@@ -232,7 +232,7 @@ Usual extra parameters are:
 | Name            | Description                                                          |
 |:----------------|:---------------------------------------------------------------------|
 | `client_secret`        | If client is not authenticated with the authorization server     |
-| `nonce`        | Refer to http://openid.net/specs/openid-connect-core-1_0.html#IDToken for more details     |
+| `nonce`        | Refer to [OpenID ID Token specifications][3] for more details     |
 
 ### Resource Owner Password Credentials flow 
 
@@ -245,7 +245,7 @@ import httpx
 from httpx_auth import OAuth2ResourceOwnerPasswordCredentials
 
 with httpx.Client() as client:
-    client.get('http://www.example.com', auth=OAuth2ResourceOwnerPasswordCredentials('https://www.token.url', 'user name', 'user password'))
+    client.get('https://www.example.com', auth=OAuth2ResourceOwnerPasswordCredentials('https://www.token.url', 'user name', 'user password'))
 ```
 
 #### Parameters
@@ -274,7 +274,7 @@ import httpx
 from httpx_auth import OAuth2ClientCredentials
 
 with httpx.Client() as client:
-    client.get('http://www.example.com', auth=OAuth2ClientCredentials('https://www.token.url', client_id='id', client_secret='secret'))
+    client.get('https://www.example.com', auth=OAuth2ClientCredentials('https://www.token.url', client_id='id', client_secret='secret'))
 ```
 
 #### Parameters
@@ -311,7 +311,7 @@ from httpx_auth import OktaClientCredentials
 
 okta = OktaClientCredentials(instance='testserver.okta-emea.com', client_id='54239d18-c68c-4c47-8bdd-ce71ea1d50cd', client_secret="secret")
 with httpx.Client() as client:
-    client.get('http://www.example.com', auth=okta)
+    client.get('https://www.example.com', auth=okta)
 ```
 
 ###### Parameters
@@ -341,7 +341,7 @@ import httpx
 from httpx_auth import OAuth2Implicit
 
 with httpx.Client() as client:
-    client.get('http://www.example.com', auth=OAuth2Implicit('https://www.authorization.url'))
+    client.get('https://www.example.com', auth=OAuth2Implicit('https://www.authorization.url'))
 ```
 
 #### Parameters
@@ -388,7 +388,7 @@ from httpx_auth import AzureActiveDirectoryImplicit
 
 aad = AzureActiveDirectoryImplicit(tenant_id='45239d18-c68c-4c47-8bdd-ce71ea1d50cd', client_id='54239d18-c68c-4c47-8bdd-ce71ea1d50cd')
 with httpx.Client() as client:
-    client.get('http://www.example.com', auth=aad)
+    client.get('https://www.example.com', auth=aad)
 ```
 
 You can retrieve Microsoft Azure Active Directory application information thanks to the [application list on Azure portal](https://portal.azure.com/#blade/Microsoft_AAD_IAM/StartboardApplicationsMenuBlade/AllApps/menuId/).
@@ -431,7 +431,7 @@ from httpx_auth import AzureActiveDirectoryImplicitIdToken
 
 aad = AzureActiveDirectoryImplicitIdToken(tenant_id='45239d18-c68c-4c47-8bdd-ce71ea1d50cd', client_id='54239d18-c68c-4c47-8bdd-ce71ea1d50cd')
 with httpx.Client() as client:
-    client.get('http://www.example.com', auth=aad)
+    client.get('https://www.example.com', auth=aad)
 ```
 
 You can retrieve Microsoft Azure Active Directory application information thanks to the [application list on Azure portal](https://portal.azure.com/#blade/Microsoft_AAD_IAM/StartboardApplicationsMenuBlade/AllApps/menuId/).
@@ -474,7 +474,7 @@ from httpx_auth import OktaImplicit
 
 okta = OktaImplicit(instance='testserver.okta-emea.com', client_id='54239d18-c68c-4c47-8bdd-ce71ea1d50cd')
 with httpx.Client() as client:
-    client.get('http://www.example.com', auth=okta)
+    client.get('https://www.example.com', auth=okta)
 ```
 
 ###### Parameters
@@ -517,7 +517,7 @@ from httpx_auth import OktaImplicitIdToken
 
 okta = OktaImplicitIdToken(instance='testserver.okta-emea.com', client_id='54239d18-c68c-4c47-8bdd-ce71ea1d50cd')
 with httpx.Client() as client:
-    client.get('http://www.example.com', auth=okta)
+    client.get('https://www.example.com', auth=okta)
 ```
 
 ###### Parameters
@@ -572,7 +572,7 @@ import httpx
 from httpx_auth import HeaderApiKey
 
 with httpx.Client() as client:
-    client.get('http://www.example.com', auth=HeaderApiKey('my_api_key'))
+    client.get('https://www.example.com', auth=HeaderApiKey('my_api_key'))
 ```
 
 ### Parameters
@@ -591,7 +591,7 @@ import httpx
 from httpx_auth import QueryApiKey
 
 with httpx.Client() as client:
-    client.get('http://www.example.com', auth=QueryApiKey('my_api_key'))
+    client.get('https://www.example.com', auth=QueryApiKey('my_api_key'))
 ```
 
 ### Parameters
@@ -612,7 +612,7 @@ import httpx
 from httpx_auth import Basic
 
 with httpx.Client() as client:
-    client.get('http://www.example.com', auth=Basic('username', 'password'))
+    client.get('https://www.example.com', auth=Basic('username', 'password'))
 ```
 
 ### Parameters
@@ -624,7 +624,7 @@ with httpx.Client() as client:
 
 ## Multiple authentication at once
 
-You can also use a combination of authentication using `+` as in the following sample:
+You can also use a combination of authentication using `+`or `&`  as in the following sample:
 
 ```python
 import httpx
@@ -633,12 +633,12 @@ from httpx_auth import HeaderApiKey, OAuth2Implicit
 api_key = HeaderApiKey('my_api_key')
 oauth2 = OAuth2Implicit('https://www.example.com')
 with httpx.Client() as client:
-    client.get('http://www.example.com', auth=api_key + oauth2)
+    client.get('https://www.example.com', auth=api_key + oauth2)
 ```
 
 ## Available pytest fixtures
 
-Testing the code using httpx_auth authentication classes can be achieved using provided [`pytest`][6] fixtures.
+Testing the code using `httpx_auth` authentication classes can be achieved using provided [`pytest`][6] fixtures.
 
 ### token_cache_mock
 
@@ -664,7 +664,7 @@ Use this fixture to mock authentication success for any of the following classes
  * OktaClientCredentials
  * OAuth2ResourceOwnerPasswordCredentials,
 
-By default, [`pyjwt`](https://pypi.org/project/PyJWT/) is a required dependency as it is used to generate the token returned by the authentication.
+By default, an access token with value `2YotnFZFEjr1zCsicMWpAA` is generated.
 
 You can however return your custom token by providing your own `token_mock` fixture as in the following sample:
 
@@ -676,7 +676,27 @@ from httpx_auth.testing import token_cache_mock
 
 @pytest.fixture
 def token_mock() -> str:
-    return "2YotnFZFEjr1zCsicMWpAA"
+    return "MyCustomTokenValue"
+
+
+def test_something(token_cache_mock):
+    # perform code using authentication
+    pass
+```
+
+You can even return a more complex token by using the `create_token` function.
+
+Note that [`pyjwt`](https://pypi.org/project/PyJWT/) is a required dependency in this case as it is used to generate the token returned by the authentication.
+
+```python
+import pytest
+from httpx_auth.testing import token_cache_mock, create_token
+
+
+@pytest.fixture
+def token_mock() -> str:
+    expiry = None  # TODO Compute your expiry
+    return create_token(expiry)
 
 
 def test_something(token_cache_mock):
@@ -728,5 +748,5 @@ def test_something(browser_mock: BrowserMock):
 
 [1]: https://pypi.python.org/pypi/httpx "httpx module"
 [2]: https://www.python-httpx.org/advanced/#customizing-authentication "authentication parameter on httpx module"
-[3]: http://openid.net/specs/openid-connect-core-1_0.html#IDToken "OpenID ID Token specifications"
+[3]: https://openid.net/specs/openid-connect-core-1_0.html#IDToken "OpenID ID Token specifications"
 [6]: https://docs.pytest.org/en/latest/ "pytest module"

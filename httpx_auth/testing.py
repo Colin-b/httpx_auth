@@ -56,9 +56,7 @@ class Tab(threading.Thread):
     def _simulate_httpx_auth_redirect(self) -> bytes:
         reply_url = self.reply_url.replace("#", "?")
         reply_url += (
-            "&httpx_auth_redirect=1"
-            if "?" in reply_url
-            else "?httpx_auth_redirect=1"
+            "&httpx_auth_redirect=1" if "?" in reply_url else "?httpx_auth_redirect=1"
         )
         return urllib.request.urlopen(reply_url, data=self.data).read()
 
@@ -124,7 +122,7 @@ def browser_mock(monkeypatch) -> BrowserMock:
 
 @pytest.fixture
 def token_mock() -> str:
-    return create_token(None)
+    return "2YotnFZFEjr1zCsicMWpAA"
 
 
 @pytest.fixture

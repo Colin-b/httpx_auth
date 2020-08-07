@@ -1,4 +1,4 @@
-from pytest_httpx import httpx_mock, HTTPXMock
+from pytest_httpx import HTTPXMock
 import pytest
 import httpx
 
@@ -59,7 +59,7 @@ def test_with_invalid_grant_request_no_json(token_cache, httpx_mock: HTTPXMock):
         method="POST",
         url="http://provide_access_token",
         data="failure",
-        status_code=400
+        status_code=400,
     )
     with pytest.raises(httpx_auth.InvalidGrantRequest) as exception_info:
         httpx.get("http://authorized_only", auth=auth)

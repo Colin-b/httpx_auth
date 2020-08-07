@@ -6,6 +6,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.0] - 2020-08-07
+### Changed
+- Mock an access token by default in `httpx_auth.testing.token_cache_mock`. Getting rid of `pyjwt` default dependency for testing.
+- Requires [`httpx`](https://www.python-httpx.org)==0.14.*
+
+### Added
+- Still under development, subject to breaking changes without notice: `AWS4Auth` authentication class for AWS. Ported from [`requests-aws4auth`](https://github.com/sam-washington/requests-aws4auth) by [`Michael E. Martinka`](https://github.com/martinka).
+Note that a few changes were made:
+  - deprecated `amz_date` attribute has been removed.
+  - it is not possible to provide an `AWSSigningKey` instance, use explicit parameters instead.
+  - it is not possible to provide a `date`. It will default to now.
+  - it is not possible to provide `raise_invalid_date` parameter anymore as the date will always be valid.
+  - `include_hdrs` parameter was renamed into `include_headers`
+  - `host` is not considered as a specific Amazon service anymore (no test specific code).
+  - Each request now has it's own signing key and x-amz-date. Meaning you can use the same auth instance for more than one request.
+  - `session_token` was renamed into `security_token` for consistency with the underlying name at Amazon.
+
 ## [0.3.0] - 2020-05-26
 ### Changed
 - Requires [`httpx`](https://www.python-httpx.org)==0.13.*
@@ -26,7 +43,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Placeholder for port of requests_auth to httpx
 
-[Unreleased]: https://github.com/Colin-b/httpx_auth/compare/v0.3.0...HEAD
+[Unreleased]: https://github.com/Colin-b/httpx_auth/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/Colin-b/httpx_auth/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/Colin-b/httpx_auth/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/Colin-b/httpx_auth/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/Colin-b/httpx_auth/compare/v0.0.2...v0.1.0

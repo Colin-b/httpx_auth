@@ -1,6 +1,4 @@
-import logging
 import datetime
-import sys
 
 import pytest
 import jwt

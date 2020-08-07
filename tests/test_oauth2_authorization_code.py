@@ -1,10 +1,9 @@
-from pytest_httpx import httpx_mock, HTTPXMock
+from pytest_httpx import HTTPXMock
 import pytest
 import httpx
 
 import httpx_auth
 from httpx_auth.testing import BrowserMock, browser_mock, token_cache
-from tests.auth_helper import get_header
 
 
 def test_oauth2_authorization_code_flow_get_code_is_sent_in_authorization_header_by_default(
@@ -27,9 +26,11 @@ def test_oauth2_authorization_code_flow_get_code_is_sent_in_authorization_header
             "refresh_token": "tGzv3JOkF0XG5Qx2TlKWIA",
             "example_parameter": "example_value",
         },
-        match_content=b"grant_type=authorization_code&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F&response_type=code&code=SplxlOBeZQQYbYS6WxSbIA"
+        match_content=b"grant_type=authorization_code&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F&response_type=code&code=SplxlOBeZQQYbYS6WxSbIA",
     )
-    httpx_mock.add_response(match_headers={"Authorization": "Bearer 2YotnFZFEjr1zCsicMWpAA"})
+    httpx_mock.add_response(
+        match_headers={"Authorization": "Bearer 2YotnFZFEjr1zCsicMWpAA"}
+    )
     # Send a request to this dummy URL with authentication
     httpx.get("http://authorized_only", auth=auth)
     tab.assert_success(
@@ -83,7 +84,7 @@ def test_with_invalid_grant_request_no_json(
         method="POST",
         url="http://provide_access_token",
         data="failure",
-        status_code=400
+        status_code=400,
     )
     with pytest.raises(httpx_auth.InvalidGrantRequest) as exception_info:
         httpx.get("http://authorized_only", auth=auth)
@@ -609,10 +610,12 @@ def test_nonce_is_sent_if_provided_in_authorization_url(
             "refresh_token": "tGzv3JOkF0XG5Qx2TlKWIA",
             "example_parameter": "example_value",
         },
-        match_content=b"grant_type=authorization_code&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F&response_type=code&code=SplxlOBeZQQYbYS6WxSbIA"
+        match_content=b"grant_type=authorization_code&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F&response_type=code&code=SplxlOBeZQQYbYS6WxSbIA",
     )
     # Mock a dummy response
-    httpx_mock.add_response(match_headers={"Authorization": "Bearer 2YotnFZFEjr1zCsicMWpAA"})
+    httpx_mock.add_response(
+        match_headers={"Authorization": "Bearer 2YotnFZFEjr1zCsicMWpAA"}
+    )
     # Send a request to this dummy URL with authentication
     httpx.get("http://authorized_only", auth=auth)
     tab.assert_success(
@@ -642,10 +645,12 @@ def test_response_type_can_be_provided_in_url(
             "refresh_token": "tGzv3JOkF0XG5Qx2TlKWIA",
             "example_parameter": "example_value",
         },
-        match_content=b"grant_type=authorization_code&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F&code=SplxlOBeZQQYbYS6WxSbIA"
+        match_content=b"grant_type=authorization_code&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F&code=SplxlOBeZQQYbYS6WxSbIA",
     )
     # Mock a dummy response
-    httpx_mock.add_response(match_headers={"Authorization": "Bearer 2YotnFZFEjr1zCsicMWpAA"})
+    httpx_mock.add_response(
+        match_headers={"Authorization": "Bearer 2YotnFZFEjr1zCsicMWpAA"}
+    )
     # Send a request to this dummy URL with authentication
     httpx.get("http://authorized_only", auth=auth)
     tab.assert_success(
