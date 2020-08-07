@@ -1,5 +1,5 @@
 """
-Provides code for AWSAuth ported to httpx from Sam Washington's requets-aws4auth
+Provides code for AWSAuth ported to httpx from Sam Washington's requests-aws4auth
 https://github.com/sam-washington/requests-aws4auth
 """
 import hmac
@@ -12,7 +12,7 @@ from urllib.parse import urlparse, parse_qs, quote, unquote
 
 import httpx
 
-from typing import Generator, List
+from typing import Generator, List, Tuple
 
 
 class AWS4Auth(httpx.Auth):
@@ -92,11 +92,12 @@ class AWS4Auth(httpx.Auth):
         request.headers["Authorization"] = auth_str
         yield request
 
-    def get_canonical_request(self, req, cano_headers, signed_headers):
+    def get_canonical_request(
+        self, req: httpx.Request, cano_headers: str, signed_headers: str
+    ) -> str:
         """
         Create the AWS authentication Canonical Request string.
-        req            -- Requests PreparedRequest object. Should already
-                          include an x-amz-content-sha256 header
+        req            -- Should already include an x-amz-content-sha256 header
         cano_headers   -- Canonical Headers section of Canonical Request, as
                           returned by get_canonical_headers()
         signed_headers -- Signed Headers, as returned by
@@ -122,7 +123,9 @@ class AWS4Auth(httpx.Auth):
         return "\n".join(req_parts)
 
     @classmethod
-    def get_canonical_headers(cls, req: httpx.Request, include: List[str]):
+    def get_canonical_headers(
+        cls, req: httpx.Request, include: List[str]
+    ) -> Tuple[str, str]:
         """
         Generate the Canonical Headers section of the Canonical Request.
         Return the Canonical Headers and the Signed Headers strs as a tuple
@@ -170,17 +173,16 @@ class AWS4Auth(httpx.Auth):
         for hdr in sorted(cano_headers_dict):
             vals = cano_headers_dict[hdr]
             val = ",".join(sorted(vals))
-            cano_headers += "{}:{}\n".format(hdr, val)
+            cano_headers += f"{hdr}:{val}\n"
             signed_headers_list.append(hdr)
         signed_headers = ";".join(signed_headers_list)
-        return (cano_headers, signed_headers)
+        return cano_headers, signed_headers
 
     @staticmethod
-    def get_sig_string(req, cano_req, scope):
+    def get_sig_string(req: httpx.Request, cano_req: str, scope: str) -> str:
         """
         Generate the AWS4 auth string to sign for the request.
-        req      -- Requests PreparedRequest object. This should already
-                    include an x-amz-date header.
+        req      -- This should already include an x-amz-date header.
         cano_req -- The Canonical Request, as returned by
                     get_canonical_request()
         """
@@ -198,10 +200,7 @@ class AWS4Auth(httpx.Auth):
         path -- request path
         """
         safe_chars = "/~"
-        qs = ""
         fixed_path = path
-        if "?" in fixed_path:
-            fixed_path, qs = fixed_path.split("?", 1)
         fixed_path = posixpath.normpath(fixed_path)
         fixed_path = re.sub("/+", "/", fixed_path)
         if path.endswith("/") and not fixed_path.endswith("/"):
@@ -210,11 +209,7 @@ class AWS4Auth(httpx.Auth):
         # S3 seems to require unquoting first.
         if self.service == "s3":
             full_path = unquote(full_path)
-        full_path = quote(full_path, safe=safe_chars)
-        if qs:
-            qm = "?"
-            full_path = qm.join((full_path, qs))
-        return full_path
+        return quote(full_path, safe=safe_chars)
 
     @staticmethod
     def amz_cano_querystring(qs):

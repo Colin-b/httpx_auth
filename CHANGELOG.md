@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Requires [`httpx`](https://www.python-httpx.org)==0.14.*
 
 ### Added
-- `AWS4Auth` authentication class for AWS. Ported from [`requests-aws4auth`](https://github.com/sam-washington/requests-aws4auth) by [`Michael E. Martinka`](https://github.com/martinka).
+- Still under development, subject to breaking changes without notice: `AWS4Auth` authentication class for AWS. Ported from [`requests-aws4auth`](https://github.com/sam-washington/requests-aws4auth) by [`Michael E. Martinka`](https://github.com/martinka).
 Note that a few changes were made:
   - deprecated `amz_date` attribute has been removed.
   - it is not possible to provide an `AWSSigningKey` instance, use explicit parameters instead.
