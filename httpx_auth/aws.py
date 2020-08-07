@@ -71,11 +71,9 @@ class AWS4Auth(httpx.Auth):
         request.headers["x-amz-date"] = date.strftime("%Y%m%dT%H%M%SZ")
 
         # encode body and generate body hash
-        if hasattr(request, "_content") and request.content is not None:
-            content = request.content
-        else:
-            content = b""
-        request.headers["x-amz-content-sha256"] = hashlib.sha256(content).hexdigest()
+        request.headers["x-amz-content-sha256"] = hashlib.sha256(
+            request.read()
+        ).hexdigest()
         if self.security_token:
             request.headers["x-amz-security-token"] = self.security_token
 
@@ -252,7 +250,7 @@ class AWS4Auth(httpx.Auth):
         return " ".join(shlex.split(text, posix=False))
 
 
-def generate_key(secret_key: str, region: str, service: str, date: str,) -> bytes:
+def generate_key(secret_key: str, region: str, service: str, date: str) -> bytes:
     init_key = f"AWS4{secret_key}".encode("utf-8")
     date_key = sign_sha256(init_key, date)
     region_key = sign_sha256(date_key, region)
