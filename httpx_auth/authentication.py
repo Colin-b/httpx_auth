@@ -60,14 +60,17 @@ def _get_query_parameter(url: str, param_name: str) -> Optional[str]:
 
 
 def request_new_grant_with_post(
-    url: str, data, grant_name: str, timeout: float, auth=None
+    url: str, data, grant_name: str, client: httpx.Client
 ) -> (str, int):
-    response = httpx.post(url, data=data, timeout=timeout, auth=auth)
-    if response.is_error:
-        # As described in https://tools.ietf.org/html/rfc6749#section-5.2
-        raise InvalidGrantRequest(response)
+    with client:
+        response = client.post(url, data=data)
 
-    content = response.json()
+        if response.is_error:
+            # As described in https://tools.ietf.org/html/rfc6749#section-5.2
+            raise InvalidGrantRequest(response)
+
+        content = response.json()
+
     token = content.get(grant_name)
     if not token:
         raise GrantNotProvided(grant_name, content)
@@ -173,6 +176,9 @@ class OAuth2ResourceOwnerPasswordCredentials(httpx.Auth, SupportMultiAuth):
 
         # Time is expressed in seconds
         self.timeout = int(extra_parameters.pop("timeout", None) or 60)
+        self.client = httpx.Client(
+            auth=(self.username, self.password), timeout=self.timeout
+        )
 
         # As described in https://tools.ietf.org/html/rfc6749#section-4.3.2
         self.data = {
@@ -198,11 +204,7 @@ class OAuth2ResourceOwnerPasswordCredentials(httpx.Auth, SupportMultiAuth):
     def request_new_token(self):
         # As described in https://tools.ietf.org/html/rfc6749#section-4.3.3
         token, expires_in = request_new_grant_with_post(
-            self.token_url,
-            self.data,
-            self.token_field_name,
-            self.timeout,
-            auth=(self.username, self.password),
+            self.token_url, self.data, self.token_field_name, self.client
         )
         # Handle both Access and Bearer tokens
         return (self.state, token, expires_in) if expires_in else (self.state, token)
@@ -258,6 +260,10 @@ class OAuth2ClientCredentials(httpx.Auth, SupportMultiAuth):
         # Time is expressed in seconds
         self.timeout = int(extra_parameters.pop("timeout", None) or 60)
 
+        self.client = httpx.Client(
+            auth=(self.client_id, self.client_secret), timeout=self.timeout
+        )
+
         # As described in https://tools.ietf.org/html/rfc6749#section-4.4.2
         self.data = {"grant_type": "client_credentials"}
         scope = extra_parameters.pop("scope", None)
@@ -278,11 +284,7 @@ class OAuth2ClientCredentials(httpx.Auth, SupportMultiAuth):
     def request_new_token(self) -> tuple:
         # As described in https://tools.ietf.org/html/rfc6749#section-4.4.3
         token, expires_in = request_new_grant_with_post(
-            self.token_url,
-            self.data,
-            self.token_field_name,
-            self.timeout,
-            auth=(self.client_id, self.client_secret),
+            self.token_url, self.data, self.token_field_name, self.client
         )
         # Handle both Access and Bearer tokens
         return (self.state, token, expires_in) if expires_in else (self.state, token)
@@ -354,6 +356,7 @@ class OAuth2AuthorizationCode(httpx.Auth, SupportMultiAuth, BrowserAuth):
         username = kwargs.pop("username", None)
         password = kwargs.pop("password", None)
         self.auth = (username, password) if username and password else None
+        self.client = httpx.Client(auth=self.auth, timeout=self.timeout)
 
         # As described in https://tools.ietf.org/html/rfc6749#section-4.1.2
         code_field_name = kwargs.pop("code_field_name", "code")
@@ -415,11 +418,7 @@ class OAuth2AuthorizationCode(httpx.Auth, SupportMultiAuth, BrowserAuth):
         self.token_data["code"] = code
         # As described in https://tools.ietf.org/html/rfc6749#section-4.1.4
         token, expires_in = request_new_grant_with_post(
-            self.token_url,
-            self.token_data,
-            self.token_field_name,
-            self.timeout,
-            auth=self.auth,
+            self.token_url, self.token_data, self.token_field_name, self.client
         )
         # Handle both Access and Bearer tokens
         return (self.state, token, expires_in) if expires_in else (self.state, token)
@@ -478,6 +477,8 @@ class OAuth2AuthorizationCodePKCE(httpx.Auth, SupportMultiAuth, BrowserAuth):
             raise Exception("Token URL is mandatory.")
 
         BrowserAuth.__init__(self, kwargs)
+
+        self.client = httpx.Client(timeout=self.timeout)
 
         self.header_name = kwargs.pop("header_name", None) or "Authorization"
         self.header_value = kwargs.pop("header_value", None) or "Bearer {token}"
@@ -560,7 +561,7 @@ class OAuth2AuthorizationCodePKCE(httpx.Auth, SupportMultiAuth, BrowserAuth):
         self.token_data["code"] = code
         # As described in https://tools.ietf.org/html/rfc6749#section-4.1.4
         token, expires_in = request_new_grant_with_post(
-            self.token_url, self.token_data, self.token_field_name, self.timeout
+            self.token_url, self.token_data, self.token_field_name, self.client
         )
         # Handle both Access and Bearer tokens
         return (self.state, token, expires_in) if expires_in else (self.state, token)
