@@ -7,6 +7,35 @@ from tests.auth_helper import get_header
 from httpx_auth.testing import token_cache
 
 
+def test_oauth2_password_credentials_flow_uses_provided_client(
+    token_cache, httpx_mock: HTTPXMock
+):
+    client = httpx.Client(headers={"x-test": "Test value"})
+    auth = httpx_auth.OAuth2ResourceOwnerPasswordCredentials(
+        "http://provide_access_token",
+        username="test_user",
+        password="test_pwd",
+        client=client,
+    )
+    httpx_mock.add_response(
+        method="POST",
+        url="http://provide_access_token",
+        json={
+            "access_token": "2YotnFZFEjr1zCsicMWpAA",
+            "token_type": "example",
+            "expires_in": 3600,
+            "refresh_token": "tGzv3JOkF0XG5Qx2TlKWIA",
+            "example_parameter": "example_value",
+        },
+        match_content=b"grant_type=password&username=test_user&password=test_pwd",
+        match_headers={"x-test": "Test value"},
+    )
+    assert (
+        get_header(httpx_mock, auth).get("Authorization")
+        == "Bearer 2YotnFZFEjr1zCsicMWpAA"
+    )
+
+
 def test_oauth2_password_credentials_flow_token_is_sent_in_authorization_header_by_default(
     token_cache, httpx_mock: HTTPXMock
 ):
