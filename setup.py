@@ -42,7 +42,7 @@ setup(
             # Used to generate test tokens
             "pyjwt==1.*",
             # Used to mock httpx
-            "pytest_httpx==0.6.*",
+            "pytest_httpx==0.7.*",
             # Used to check coverage
             "pytest-cov==2.*",
         ]
