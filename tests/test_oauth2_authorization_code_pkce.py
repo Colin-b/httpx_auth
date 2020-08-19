@@ -7,6 +7,40 @@ from tests.auth_helper import get_header
 from httpx_auth.testing import BrowserMock, browser_mock, token_cache
 
 
+def test_oauth2_pkce_flow_uses_provided_client(
+    token_cache, httpx_mock: HTTPXMock, monkeypatch, browser_mock: BrowserMock
+):
+    client = httpx.Client(headers={"x-test": "Test value"})
+    monkeypatch.setattr(httpx_auth.authentication.os, "urandom", lambda x: b"1" * 63)
+    auth = httpx_auth.OAuth2AuthorizationCodePKCE(
+        "http://provide_code", "http://provide_access_token", client=client
+    )
+    tab = browser_mock.add_response(
+        opened_url="http://provide_code?response_type=code&state=163f0455b3e9cad3ca04254e5a0169553100d3aa0756c7964d897da316a695ffed5b4f46ef305094fd0a88cfe4b55ff257652015e4aa8f87b97513dba440f8de&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F&code_challenge=5C_ph_KZ3DstYUc965SiqmKAA-ShvKF4Ut7daKd3fjc&code_challenge_method=S256",
+        reply_url="http://localhost:5000#code=SplxlOBeZQQYbYS6WxSbIA&state=163f0455b3e9cad3ca04254e5a0169553100d3aa0756c7964d897da316a695ffed5b4f46ef305094fd0a88cfe4b55ff257652015e4aa8f87b97513dba440f8de",
+    )
+    httpx_mock.add_response(
+        method="POST",
+        url="http://provide_access_token",
+        json={
+            "access_token": "2YotnFZFEjr1zCsicMWpAA",
+            "token_type": "example",
+            "expires_in": 3600,
+            "refresh_token": "tGzv3JOkF0XG5Qx2TlKWIA",
+            "example_parameter": "example_value",
+        },
+        match_content=b"code_verifier=MTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTEx&grant_type=authorization_code&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F&response_type=code&code=SplxlOBeZQQYbYS6WxSbIA",
+        match_headers={"x-test": "Test value"},
+    )
+    assert (
+        get_header(httpx_mock, auth).get("Authorization")
+        == "Bearer 2YotnFZFEjr1zCsicMWpAA"
+    )
+    tab.assert_success(
+        "You are now authenticated on 163f0455b3e9cad3ca04254e5a0169553100d3aa0756c7964d897da316a695ffed5b4f46ef305094fd0a88cfe4b55ff257652015e4aa8f87b97513dba440f8de. You may close this tab."
+    )
+
+
 def test_oauth2_pkce_flow_get_code_is_sent_in_authorization_header_by_default(
     token_cache, httpx_mock: HTTPXMock, monkeypatch, browser_mock: BrowserMock
 ):

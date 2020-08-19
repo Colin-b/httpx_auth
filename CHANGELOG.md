@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.0] - 2020-08-19
+### Added
+- Allow to provide an `httpx.Client` instance for `*AuthorizationCode` flows (even `PKCE`), `*ClientCredentials` and `*ResourceOwnerPasswordCredentials` flows.
+
 ## [0.4.0] - 2020-08-07
 ### Changed
 - Mock an access token by default in `httpx_auth.testing.token_cache_mock`. Getting rid of `pyjwt` default dependency for testing.
@@ -43,7 +47,8 @@ Note that a few changes were made:
 ### Added
 - Placeholder for port of requests_auth to httpx
 
-[Unreleased]: https://github.com/Colin-b/httpx_auth/compare/v0.4.0...HEAD
+[Unreleased]: https://github.com/Colin-b/httpx_auth/compare/v0.5.0...HEAD
+[0.5.0]: https://github.com/Colin-b/httpx_auth/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/Colin-b/httpx_auth/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/Colin-b/httpx_auth/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/Colin-b/httpx_auth/compare/v0.1.0...v0.2.0

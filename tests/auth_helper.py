@@ -5,7 +5,7 @@ from pytest_httpx import HTTPXMock
 # TODO Remove
 def get_header(httpx_mock: HTTPXMock, auth: httpx.Auth) -> dict:
     # Mock a dummy response
-    httpx_mock.add_response()
+    httpx_mock.add_response(url="http://authorized_only", method="GET")
     # Send a request to this dummy URL with authentication
     response = httpx.get("http://authorized_only", auth=auth)
     # Return headers received on this dummy URL
