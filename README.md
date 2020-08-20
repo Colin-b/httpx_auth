@@ -82,6 +82,7 @@ with httpx.Client() as client:
 | `code_field_name`       | Field name containing the code. | Optional | code |
 | `username`              | User name in case basic authentication should be used to retrieve token. | Optional |  |
 | `password`              | User password in case basic authentication should be used to retrieve token. | Optional |  |
+| `client`                | `httpx.Client` instance that will be used to request the token. Use it to provide a custom proxying rule for instance. | Optional |  |
 
 Any other parameter will be put as query parameter in the authorization URL and as body parameters in the token URL.        
 
@@ -133,6 +134,7 @@ with httpx.Client() as client:
 | `failure_display_time`  | In case received token is not valid, this is the maximum amount of milliseconds the failure page will be displayed in your browser. | Optional | 5000 |
 | `header_name`           | Name of the header field used to send token. | Optional | Authorization |
 | `header_value`          | Format used to send the token value. "{token}" must be present as it will be replaced by the actual token. | Optional | Bearer {token} |
+| `client`                | `httpx.Client` instance that will be used to request the token. Use it to provide a custom proxying rule for instance. | Optional |  |
 
 Any other parameter will be put as query parameter in the authorization URL.        
 
@@ -172,6 +174,7 @@ with httpx.Client() as client:
 | `response_type`         | Value of the response_type query parameter if not already provided in authorization URL. | Optional | code |
 | `token_field_name`      | Field name containing the token. | Optional | access_token |
 | `code_field_name`       | Field name containing the code. | Optional | code |
+| `client`                | `httpx.Client` instance that will be used to request the token. Use it to provide a custom proxying rule for instance. | Optional |  |
 
 Any other parameter will be put as query parameter in the authorization URL and as body parameters in the token URL.        
 
@@ -224,6 +227,7 @@ with httpx.Client() as client:
 | `failure_display_time`  | In case received token is not valid, this is the maximum amount of milliseconds the failure page will be displayed in your browser. | Optional | 5000 |
 | `header_name`           | Name of the header field used to send token. | Optional | Authorization |
 | `header_value`          | Format used to send the token value. "{token}" must be present as it will be replaced by the actual token. | Optional | Bearer {token} |
+| `client`                | `httpx.Client` instance that will be used to request the token. Use it to provide a custom proxying rule for instance. | Optional |  |
 
 Any other parameter will be put as query parameter in the authorization URL and as body parameters in the token URL.        
 
@@ -260,6 +264,7 @@ with httpx.Client() as client:
 | `header_value`     | Format used to send the token value. "{token}" must be present as it will be replaced by the actual token. | Optional | Bearer {token} |
 | `scope`            | Scope parameter sent to token URL as body. Can also be a list of scopes. | Optional |  |
 | `token_field_name` | Field name containing the token.             | Optional  | access_token  |
+| `client`           | `httpx.Client` instance that will be used to request the token. Use it to provide a custom proxying rule for instance. | Optional |  |
 
 Any other parameter will be put as body parameter in the token URL.
 
@@ -289,6 +294,7 @@ with httpx.Client() as client:
 | `header_value`     | Format used to send the token value. "{token}" must be present as it will be replaced by the actual token. | Optional | Bearer {token} |
 | `scope`            | Scope parameter sent to token URL as body. Can also be a list of scopes. | Optional |  |
 | `token_field_name` | Field name containing the token.             | Optional  | access_token  |
+| `client`           | `httpx.Client` instance that will be used to request the token. Use it to provide a custom proxying rule for instance. | Optional |  |
 
 Any other parameter will be put as body parameter in the token URL.
 
@@ -327,6 +333,7 @@ with httpx.Client() as client:
 | `header_value`          | Format used to send the token value. "{token}" must be present as it will be replaced by the actual token. | Optional | Bearer {token} |
 | `scope`                 | Scope parameter sent in query. Can also be a list of scopes. | Optional | openid |
 | `token_field_name`      | Field name containing the token. | Optional | access_token |
+| `client`                | `httpx.Client` instance that will be used to request the token. Use it to provide a custom proxying rule for instance. | Optional |  |
 
 Any other parameter will be put as query parameter in the token URL.        
 

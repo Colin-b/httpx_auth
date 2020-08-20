@@ -125,12 +125,3 @@ halfway through the signing process, which may result in undefined behaviour.
 
 In short, it's probably best to create a thread-local instance of ``AWS4Auth``
 for each thread that needs to do authentication.
-
-API reference
--------------
-See the doctrings in ``aws4auth.py``.
-
-Testing
--------
-A test suite is included in the tests/test_aws4auth.py file. 
-

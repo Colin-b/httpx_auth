@@ -7,6 +7,41 @@ from httpx_auth.testing import BrowserMock, browser_mock, token_cache
 from tests.auth_helper import get_header
 
 
+def test_oauth2_authorization_code_flow_uses_provided_client(
+    token_cache, httpx_mock: HTTPXMock, browser_mock: BrowserMock
+):
+    client = httpx.Client(headers={"x-test": "Test value"})
+    auth = httpx_auth.OktaAuthorizationCode(
+        "testserver.okta-emea.com",
+        "54239d18-c68c-4c47-8bdd-ce71ea1d50cd",
+        client=client,
+    )
+    tab = browser_mock.add_response(
+        opened_url="https://testserver.okta-emea.com/oauth2/default/v1/authorize?client_id=54239d18-c68c-4c47-8bdd-ce71ea1d50cd&scope=openid&response_type=code&state=5264d11c8b268ccf911ce564ca42fd75cea68c4a3c1ec3ac1ab20243891ab7cd5250ad4c2d002017c6e8ac2ba34954293baa5e0e4fd00bb9ffd4a39c45f1960b&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F",
+        reply_url="http://localhost:5000#code=SplxlOBeZQQYbYS6WxSbIA&state=5264d11c8b268ccf911ce564ca42fd75cea68c4a3c1ec3ac1ab20243891ab7cd5250ad4c2d002017c6e8ac2ba34954293baa5e0e4fd00bb9ffd4a39c45f1960b",
+    )
+    httpx_mock.add_response(
+        method="POST",
+        url="https://testserver.okta-emea.com/oauth2/default/v1/token",
+        json={
+            "access_token": "2YotnFZFEjr1zCsicMWpAA",
+            "token_type": "example",
+            "expires_in": 3600,
+            "refresh_token": "tGzv3JOkF0XG5Qx2TlKWIA",
+            "example_parameter": "example_value",
+        },
+        match_content=b"grant_type=authorization_code&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F&client_id=54239d18-c68c-4c47-8bdd-ce71ea1d50cd&scope=openid&response_type=code&code=SplxlOBeZQQYbYS6WxSbIA",
+        match_headers={"x-test": "Test value"},
+    )
+    assert (
+        get_header(httpx_mock, auth).get("Authorization")
+        == "Bearer 2YotnFZFEjr1zCsicMWpAA"
+    )
+    tab.assert_success(
+        "You are now authenticated on 5264d11c8b268ccf911ce564ca42fd75cea68c4a3c1ec3ac1ab20243891ab7cd5250ad4c2d002017c6e8ac2ba34954293baa5e0e4fd00bb9ffd4a39c45f1960b. You may close this tab."
+    )
+
+
 def test_oauth2_authorization_code_flow_get_code_is_sent_in_authorization_header_by_default(
     token_cache, httpx_mock: HTTPXMock, browser_mock: BrowserMock
 ):
