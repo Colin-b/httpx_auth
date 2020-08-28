@@ -356,10 +356,8 @@ def test_aws_auth_without_content_in_request(httpx_mock: HTTPXMock, mock_aws_dat
         == "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
     )
     assert (
-        headers["Authorization"] == "AWS4-HMAC-SHA256 "
-        "Credential=access_id/20181011/us-east-1/iam/aws4_request, "
-        "SignedHeaders=host;x-amz-content-sha256;x-amz-date, "
-        "Signature=b26b1ba261652e67fee5174c7fa1de1ef8f74e9d8e427528e197ce5e64d52d74"
+        headers["Authorization"]
+        == "AWS4-HMAC-SHA256 Credential=access_id/20181011/us-east-1/iam/aws4_request, SignedHeaders=host;x-amz-content-sha256;x-amz-date, Signature=ce708380ee69b1a9558b9b0dddd4d15f35a2a5e5ea3534b541247f1a746626db"
     )
     assert headers["x-amz-date"] == "20181011T150505Z"
 
@@ -380,10 +378,8 @@ def test_aws_auth_with_content_in_request(httpx_mock: HTTPXMock, mock_aws_dateti
         == "fb65c1441d6743274738fe3b3042a73167ba1fb2d34679d8dd16433473758f97"
     )
     assert (
-        headers["Authorization"] == "AWS4-HMAC-SHA256 "
-        "Credential=access_id/20181011/us-east-1/iam/aws4_request, "
-        "SignedHeaders=content-type;host;x-amz-content-sha256;x-amz-date, "
-        "Signature=a70f3cf3c14bd0e2cc048dfb7ddf63f9b2c12615476ebcb75f224f7a0192e383"
+        headers["Authorization"]
+        == "AWS4-HMAC-SHA256 Credential=access_id/20181011/us-east-1/iam/aws4_request, SignedHeaders=content-type;host;x-amz-content-sha256;x-amz-date, Signature=5f4f832a19fc834d4f34047289ad67d96da25bd414a70f02ce6b85aef9ab8068"
     )
     assert headers["x-amz-date"] == "20181011T150505Z"
 
@@ -407,10 +403,8 @@ def test_aws_auth_with_security_token_and_without_content_in_request(
         == "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
     )
     assert (
-        headers["Authorization"] == "AWS4-HMAC-SHA256 "
-        "Credential=access_id/20181011/us-east-1/iam/aws4_request, "
-        "SignedHeaders=host;x-amz-content-sha256;x-amz-date;x-amz-security-token, "
-        "Signature=be2b7efe21f69856b1dae871064627909cc1cac0749f3237dee0df99123e21a3"
+        headers["Authorization"]
+        == "AWS4-HMAC-SHA256 Credential=access_id/20181011/us-east-1/iam/aws4_request, SignedHeaders=host;x-amz-content-sha256;x-amz-date;x-amz-security-token, Signature=2ae27ce5e8dcc005736c97ff857e4f44401fc3a33d8358b1d67c079f0f5a8b3e"
     )
     assert headers["x-amz-date"] == "20181011T150505Z"
     assert headers["x-amz-security-token"] == "security_token"
@@ -435,10 +429,8 @@ def test_aws_auth_with_security_token_and_content_in_request(
         == "fb65c1441d6743274738fe3b3042a73167ba1fb2d34679d8dd16433473758f97"
     )
     assert (
-        headers["Authorization"] == "AWS4-HMAC-SHA256 "
-        "Credential=access_id/20181011/us-east-1/iam/aws4_request, "
-        "SignedHeaders=content-type;host;x-amz-content-sha256;x-amz-date;x-amz-security-token, "
-        "Signature=ff98a199b570988a5d2891939a1a4a5e98e4171329a53c7306fc7a19ef6cad23"
+        headers["Authorization"]
+        == "AWS4-HMAC-SHA256 Credential=access_id/20181011/us-east-1/iam/aws4_request, SignedHeaders=content-type;host;x-amz-content-sha256;x-amz-date;x-amz-security-token, Signature=e02c4733589cf6e80361f6905564da6d0c23a0829bb3c3899b328e43b2f7b581"
     )
     assert headers["x-amz-date"] == "20181011T150505Z"
     assert headers["x-amz-security-token"] == "security_token"
@@ -462,10 +454,8 @@ def test_aws_auth_override_x_amz_date_header(httpx_mock: HTTPXMock, mock_aws_dat
         == "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
     )
     assert (
-        headers["Authorization"] == "AWS4-HMAC-SHA256 "
-        "Credential=access_id/20181011/us-east-1/iam/aws4_request, "
-        "SignedHeaders=host;x-amz-content-sha256;x-amz-date, "
-        "Signature=b26b1ba261652e67fee5174c7fa1de1ef8f74e9d8e427528e197ce5e64d52d74"
+        headers["Authorization"]
+        == "AWS4-HMAC-SHA256 Credential=access_id/20181011/us-east-1/iam/aws4_request, SignedHeaders=host;x-amz-content-sha256;x-amz-date, Signature=ce708380ee69b1a9558b9b0dddd4d15f35a2a5e5ea3534b541247f1a746626db"
     )
     assert headers["x-amz-date"] == "20181011T150505Z"
 
@@ -486,10 +476,8 @@ def test_aws_auth_root_path(httpx_mock: HTTPXMock, mock_aws_datetime):
         == "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
     )
     assert (
-        headers["Authorization"] == "AWS4-HMAC-SHA256 "
-        "Credential=access_id/20181011/us-east-1/iam/aws4_request, "
-        "SignedHeaders=host;x-amz-content-sha256;x-amz-date, "
-        "Signature=ce708380ee69b1a9558b9b0dddd4d15f35a2a5e5ea3534b541247f1a746626db"
+        headers["Authorization"]
+        == "AWS4-HMAC-SHA256 Credential=access_id/20181011/us-east-1/iam/aws4_request, SignedHeaders=host;x-amz-content-sha256;x-amz-date, Signature=ce708380ee69b1a9558b9b0dddd4d15f35a2a5e5ea3534b541247f1a746626db"
     )
     assert headers["x-amz-date"] == "20181011T150505Z"
 
@@ -510,10 +498,8 @@ def test_aws_auth_query_parameters(httpx_mock: HTTPXMock, mock_aws_datetime):
         == "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
     )
     assert (
-        headers["Authorization"] == "AWS4-HMAC-SHA256 "
-        "Credential=access_id/20181011/us-east-1/iam/aws4_request, "
-        "SignedHeaders=host;x-amz-content-sha256;x-amz-date, "
-        "Signature=959173877981331c60d6b4cf45795a922f6639ec9714837ebb5ff009ae129fde"
+        headers["Authorization"]
+        == "AWS4-HMAC-SHA256 Credential=access_id/20181011/us-east-1/iam/aws4_request, SignedHeaders=host;x-amz-content-sha256;x-amz-date, Signature=f2b8a73e388dc04586b5bcc208c6e50d92f04a1296e561229cd88811ad2494e9"
     )
     assert headers["x-amz-date"] == "20181011T150505Z"
 
@@ -534,10 +520,8 @@ def test_aws_auth_path_normalize(httpx_mock: HTTPXMock, mock_aws_datetime):
         == "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
     )
     assert (
-        headers["Authorization"] == "AWS4-HMAC-SHA256 "
-        "Credential=access_id/20181011/us-east-1/iam/aws4_request, "
-        "SignedHeaders=host;x-amz-content-sha256;x-amz-date, "
-        "Signature=e49fb885d30c9e74901071748b783fabe8ba7a979aa20420ac76af1dda1edd03"
+        headers["Authorization"]
+        == "AWS4-HMAC-SHA256 Credential=access_id/20181011/us-east-1/iam/aws4_request, SignedHeaders=host;x-amz-content-sha256;x-amz-date, Signature=e49fb885d30c9e74901071748b783fabe8ba7a979aa20420ac76af1dda1edd03"
     )
     assert headers["x-amz-date"] == "20181011T150505Z"
 
@@ -560,10 +544,8 @@ def test_aws_auth_path_quoting(httpx_mock: HTTPXMock, mock_aws_datetime):
         == "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
     )
     assert (
-        headers["Authorization"] == "AWS4-HMAC-SHA256 "
-        "Credential=access_id/20181011/us-east-1/iam/aws4_request, "
-        "SignedHeaders=host;x-amz-content-sha256;x-amz-date, "
-        "Signature=98dd3cdd2a603907495164f08fe7197fb405bf8c556ddf7b88d7e15341a9588a"
+        headers["Authorization"]
+        == "AWS4-HMAC-SHA256 Credential=access_id/20181011/us-east-1/iam/aws4_request, SignedHeaders=host;x-amz-content-sha256;x-amz-date, Signature=98dd3cdd2a603907495164f08fe7197fb405bf8c556ddf7b88d7e15341a9588a"
     )
     assert headers["x-amz-date"] == "20181011T150505Z"
 
@@ -586,10 +568,8 @@ def test_aws_auth_path_percent_encode_non_s3(httpx_mock: HTTPXMock, mock_aws_dat
         == "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
     )
     assert (
-        headers["Authorization"] == "AWS4-HMAC-SHA256 "
-        "Credential=access_id/20181011/us-east-1/iam/aws4_request, "
-        "SignedHeaders=host;x-amz-content-sha256;x-amz-date, "
-        "Signature=1da6c689b7a20044144a9f265ddecc38b1b884902846fbe4dc8049595f25565f"
+        headers["Authorization"]
+        == "AWS4-HMAC-SHA256 Credential=access_id/20181011/us-east-1/iam/aws4_request, SignedHeaders=host;x-amz-content-sha256;x-amz-date, Signature=1da6c689b7a20044144a9f265ddecc38b1b884902846fbe4dc8049595f25565f"
     )
     assert headers["x-amz-date"] == "20181011T150505Z"
 
@@ -612,9 +592,7 @@ def test_aws_auth_path_percent_encode_s3(httpx_mock: HTTPXMock, mock_aws_datetim
         == "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
     )
     assert (
-        headers["Authorization"] == "AWS4-HMAC-SHA256 "
-        "Credential=access_id/20181011/us-east-1/s3/aws4_request, "
-        "SignedHeaders=host;x-amz-content-sha256;x-amz-date, "
-        "Signature=2fc7c2f27151e18348862bab0bbe90c4a9f29d7863a33e725d7b1ec96709fdd6"
+        headers["Authorization"]
+        == "AWS4-HMAC-SHA256 Credential=access_id/20181011/us-east-1/s3/aws4_request, SignedHeaders=host;x-amz-content-sha256;x-amz-date, Signature=2fc7c2f27151e18348862bab0bbe90c4a9f29d7863a33e725d7b1ec96709fdd6"
     )
     assert headers["x-amz-date"] == "20181011T150505Z"
