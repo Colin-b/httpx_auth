@@ -188,7 +188,6 @@ class AWS4Auth(httpx.Auth):
         """
         amz_date = req.headers["x-amz-date"]
         hsh = hashlib.sha256(cano_req.encode())
-        print(f"cano_req -> {cano_req}")
         sig_items = ["AWS4-HMAC-SHA256", amz_date, scope, hsh.hexdigest()]
         sig_string = "\n".join(sig_items)
         return sig_string
