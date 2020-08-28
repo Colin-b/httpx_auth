@@ -596,3 +596,14 @@ def test_aws_auth_path_percent_encode_s3(httpx_mock: HTTPXMock, mock_aws_datetim
         == "AWS4-HMAC-SHA256 Credential=access_id/20181011/us-east-1/s3/aws4_request, SignedHeaders=host;x-amz-content-sha256;x-amz-date, Signature=2fc7c2f27151e18348862bab0bbe90c4a9f29d7863a33e725d7b1ec96709fdd6"
     )
     assert headers["x-amz-date"] == "20181011T150505Z"
+
+
+def test_amz_cano_path_empty_path():
+    auth = httpx_auth.AWS4Auth(
+        access_id="access_id",
+        secret_key="wJalrXUtnFEMI/K7MDENG+bPxRfiCYEXAMPLEKEY",
+        region="us-east-1",
+        service="iam",
+    )
+    cano_path = auth.amz_cano_path("")
+    assert cano_path == "/"
