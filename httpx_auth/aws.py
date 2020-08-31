@@ -76,11 +76,11 @@ class AWS4Auth(httpx.Auth):
         if self.security_token:
             request.headers["x-amz-security-token"] = self.security_token
 
-        cano_headers, signed_headers = self.get_canonical_headers(
+        cano_headers, signed_headers = self._get_canonical_headers(
             request, self.include_headers
         )
-        cano_req = self.get_canonical_request(request, cano_headers, signed_headers)
-        sig_string = self.get_sig_string(request, cano_req, scope)
+        cano_req = self._get_canonical_request(request, cano_headers, signed_headers)
+        sig_string = self._get_sig_string(request, cano_req, scope)
         sig_string = sig_string.encode("utf-8")
         signature = hmac.new(signing_key, sig_string, hashlib.sha256).hexdigest()
 
@@ -91,7 +91,7 @@ class AWS4Auth(httpx.Auth):
         request.headers["Authorization"] = auth_str
         yield request
 
-    def get_canonical_request(
+    def _get_canonical_request(
         self, req: httpx.Request, cano_headers: str, signed_headers: str
     ) -> str:
         """
@@ -104,12 +104,12 @@ class AWS4Auth(httpx.Auth):
         """
         url_str = str(req.url)
         url = urlparse(url_str)
-        path = self.amz_cano_path(url.path)
+        path = self._amz_cano_path(url.path)
         # AWS handles "extreme" querystrings differently to urlparse
         # (see post-vanilla-query-nonunreserved test in aws_testsuite)
         split = url_str.split("?", 1)
         qs = split[1] if len(split) == 2 else ""
-        qs = self.amz_cano_querystring(qs)
+        qs = self._amz_cano_querystring(qs)
         payload_hash = req.headers["x-amz-content-sha256"]
         req_parts = [
             req.method.upper(),
@@ -122,7 +122,7 @@ class AWS4Auth(httpx.Auth):
         return "\n".join(req_parts)
 
     @classmethod
-    def get_canonical_headers(
+    def _get_canonical_headers(
         cls, req: httpx.Request, include: List[str]
     ) -> Tuple[str, str]:
         """
@@ -149,7 +149,7 @@ class AWS4Auth(httpx.Auth):
         cano_headers_dict = {}
         for hdr, val in headers.items():
             hdr = hdr.strip().lower()
-            val = cls.amz_norm_whitespace(val).strip()
+            val = cls._amz_norm_whitespace(val).strip()
             if (
                 hdr in include
                 or "*" in include
@@ -173,7 +173,7 @@ class AWS4Auth(httpx.Auth):
         return cano_headers, signed_headers
 
     @staticmethod
-    def get_sig_string(req: httpx.Request, cano_req: str, scope: str) -> str:
+    def _get_sig_string(req: httpx.Request, cano_req: str, scope: str) -> str:
         """
         Generate the AWS4 auth string to sign for the request.
         req      -- This should already include an x-amz-date header.
@@ -186,7 +186,7 @@ class AWS4Auth(httpx.Auth):
         sig_string = "\n".join(sig_items)
         return sig_string
 
-    def amz_cano_path(self, path):
+    def _amz_cano_path(self, path):
         """
         Generate the canonical path as per AWS4 auth requirements.
         Not documented anywhere, determined from aws4_testsuite examples,
@@ -208,7 +208,7 @@ class AWS4Auth(httpx.Auth):
         return quote(full_path, safe=safe_chars)
 
     @staticmethod
-    def amz_cano_querystring(qs):
+    def _amz_cano_querystring(qs):
         """
         Parse and format querystring as per AWS4 auth requirements.
         Perform percent quoting as needed.
@@ -233,7 +233,7 @@ class AWS4Auth(httpx.Auth):
         return qs
 
     @staticmethod
-    def amz_norm_whitespace(text):
+    def _amz_norm_whitespace(text):
         """
         Replace runs of whitespace with a single space.
         Ignore text enclosed in quotes.
