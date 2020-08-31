@@ -597,6 +597,26 @@ def test_aws_auth_path_percent_encode_s3(httpx_mock: HTTPXMock, mock_aws_datetim
     )
     assert headers["x-amz-date"] == "20181011T150505Z"
 
+def test_aws_auth_without_path(httpx_mock: HTTPXMock, mock_aws_datetime):
+    auth = httpx_auth.AWS4Auth(
+        access_id="access_id",
+        secret_key="wJalrXUtnFEMI/K7MDENG+bPxRfiCYEXAMPLEKEY",
+        region="us-east-1",
+        service="iam",
+    )
+    httpx_mock.add_response(url="http://authorized_only")
+
+    httpx.get("http://authorized_only", auth=auth)
+    headers = httpx_mock.get_request().headers
+    assert (
+        headers["x-amz-content-sha256"]
+        == "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    )
+    assert (
+        headers["Authorization"]
+        == "AWS4-HMAC-SHA256 Credential=access_id/20181011/us-east-1/iam/aws4_request, SignedHeaders=host;x-amz-content-sha256;x-amz-date, Signature=e3411118ac098a820690144b8b273aa64a3366d899fa68fd64a1ab950c982b4b"
+    )
+    assert headers["x-amz-date"] == "20181011T150505Z"
 
 def test_amz_cano_path_empty_path():
     auth = httpx_auth.AWS4Auth(
