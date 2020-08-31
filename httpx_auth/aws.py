@@ -142,11 +142,6 @@ class AWS4Auth(httpx.Auth):
         """
         include = [x.lower() for x in include]
         headers = req.headers.copy()
-        # Temporarily include the host header - AWS requires it to be included
-        # in the signed headers, but Requests doesn't include it in a
-        # PreparedRequest
-        if "host" not in headers:
-            headers["host"] = req.url.host
         # Aggregate for upper/lowercase header name collisions in header names,
         # AMZ requires values of colliding headers be concatenated into a
         # single header with lowercase name.  Although this is not possible with
@@ -199,6 +194,8 @@ class AWS4Auth(httpx.Auth):
         problem reports and testing against the live services.
         path -- request path
         """
+        if len(path) == 0:
+            path = "/"
         safe_chars = "/~"
         fixed_path = path
         fixed_path = posixpath.normpath(fixed_path)
