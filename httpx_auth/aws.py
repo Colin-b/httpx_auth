@@ -9,10 +9,9 @@ import re
 import shlex
 import datetime
 from urllib.parse import urlparse, parse_qs, quote, unquote
+from typing import Generator, List, Tuple
 
 import httpx
-
-from typing import Generator, List, Tuple
 
 
 class AWS4Auth(httpx.Auth):

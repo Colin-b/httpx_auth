@@ -5,7 +5,7 @@ import datetime
 import threading
 import logging
 
-from httpx_auth.errors import *
+from httpx_auth.errors import InvalidToken, TokenExpiryNotProvided, AuthenticationFailed
 
 logger = logging.getLogger(__name__)
 
