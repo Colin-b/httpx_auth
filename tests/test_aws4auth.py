@@ -618,14 +618,3 @@ def test_aws_auth_without_path(httpx_mock: HTTPXMock, mock_aws_datetime):
         == "AWS4-HMAC-SHA256 Credential=access_id/20181011/us-east-1/iam/aws4_request, SignedHeaders=host;x-amz-content-sha256;x-amz-date, Signature=e3411118ac098a820690144b8b273aa64a3366d899fa68fd64a1ab950c982b4b"
     )
     assert headers["x-amz-date"] == "20181011T150505Z"
-
-
-def test_amz_cano_path_empty_path():
-    auth = httpx_auth.AWS4Auth(
-        access_id="access_id",
-        secret_key="wJalrXUtnFEMI/K7MDENG+bPxRfiCYEXAMPLEKEY",
-        region="us-east-1",
-        service="iam",
-    )
-    cano_path = auth.amz_cano_path("")
-    assert cano_path == "/"
