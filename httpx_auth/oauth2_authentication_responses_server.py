@@ -6,7 +6,12 @@ from socket import socket
 
 import httpx
 
-from httpx_auth.errors import *
+from httpx_auth.errors import (
+    InvalidGrantRequest,
+    GrantNotProvided,
+    StateNotProvided,
+    TimeoutOccurred,
+)
 
 logger = logging.getLogger(__name__)
 

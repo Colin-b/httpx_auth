@@ -6,6 +6,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.1] - 2020-08-31
+### Fixed
+- `AWSAuth` authentication class now handles empty path. Thanks to [`Michael E. Martinka`](https://github.com/martinka). This class is still considered as under development and subject to breaking changes without notice.
+
+### Changed
+- All methods within `AWSAuth` are now private. They were never meant to be exposed anyway.
+
 ## [0.5.0] - 2020-08-19
 ### Added
 - Allow to provide an `httpx.Client` instance for `*AuthorizationCode` flows (even `PKCE`), `*ClientCredentials` and `*ResourceOwnerPasswordCredentials` flows.
@@ -47,7 +54,8 @@ Note that a few changes were made:
 ### Added
 - Placeholder for port of requests_auth to httpx
 
-[Unreleased]: https://github.com/Colin-b/httpx_auth/compare/v0.5.0...HEAD
+[Unreleased]: https://github.com/Colin-b/httpx_auth/compare/v0.5.1...HEAD
+[0.5.1]: https://github.com/Colin-b/httpx_auth/compare/v0.5.0...v0.5.1
 [0.5.0]: https://github.com/Colin-b/httpx_auth/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/Colin-b/httpx_auth/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/Colin-b/httpx_auth/compare/v0.2.0...v0.3.0
