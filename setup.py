@@ -29,20 +29,21 @@ setup(
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
         "Topic :: Software Development :: Build Tools",
     ],
     keywords=["authentication"],
     packages=find_packages(exclude=["tests*"]),
     install_requires=[
         # Used for Base Authentication and to communicate with OAuth2 servers
-        "httpx==0.15.*"
+        "httpx==0.16.*"
     ],
     extras_require={
         "testing": [
             # Used to generate test tokens
             "pyjwt==1.*",
             # Used to mock httpx
-            "pytest_httpx==0.9.*",
+            "pytest_httpx==0.10.*",
             # Used to check coverage
             "pytest-cov==2.*",
         ]
