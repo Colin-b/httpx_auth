@@ -32,7 +32,7 @@ setup(
         "Programming Language :: Python :: 3.9",
         "Topic :: Software Development :: Build Tools",
     ],
-    keywords=["authentication"],
+    keywords=["authentication", "oauth2", "aws", "okta", "aad"],
     packages=find_packages(exclude=["tests*"]),
     install_requires=[
         # Used for Base Authentication and to communicate with OAuth2 servers
