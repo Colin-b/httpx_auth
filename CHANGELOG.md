@@ -6,6 +6,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.0] - 2020-10-06
+### Added
+- Explicit support for Python 3.9
+- Document `httpx_auth.AWS4Auth` authentication class.
+
+### Changed
+- Requires [`httpx`](https://www.python-httpx.org)==0.16.*
+- Code now follow `black==20.8b1` formatting instead of the git master version.
+
 ## [0.6.0] - 2020-09-22
 ### Changed
 - Requires [`httpx`](https://www.python-httpx.org)==0.15.*
@@ -58,7 +67,8 @@ Note that a few changes were made:
 ### Added
 - Placeholder for port of requests_auth to httpx
 
-[Unreleased]: https://github.com/Colin-b/httpx_auth/compare/v0.6.0...HEAD
+[Unreleased]: https://github.com/Colin-b/httpx_auth/compare/v0.7.0...HEAD
+[0.7.0]: https://github.com/Colin-b/httpx_auth/compare/v0.6.0...v0.7.0
 [0.6.0]: https://github.com/Colin-b/httpx_auth/compare/v0.5.1...v0.6.0
 [0.5.1]: https://github.com/Colin-b/httpx_auth/compare/v0.5.0...v0.5.1
 [0.5.0]: https://github.com/Colin-b/httpx_auth/compare/v0.4.0...v0.5.0

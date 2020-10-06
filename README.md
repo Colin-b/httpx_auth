@@ -38,6 +38,7 @@ Provides authentication classes to be used with [`httpx`][1] [authentication par
     - [Okta (Access Token)](#okta-oauth2-implicit-access-token)
     - [Okta (ID token)](#okta-openid-connect-implicit-id-token)
   - [Managing token cache](#managing-token-cache)
+- [Amazon](#aws-signature-v4)
 - API key
   - [In header](#api-key-in-header)
   - [In query](#api-key-in-query)
@@ -569,6 +570,31 @@ from httpx_auth import OAuth2, JsonTokenFileCache
 
 OAuth2.token_cache = JsonTokenFileCache('path/to/my_token_cache.json')
 ```
+
+## AWS Signature v4
+
+Amazon Web Service Signature version 4 is implemented following [Amazon S3 documentation](https://docs.aws.amazon.com/AmazonS3/latest/API/sigv4-auth-using-authorization-header.html) and [request-aws4auth](https://github.com/sam-washington/requests-aws4auth).
+
+Use `httpx_auth.AWS4Auth` to configure this kind of authentication.
+
+```python
+import httpx
+from httpx_auth import AWS4Auth
+
+aws = AWS4Auth(access_id="my-access-id", secret_key="my-secret-key", region="eu-west-1", service="s3")
+with httpx.Client() as client:
+    client.get('http://s3-eu-west-1.amazonaws.com', auth=aws)
+```
+
+### Parameters
+
+| Name             | Description                | Mandatory | Default value |
+|:-----------------|:---------------------------|:----------|:--------------|
+| `access_id`      | AWS access ID. | Mandatory | |
+| `secret_key`     | AWS secret access key. | Mandatory | |
+| `region`         | The region you are connecting to, as per [this list](http://docs.aws.amazon.com/general/latest/gr/rande.html#s3_region). For services which do not require a region (e.g. IAM), use us-east-1. | Mandatory | |
+| `service`        | The name of the service you are connecting to, as per [this list](http://docs.aws.amazon.com/general/latest/gr/rande.html). e.g. elasticbeanstalk. | Mandatory | |
+| `security_token` | Used for the `x-amz-security-token` header, for use with STS temporary credentials. | Optional | |
 
 ## API key in header
 
