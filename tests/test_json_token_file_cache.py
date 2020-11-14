@@ -17,11 +17,11 @@ def token_cache(request):
 def test_add_bearer_tokens(token_cache):
     expiry_in_1_hour = datetime.datetime.utcnow() + datetime.timedelta(hours=1)
     token1 = jwt.encode({"exp": expiry_in_1_hour}, "secret").decode("unicode_escape")
-    token_cache.add_bearer_token("key1", token1)
+    token_cache._add_bearer_token("key1", token1)
 
     expiry_in_2_hour = datetime.datetime.utcnow() + datetime.timedelta(hours=2)
     token2 = jwt.encode({"exp": expiry_in_2_hour}, "secret").decode("unicode_escape")
-    token_cache.add_bearer_token("key2", token2)
+    token_cache._add_bearer_token("key2", token2)
 
     # Assert that tokens can be retrieved properly even after other token were inserted
     assert token_cache.get_token("key1") == token1
@@ -35,11 +35,11 @@ def test_add_bearer_tokens(token_cache):
 def test_save_bearer_tokens(token_cache, request):
     expiry_in_1_hour = datetime.datetime.utcnow() + datetime.timedelta(hours=1)
     token1 = jwt.encode({"exp": expiry_in_1_hour}, "secret").decode("unicode_escape")
-    token_cache.add_bearer_token("key1", token1)
+    token_cache._add_bearer_token("key1", token1)
 
     expiry_in_2_hour = datetime.datetime.utcnow() + datetime.timedelta(hours=2)
     token2 = jwt.encode({"exp": expiry_in_2_hour}, "secret").decode("unicode_escape")
-    token_cache.add_bearer_token("key2", token2)
+    token_cache._add_bearer_token("key2", token2)
 
     same_cache = httpx_auth.JsonTokenFileCache(request.node.name + ".cache")
     assert same_cache.get_token("key1") == token1
@@ -56,7 +56,7 @@ def test_save_bearer_token_exception_handling(token_cache, request, monkeypatch)
     token1 = jwt.encode({"exp": expiry_in_1_hour}, "secret").decode("unicode_escape")
 
     # Assert that the exception is not thrown
-    token_cache.add_bearer_token("key1", token1)
+    token_cache._add_bearer_token("key1", token1)
 
     same_cache = httpx_auth.JsonTokenFileCache(request.node.name + ".cache")
     with pytest.raises(httpx_auth.AuthenticationFailed) as exception_info:

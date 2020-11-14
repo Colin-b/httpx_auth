@@ -10,7 +10,7 @@ from httpx_auth.errors import InvalidToken, TokenExpiryNotProvided, Authenticati
 logger = logging.getLogger(__name__)
 
 
-def decode_base64(base64_encoded_string: str) -> str:
+def _decode_base64(base64_encoded_string: str) -> str:
     """
     Decode base64, padding being optional.
 
@@ -23,7 +23,7 @@ def decode_base64(base64_encoded_string: str) -> str:
     return base64.b64decode(base64_encoded_string).decode("unicode_escape")
 
 
-def is_expired(expiry: float) -> bool:
+def _is_expired(expiry: float) -> bool:
     return datetime.datetime.utcfromtimestamp(expiry) < datetime.datetime.utcnow()
 
 
@@ -37,7 +37,7 @@ class TokenMemoryCache:
         self.forbid_concurrent_cache_access = threading.Lock()
         self.forbid_concurrent_missing_token_function_call = threading.Lock()
 
-    def add_bearer_token(self, key: str, token: str):
+    def _add_bearer_token(self, key: str, token: str):
         """
         Set the bearer token and save it
         :param key: key identifier of the token
@@ -49,14 +49,14 @@ class TokenMemoryCache:
             raise InvalidToken(token)
 
         header, body, other = token.split(".")
-        body = json.loads(decode_base64(body))
+        body = json.loads(_decode_base64(body))
         expiry = body.get("exp")
         if not expiry:
             raise TokenExpiryNotProvided(expiry)
 
         self._add_token(key, token, expiry)
 
-    def add_access_token(self, key: str, token: str, expires_in: int):
+    def _add_access_token(self, key: str, token: str, expires_in: int):
         """
         Set the bearer token and save it
         :param key: key identifier of the token
@@ -97,7 +97,7 @@ class TokenMemoryCache:
             self._load_tokens()
             if key in self.tokens:
                 bearer, expiry = self.tokens[key]
-                if is_expired(expiry):
+                if _is_expired(expiry):
                     logger.debug(f'Authentication token with "{key}" key is expired.')
                     del self.tokens[key]
                 else:
@@ -112,10 +112,10 @@ class TokenMemoryCache:
                 new_token = on_missing_token(*on_missing_token_args)
                 if len(new_token) == 2:  # Bearer token
                     state, token = new_token
-                    self.add_bearer_token(state, token)
+                    self._add_bearer_token(state, token)
                 else:  # Access Token
                     state, token, expires_in = new_token
-                    self.add_access_token(state, token, expires_in)
+                    self._add_access_token(state, token, expires_in)
                 if key != state:
                     logger.warning(
                         f"Using a token received on another key than expected. Expecting {key} but was {state}."
@@ -134,6 +134,7 @@ class TokenMemoryCache:
         raise AuthenticationFailed()
 
     def clear(self):
+        """Remove tokens from the cache."""
         with self.forbid_concurrent_cache_access:
             logger.debug("Clearing token cache.")
             self.tokens = {}

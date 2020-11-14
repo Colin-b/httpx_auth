@@ -5,6 +5,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Removed
+- Do not expose `httpx_auth.oauth2_tokens.decode_base64` function anymore as it supposed to be used internally only.
+- Do not expose `add_bearer_token` token cache method anymore as it supposed to be used internally only.
+- Do not expose `add_access_token` token cache method anymore as it supposed to be used internally only.
 
 ## [0.7.0] - 2020-10-06
 ### Added
