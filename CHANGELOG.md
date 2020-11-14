@@ -13,6 +13,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - `get_token` cache method now requires `on_missing_token` function args to be provided as kwargs instead of args.
 - `get_token` cache method now requires `on_missing_token` parameter to be provided as a non positional argument.
+- `get_token` cache method now expose `early_expiry` parameter, defaulting to 30 seconds.
+
+### Fixed
+- OAuth2 token will now be considered as expired 30 seconds before actual expiry. To ensure it is still valid when received by the actual server.
 
 ## [0.7.0] - 2020-10-06
 ### Added

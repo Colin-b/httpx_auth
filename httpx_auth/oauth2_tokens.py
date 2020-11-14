@@ -23,8 +23,11 @@ def _decode_base64(base64_encoded_string: str) -> str:
     return base64.b64decode(base64_encoded_string).decode("unicode_escape")
 
 
-def _is_expired(expiry: float) -> bool:
-    return datetime.datetime.utcfromtimestamp(expiry) < datetime.datetime.utcnow()
+def _is_expired(expiry: float, early_expiry: float) -> bool:
+    return (
+        datetime.datetime.utcfromtimestamp(expiry - early_expiry)
+        < datetime.datetime.utcnow()
+    )
 
 
 class TokenMemoryCache:
@@ -84,11 +87,21 @@ class TokenMemoryCache:
             )
 
     def get_token(
-        self, key: str, *, on_missing_token=None, **on_missing_token_kwargs
+        self,
+        key: str,
+        *,
+        early_expiry: float = 30.0,
+        on_missing_token=None,
+        **on_missing_token_kwargs,
     ) -> str:
         """
         Return the bearer token.
         :param key: key identifier of the token
+        :param early_expiry: As the time between the token extraction from cache and the token reception on server side
+        might not higher than one second, on slow networks, token might be expired when received by the actual server,
+        even if still valid when fetched.
+        This is the number of seconds to substract to the actual token expiry. Token will be considered as
+        expired 30 seconds before real expiry by default.
         :param on_missing_token: function to call when token is expired or missing (returning token and expiry tuple)
         :param on_missing_token_kwargs: arguments of the function (key-value arguments)
         :return: the token
@@ -99,7 +112,7 @@ class TokenMemoryCache:
             self._load_tokens()
             if key in self.tokens:
                 bearer, expiry = self.tokens[key]
-                if _is_expired(expiry):
+                if _is_expired(expiry, early_expiry):
                     logger.debug(f'Authentication token with "{key}" key is expired.')
                     del self.tokens[key]
                 else:
