@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 
 class OAuth2ResponseHandler(BaseHTTPRequestHandler):
-    def do_GET(self):
+    def do_GET(self) -> None:
         # Do not consider a favicon request as an error
         if self.path == "/favicon.ico":
             logger.debug(
@@ -42,7 +42,7 @@ class OAuth2ResponseHandler(BaseHTTPRequestHandler):
                 self.error_page(f"Unable to properly perform authentication: {e}")
             )
 
-    def do_POST(self):
+    def do_POST(self) -> None:
         logger.debug(f"POST received on {self.path}")
         try:
             form_dict = self._get_form()
@@ -54,7 +54,7 @@ class OAuth2ResponseHandler(BaseHTTPRequestHandler):
                 self.error_page(f"Unable to properly perform authentication: {e}")
             )
 
-    def _parse_grant(self, arguments: dict):
+    def _parse_grant(self, arguments: dict) -> None:
         grants = arguments.get(self.server.grant_details.name)
         if not grants or len(grants) > 1:
             if "error" in arguments:
@@ -75,22 +75,22 @@ class OAuth2ResponseHandler(BaseHTTPRequestHandler):
             )
         )
 
-    def _get_form(self):
+    def _get_form(self) -> dict:
         content_length = int(self.headers.get("Content-Length", 0))
         body_str = self.rfile.read(content_length).decode("utf-8")
         return parse_qs(body_str, keep_blank_values=1)
 
-    def _get_params(self):
+    def _get_params(self) -> dict:
         return parse_qs(urlparse(self.path).query)
 
-    def send_html(self, html_content: str):
+    def send_html(self, html_content: str) -> None:
         self.send_response(200)
         self.send_header("Content-type", "text/html")
         self.end_headers()
         self.wfile.write(str.encode(html_content))
         logger.debug("HTML content sent to client.")
 
-    def success_page(self, text: str):
+    def success_page(self, text: str) -> str:
         return f"""<body onload="window.open('', '_self', ''); window.setTimeout(close, {self.server.grant_details.reception_success_display_time})" style="
         color: #4F8A10;
         background-color: #DFF2BF;
@@ -101,7 +101,7 @@ class OAuth2ResponseHandler(BaseHTTPRequestHandler):
             <div style="border: 1px solid;">{text}</div>
         </body>"""
 
-    def error_page(self, text: str):
+    def error_page(self, text: str) -> str:
         return f"""<body onload="window.open('', '_self', ''); window.setTimeout(close, {self.server.grant_details.reception_failure_display_time})" style="
         color: #D8000C;
         background-color: #FFBABA;
@@ -112,7 +112,7 @@ class OAuth2ResponseHandler(BaseHTTPRequestHandler):
             <div style="border: 1px solid;">{text}</div>
         </body>"""
 
-    def fragment_redirect_page(self):
+    def fragment_redirect_page(self) -> str:
         """Return a page with JS that calls back the server on the url
         original url: scheme://FQDN/path#fragment
         call back url: scheme://FQDN/path?fragment
@@ -131,7 +131,7 @@ class OAuth2ResponseHandler(BaseHTTPRequestHandler):
         window.location.replace(new_url)
         </script></body></html>"""
 
-    def log_message(self, format: str, *args):
+    def log_message(self, format: str, *args) -> None:
         """Make sure that messages are logged even with pythonw (seems like a bug in BaseHTTPRequestHandler)."""
         logger.debug(format, *args)
 
@@ -165,18 +165,18 @@ class FixedHttpServer(HTTPServer):
         self.request_error = None
         self.grant = False
 
-    def finish_request(self, request: socket, client_address):
+    def finish_request(self, request: socket, client_address) -> None:
         """Make sure that timeout is used by the request (seems like a bug in HTTPServer)."""
         request.settimeout(self.timeout)
         HTTPServer.finish_request(self, request, client_address)
 
-    def ensure_no_error_occurred(self):
+    def ensure_no_error_occurred(self) -> bool:
         if self.request_error:
             # Raise error encountered while processing a request if any
             raise self.request_error
         return not self.grant
 
-    def handle_timeout(self):
+    def handle_timeout(self) -> None:
         raise TimeoutOccurred(self.timeout)
 
 
@@ -196,7 +196,7 @@ def request_new_grant(grant_details: GrantDetails) -> (str, str):
         return _wait_for_grant(server)
 
 
-def _open_url(url: str):
+def _open_url(url: str) -> None:
     # Default to Microsoft Internet Explorer to be able to open a new window
     # otherwise this parameter is not taken into account by most browsers
     # Opening a new window allows to focus back once authenticated (JavaScript is closing the only tab)

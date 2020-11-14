@@ -197,7 +197,7 @@ class OAuth2ResourceOwnerPasswordCredentials(httpx.Auth, SupportMultiAuth):
         request.headers[self.header_name] = self.header_value.format(token=token)
         yield request
 
-    def request_new_token(self):
+    def request_new_token(self) -> tuple:
         # As described in https://tools.ietf.org/html/rfc6749#section-4.3.3
         token, expires_in = request_new_grant_with_post(
             self.token_url, self.data, self.token_field_name, self.client
@@ -404,7 +404,7 @@ class OAuth2AuthorizationCode(httpx.Auth, SupportMultiAuth, BrowserAuth):
         request.headers[self.header_name] = self.header_value.format(token=token)
         yield request
 
-    def request_new_token(self):
+    def request_new_token(self) -> tuple:
         # Request code
         state, code = oauth2_authentication_responses_server.request_new_grant(
             self.code_grant_details
@@ -1119,12 +1119,12 @@ class _MultiAuth(httpx.Auth):
             next(authentication_mode.auth_flow(request))
         yield request
 
-    def __add__(self, other):
+    def __add__(self, other) -> "_MultiAuth":
         if isinstance(other, _MultiAuth):
             return _MultiAuth(*self.authentication_modes, *other.authentication_modes)
         return _MultiAuth(*self.authentication_modes, other)
 
-    def __and__(self, other):
+    def __and__(self, other) -> "_MultiAuth":
         if isinstance(other, _MultiAuth):
             return _MultiAuth(*self.authentication_modes, *other.authentication_modes)
         return _MultiAuth(*self.authentication_modes, other)
