@@ -83,12 +83,14 @@ class TokenMemoryCache:
                 f'Inserting token expiring on {datetime.datetime.utcfromtimestamp(expiry)} (UTC) with "{key}" key: {token}'
             )
 
-    def get_token(self, key: str, on_missing_token=None, *on_missing_token_args) -> str:
+    def get_token(
+        self, key: str, *, on_missing_token=None, **on_missing_token_kwargs
+    ) -> str:
         """
         Return the bearer token.
         :param key: key identifier of the token
         :param on_missing_token: function to call when token is expired or missing (returning token and expiry tuple)
-        :param on_missing_token_args: arguments of the function
+        :param on_missing_token_kwargs: arguments of the function (key-value arguments)
         :return: the token
         :raise AuthenticationFailed: in case token cannot be retrieved.
         """
@@ -109,7 +111,7 @@ class TokenMemoryCache:
         logger.debug("Token cannot be found in cache.")
         if on_missing_token is not None:
             with self.forbid_concurrent_missing_token_function_call:
-                new_token = on_missing_token(*on_missing_token_args)
+                new_token = on_missing_token(**on_missing_token_kwargs)
                 if len(new_token) == 2:  # Bearer token
                     state, token = new_token
                     self._add_bearer_token(state, token)

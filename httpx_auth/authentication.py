@@ -193,7 +193,9 @@ class OAuth2ResourceOwnerPasswordCredentials(httpx.Auth, SupportMultiAuth):
     def auth_flow(
         self, request: httpx.Request
     ) -> Generator[httpx.Request, httpx.Response, None]:
-        token = OAuth2.token_cache.get_token(self.state, self.request_new_token)
+        token = OAuth2.token_cache.get_token(
+            self.state, on_missing_token=self.request_new_token
+        )
         request.headers[self.header_name] = self.header_value.format(token=token)
         yield request
 
@@ -269,7 +271,9 @@ class OAuth2ClientCredentials(httpx.Auth, SupportMultiAuth):
     def auth_flow(
         self, request: httpx.Request
     ) -> Generator[httpx.Request, httpx.Response, None]:
-        token = OAuth2.token_cache.get_token(self.state, self.request_new_token)
+        token = OAuth2.token_cache.get_token(
+            self.state, on_missing_token=self.request_new_token
+        )
         request.headers[self.header_name] = self.header_value.format(token=token)
         yield request
 
@@ -400,7 +404,9 @@ class OAuth2AuthorizationCode(httpx.Auth, SupportMultiAuth, BrowserAuth):
     def auth_flow(
         self, request: httpx.Request
     ) -> Generator[httpx.Request, httpx.Response, None]:
-        token = OAuth2.token_cache.get_token(self.state, self.request_new_token)
+        token = OAuth2.token_cache.get_token(
+            self.state, on_missing_token=self.request_new_token
+        )
         request.headers[self.header_name] = self.header_value.format(token=token)
         yield request
 
@@ -546,7 +552,9 @@ class OAuth2AuthorizationCodePKCE(httpx.Auth, SupportMultiAuth, BrowserAuth):
     def auth_flow(
         self, request: httpx.Request
     ) -> Generator[httpx.Request, httpx.Response, None]:
-        token = OAuth2.token_cache.get_token(self.state, self.request_new_token)
+        token = OAuth2.token_cache.get_token(
+            self.state, on_missing_token=self.request_new_token
+        )
         request.headers[self.header_name] = self.header_value.format(token=token)
         yield request
 
@@ -694,8 +702,8 @@ class OAuth2Implicit(httpx.Auth, SupportMultiAuth, BrowserAuth):
     ) -> Generator[httpx.Request, httpx.Response, None]:
         token = OAuth2.token_cache.get_token(
             self.state,
-            oauth2_authentication_responses_server.request_new_grant,
-            self.grant_details,
+            on_missing_token=oauth2_authentication_responses_server.request_new_grant,
+            grant_details=self.grant_details,
         )
         request.headers[self.header_name] = self.header_value.format(token=token)
         yield request

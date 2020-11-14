@@ -10,6 +10,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Do not expose `add_bearer_token` token cache method anymore as it supposed to be used internally only.
 - Do not expose `add_access_token` token cache method anymore as it supposed to be used internally only.
 
+### Changed
+- `get_token` cache method now requires `on_missing_token` function args to be provided as kwargs instead of args.
+- `get_token` cache method now requires `on_missing_token` parameter to be provided as a non positional argument.
+
 ## [0.7.0] - 2020-10-06
 ### Added
 - Explicit support for Python 3.9
