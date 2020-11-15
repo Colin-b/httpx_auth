@@ -5,6 +5,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [0.8.0] - 2020-11-15
 ### Removed
 - Do not expose `httpx_auth.oauth2_tokens.decode_base64` function anymore as it supposed to be used internally only.
 - Do not expose `add_bearer_token` token cache method anymore as it supposed to be used internally only.
@@ -93,7 +95,8 @@ Note that a few changes were made:
 ### Added
 - Placeholder for port of requests_auth to httpx
 
-[Unreleased]: https://github.com/Colin-b/httpx_auth/compare/v0.7.0...HEAD
+[Unreleased]: https://github.com/Colin-b/httpx_auth/compare/v0.8.0...HEAD
+[0.8.0]: https://github.com/Colin-b/httpx_auth/compare/v0.7.0...v0.8.0
 [0.7.0]: https://github.com/Colin-b/httpx_auth/compare/v0.6.0...v0.7.0
 [0.6.0]: https://github.com/Colin-b/httpx_auth/compare/v0.5.1...v0.6.0
 [0.5.1]: https://github.com/Colin-b/httpx_auth/compare/v0.5.0...v0.5.1
