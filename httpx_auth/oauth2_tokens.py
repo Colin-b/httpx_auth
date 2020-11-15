@@ -4,6 +4,7 @@ import os
 import datetime
 import threading
 import logging
+from typing import Union
 
 from httpx_auth.errors import InvalidToken, TokenExpiryNotProvided, AuthenticationFailed
 
@@ -28,6 +29,13 @@ def _is_expired(expiry: float, early_expiry: float) -> bool:
         datetime.datetime.utcfromtimestamp(expiry - early_expiry)
         < datetime.datetime.utcnow()
     )
+
+
+def _to_expiry(expires_in: Union[int, str]) -> float:
+    expiry = datetime.datetime.utcnow().replace(
+        tzinfo=datetime.timezone.utc
+    ) + datetime.timedelta(seconds=int(expires_in))
+    return expiry.timestamp()
 
 
 class TokenMemoryCache:
@@ -67,10 +75,7 @@ class TokenMemoryCache:
         :param expires_in: Number of seconds before token expiry
         :raise InvalidToken: In case token is invalid.
         """
-        expiry = datetime.datetime.utcnow().replace(
-            tzinfo=datetime.timezone.utc
-        ) + datetime.timedelta(seconds=int(expires_in))
-        self._add_token(key, token, expiry.timestamp())
+        self._add_token(key, token, _to_expiry(expires_in))
 
     def _add_token(self, key: str, token: str, expiry: float):
         """

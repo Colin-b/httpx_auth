@@ -19,7 +19,7 @@ def create_token(expiry: Optional[datetime.datetime]) -> str:
 
 
 @pytest.fixture
-def token_cache():
+def token_cache() -> httpx_auth.oauth2_tokens.TokenMemoryCache:
     yield httpx_auth.OAuth2.token_cache
     httpx_auth.OAuth2.token_cache.clear()
 
