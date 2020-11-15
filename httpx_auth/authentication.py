@@ -480,6 +480,9 @@ class OAuth2AuthorizationCodePKCE(httpx.Auth, SupportMultiAuth, BrowserAuth):
         :param response_type: Value of the response_type query parameter if not already provided in authorization URL.
         code by default.
         :param token_field_name: Field name containing the token. access_token by default.
+        :param early_expiry: Number of seconds before actual token expiry where token will be considered as expired.
+        Default to 30 seconds to ensure token will not expire between the time of retrieval and the time the request
+        reaches the actual server. Set it to 0 to deactivate this feature and use the same token until actual expiry.
         :param code_field_name: Field name containing the code. code by default.
         :param client: httpx.Client instance that will be used to request the token.
         Use it to provide a custom proxying rule for instance.
@@ -509,7 +512,7 @@ class OAuth2AuthorizationCodePKCE(httpx.Auth, SupportMultiAuth, BrowserAuth):
             raise Exception("header_value parameter must contains {token}.")
 
         self.token_field_name = kwargs.pop("token_field_name", None) or "access_token"
-        self.early_expiry = 30.0
+        self.early_expiry = float(kwargs.pop("early_expiry", None) or 30.0)
 
         # As described in https://tools.ietf.org/html/rfc6749#section-4.1.2
         code_field_name = kwargs.pop("code_field_name", "code")
@@ -1010,6 +1013,9 @@ class OktaAuthorizationCodePKCE(OAuth2AuthorizationCodePKCE):
         code by default.
         :param token_field_name: Name of the expected field containing the token.
         access_token by default.
+        :param early_expiry: Number of seconds before actual token expiry where token will be considered as expired.
+        Default to 30 seconds to ensure token will not expire between the time of retrieval and the time the request
+        reaches the actual server. Set it to 0 to deactivate this feature and use the same token until actual expiry.
         :param code_field_name: Field name containing the code. code by default.
         :param nonce: Refer to http://openid.net/specs/openid-connect-core-1_0.html#IDToken for more details
         (formatted as an Universal Unique Identifier - UUID). Use a newly generated UUID by default.
