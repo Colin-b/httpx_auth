@@ -334,6 +334,9 @@ class OAuth2AuthorizationCode(httpx.Auth, SupportMultiAuth, BrowserAuth):
         :param response_type: Value of the response_type query parameter if not already provided in authorization URL.
         code by default.
         :param token_field_name: Field name containing the token. access_token by default.
+        :param early_expiry: Number of seconds before actual token expiry where token will be considered as expired.
+        Default to 30 seconds to ensure token will not expire between the time of retrieval and the time the request
+        reaches the actual server. Set it to 0 to deactivate this feature and use the same token until actual expiry.
         :param code_field_name: Field name containing the code. code by default.
         :param username: User name in case basic authentication should be used to retrieve token.
         :param password: User password in case basic authentication should be used to retrieve token.
@@ -362,7 +365,7 @@ class OAuth2AuthorizationCode(httpx.Auth, SupportMultiAuth, BrowserAuth):
             raise Exception("header_value parameter must contains {token}.")
 
         self.token_field_name = kwargs.pop("token_field_name", None) or "access_token"
-        self.early_expiry = 30.0
+        self.early_expiry = float(kwargs.pop("early_expiry", None) or 30.0)
 
         username = kwargs.pop("username", None)
         password = kwargs.pop("password", None)
@@ -949,6 +952,9 @@ class OktaAuthorizationCode(OAuth2AuthorizationCode):
         token by default.
         :param token_field_name: Name of the expected field containing the token.
         access_token by default.
+        :param early_expiry: Number of seconds before actual token expiry where token will be considered as expired.
+        Default to 30 seconds to ensure token will not expire between the time of retrieval and the time the request
+        reaches the actual server. Set it to 0 to deactivate this feature and use the same token until actual expiry.
         :param nonce: Refer to http://openid.net/specs/openid-connect-core-1_0.html#IDToken for more details
         (formatted as an Universal Unique Identifier - UUID). Use a newly generated UUID by default.
         :param authorization_server: Okta authorization server

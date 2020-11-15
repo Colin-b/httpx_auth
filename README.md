@@ -80,6 +80,7 @@ with httpx.Client() as client:
 | `header_value`          | Format used to send the token value. "{token}" must be present as it will be replaced by the actual token. | Optional | Bearer {token} |
 | `response_type`         | Value of the response_type query parameter if not already provided in authorization URL. | Optional | code |
 | `token_field_name`      | Field name containing the token. | Optional | access_token |
+| `early_expiry`          | Number of seconds before actual token expiry where token will be considered as expired. Used to ensure token will not expire between the time of retrieval and the time the request reaches the actual server. Set it to 0 to deactivate this feature and use the same token until actual expiry. | Optional  | 30.0  |
 | `code_field_name`       | Field name containing the code. | Optional | code |
 | `username`              | User name in case basic authentication should be used to retrieve token. | Optional |  |
 | `password`              | User password in case basic authentication should be used to retrieve token. | Optional |  |
@@ -125,6 +126,7 @@ with httpx.Client() as client:
 | `client_id`             | Okta Application Identifier (formatted as an Universal Unique Identifier). | Mandatory |               |
 | `response_type`         | Value of the response_type query parameter if not already provided in authorization URL. | Optional | token |
 | `token_field_name`      | Field name containing the token. | Optional | access_token |
+| `early_expiry`          | Number of seconds before actual token expiry where token will be considered as expired. Used to ensure token will not expire between the time of retrieval and the time the request reaches the actual server. Set it to 0 to deactivate this feature and use the same token until actual expiry. | Optional  | 30.0  |
 | `nonce`                 | Refer to [OpenID ID Token specifications][3] for more details. | Optional | Newly generated Universal Unique Identifier. |
 | `scope`                 | Scope parameter sent in query. Can also be a list of scopes. | Optional | openid |
 | `authorization_server`  | Okta authorization server. | Optional | 'default' |
