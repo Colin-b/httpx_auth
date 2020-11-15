@@ -649,6 +649,9 @@ class OAuth2Implicit(httpx.Auth, SupportMultiAuth, BrowserAuth):
         token by default.
         :param token_field_name: Name of the expected field containing the token.
         id_token by default if response_type is id_token, else access_token.
+        :param early_expiry: Number of seconds before actual token expiry where token will be considered as expired.
+        Default to 30 seconds to ensure token will not expire between the time of retrieval and the time the request
+        reaches the actual server. Set it to 0 to deactivate this feature and use the same token until actual expiry.
         :param redirect_uri_endpoint: Custom endpoint that will be used as redirect_uri the following way:
         http://localhost:<redirect_uri_port>/<redirect_uri_endpoint>. Default value is to redirect on / (root).
         :param redirect_uri_port: The port on which the server listening for the OAuth 2 token will be started.
@@ -699,7 +702,7 @@ class OAuth2Implicit(httpx.Auth, SupportMultiAuth, BrowserAuth):
                 "id_token" if "id_token" == response_type else "access_token"
             )
 
-        self.early_expiry = 30.0
+        self.early_expiry = float(kwargs.pop("early_expiry", None) or 30.0)
 
         authorization_url_without_nonce = _add_parameters(
             self.authorization_url, kwargs
@@ -750,6 +753,9 @@ class AzureActiveDirectoryImplicit(OAuth2Implicit):
         token by default.
         :param token_field_name: Name of the expected field containing the token.
         access_token by default.
+        :param early_expiry: Number of seconds before actual token expiry where token will be considered as expired.
+        Default to 30 seconds to ensure token will not expire between the time of retrieval and the time the request
+        reaches the actual server. Set it to 0 to deactivate this feature and use the same token until actual expiry.
         :param nonce: Refer to http://openid.net/specs/openid-connect-core-1_0.html#IDToken for more details
         (formatted as an Universal Unique Identifier - UUID). Use a newly generated UUID by default.
         :param redirect_uri_endpoint: Custom endpoint that will be used as redirect_uri the following way:
@@ -797,6 +803,9 @@ class AzureActiveDirectoryImplicitIdToken(OAuth2Implicit):
         id_token by default.
         :param token_field_name: Name of the expected field containing the token.
         id_token by default.
+        :param early_expiry: Number of seconds before actual token expiry where token will be considered as expired.
+        Default to 30 seconds to ensure token will not expire between the time of retrieval and the time the request
+        reaches the actual server. Set it to 0 to deactivate this feature and use the same token until actual expiry.
         :param nonce: Refer to http://openid.net/specs/openid-connect-core-1_0.html#IDToken for more details
         (formatted as an Universal Unique Identifier - UUID). Use a newly generated UUID by default.
         :param redirect_uri_endpoint: Custom endpoint that will be used as redirect_uri the following way:
@@ -847,6 +856,9 @@ class OktaImplicit(OAuth2Implicit):
         token by default.
         :param token_field_name: Name of the expected field containing the token.
         access_token by default.
+        :param early_expiry: Number of seconds before actual token expiry where token will be considered as expired.
+        Default to 30 seconds to ensure token will not expire between the time of retrieval and the time the request
+        reaches the actual server. Set it to 0 to deactivate this feature and use the same token until actual expiry.
         :param nonce: Refer to http://openid.net/specs/openid-connect-core-1_0.html#IDToken for more details
         (formatted as an Universal Unique Identifier - UUID). Use a newly generated UUID by default.
         :param authorization_server: Okta authorization server.
@@ -900,6 +912,9 @@ class OktaImplicitIdToken(OAuth2Implicit):
         id_token by default.
         :param token_field_name: Name of the expected field containing the token.
         id_token by default.
+        :param early_expiry: Number of seconds before actual token expiry where token will be considered as expired.
+        Default to 30 seconds to ensure token will not expire between the time of retrieval and the time the request
+        reaches the actual server. Set it to 0 to deactivate this feature and use the same token until actual expiry.
         :param nonce: Refer to http://openid.net/specs/openid-connect-core-1_0.html#IDToken for more details
         (formatted as an Universal Unique Identifier - UUID). Use a newly generated UUID by default.
         :param authorization_server: Okta authorization server
