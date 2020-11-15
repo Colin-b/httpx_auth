@@ -95,7 +95,7 @@ def test_oauth2_client_credentials_flow_token_custom_expiry(
         "http://provide_access_token",
         client_id="test_user",
         client_secret="test_pwd",
-        early_expiry=29,
+        early_expiry=28,
     )
     # Add a token that expires in 29 seconds, so should be considered as not expired when issuing the request
     token_cache._add_token(

@@ -88,7 +88,7 @@ def test_okta_client_credentials_flow_token_custom_expiry(
     token_cache, httpx_mock: HTTPXMock
 ):
     auth = httpx_auth.OktaClientCredentials(
-        "test_okta", client_id="test_user", client_secret="test_pwd", early_expiry=29
+        "test_okta", client_id="test_user", client_secret="test_pwd", early_expiry=28
     )
     # Add a token that expires in 29 seconds, so should be considered as not expired when issuing the request
     token_cache._add_token(
