@@ -131,6 +131,46 @@ def test_oauth2_implicit_flow_post_token_is_sent_in_authorization_header_by_defa
     )
 
 
+def test_oauth2_implicit_flow_post_token_is_expired_after_30_seconds_by_default(
+    token_cache, httpx_mock: HTTPXMock, browser_mock: BrowserMock
+):
+    auth = httpx_auth.OAuth2Implicit("http://provide_token")
+    # Add a token that expires in 29 seconds, so should be considered as expired when issuing the request
+    expiry_in_29_seconds = datetime.datetime.utcnow() + datetime.timedelta(seconds=29)
+    token_cache._add_token(
+        key="42a85b271b7a652ca3cc4c398cfd3f01b9ad36bf9c945ba823b023e8f8b95c4638576a0e3dcc96838b838bec33ec6c0ee2609d62ed82480b3b8114ca494c0521",
+        token=create_token(expiry_in_29_seconds),
+        expiry=httpx_auth.oauth2_tokens._to_expiry(expires_in=29),
+    )
+    # Meaning a new one will be requested
+    expiry_in_1_hour = datetime.datetime.utcnow() + datetime.timedelta(hours=1)
+    token = create_token(expiry_in_1_hour)
+    tab = browser_mock.add_response(
+        opened_url="http://provide_token?response_type=token&state=42a85b271b7a652ca3cc4c398cfd3f01b9ad36bf9c945ba823b023e8f8b95c4638576a0e3dcc96838b838bec33ec6c0ee2609d62ed82480b3b8114ca494c0521&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F",
+        reply_url="http://localhost:5000",
+        data=f"access_token={token}&state=42a85b271b7a652ca3cc4c398cfd3f01b9ad36bf9c945ba823b023e8f8b95c4638576a0e3dcc96838b838bec33ec6c0ee2609d62ed82480b3b8114ca494c0521",
+    )
+    assert get_header(httpx_mock, auth).get("Authorization") == f"Bearer {token}"
+    tab.assert_success(
+        "You are now authenticated on 42a85b271b7a652ca3cc4c398cfd3f01b9ad36bf9c945ba823b023e8f8b95c4638576a0e3dcc96838b838bec33ec6c0ee2609d62ed82480b3b8114ca494c0521. You may close this tab."
+    )
+
+
+def test_oauth2_implicit_flow_post_token_custom_expiry(
+    token_cache, httpx_mock: HTTPXMock, browser_mock: BrowserMock
+):
+    auth = httpx_auth.OAuth2Implicit("http://provide_token", early_expiry=28)
+    # Add a token that expires in 29 seconds, so should be considered as not expired when issuing the request
+    expiry_in_29_seconds = datetime.datetime.utcnow() + datetime.timedelta(seconds=29)
+    token = create_token(expiry_in_29_seconds)
+    token_cache._add_token(
+        key="42a85b271b7a652ca3cc4c398cfd3f01b9ad36bf9c945ba823b023e8f8b95c4638576a0e3dcc96838b838bec33ec6c0ee2609d62ed82480b3b8114ca494c0521",
+        token=create_token(expiry_in_29_seconds),
+        expiry=httpx_auth.oauth2_tokens._to_expiry(expires_in=29),
+    )
+    assert get_header(httpx_mock, auth).get("Authorization") == f"Bearer {token}"
+
+
 def test_browser_opening_failure(token_cache, httpx_mock: HTTPXMock, monkeypatch):
     import httpx_auth.oauth2_authentication_responses_server
 

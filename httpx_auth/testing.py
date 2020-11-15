@@ -19,7 +19,7 @@ def create_token(expiry: Optional[datetime.datetime]) -> str:
 
 
 @pytest.fixture
-def token_cache():
+def token_cache() -> httpx_auth.oauth2_tokens.TokenMemoryCache:
     yield httpx_auth.OAuth2.token_cache
     httpx_auth.OAuth2.token_cache.clear()
 
@@ -81,7 +81,7 @@ class BrowserMock:
     def __init__(self):
         self.tabs: Dict[str, Tab] = {}
 
-    def open(self, url: str, new: int):
+    def open(self, url: str, new: int) -> bool:
         assert new == 1
         assert url in self.tabs, f"Browser call on {url} was not mocked."
         # Simulate a browser by sending the response in another thread
