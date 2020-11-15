@@ -186,7 +186,7 @@ class AWS4Auth(httpx.Auth):
         sig_string = "\n".join(sig_items)
         return sig_string
 
-    def _amz_cano_path(self, path):
+    def _amz_cano_path(self, path) -> str:
         """
         Generate the canonical path as per AWS4 auth requirements.
         Not documented anywhere, determined from aws4_testsuite examples,
@@ -208,7 +208,7 @@ class AWS4Auth(httpx.Auth):
         return quote(full_path, safe=safe_chars)
 
     @staticmethod
-    def _amz_cano_querystring(qs):
+    def _amz_cano_querystring(qs: str) -> str:
         """
         Parse and format querystring as per AWS4 auth requirements.
         Perform percent quoting as needed.
@@ -233,7 +233,7 @@ class AWS4Auth(httpx.Auth):
         return qs
 
     @staticmethod
-    def _amz_norm_whitespace(text):
+    def _amz_norm_whitespace(text: str) -> str:
         """
         Replace runs of whitespace with a single space.
         Ignore text enclosed in quotes.

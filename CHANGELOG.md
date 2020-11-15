@@ -6,6 +6,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.0] - 2020-11-15
+### Removed
+- Do not expose `httpx_auth.oauth2_tokens.decode_base64` function anymore as it supposed to be used internally only.
+- Do not expose `add_bearer_token` token cache method anymore as it supposed to be used internally only.
+- Do not expose `add_access_token` token cache method anymore as it supposed to be used internally only.
+
+### Changed
+- `get_token` cache method now requires `on_missing_token` function args to be provided as kwargs instead of args.
+- `get_token` cache method now requires `on_missing_token` parameter to be provided as a non positional argument.
+- `get_token` cache method now expose `early_expiry` parameter, defaulting to 30 seconds.
+
+### Fixed
+- OAuth2 token will now be considered as expired 30 seconds before actual expiry. To ensure it is still valid when received by the actual server.
+
+### Added
+- `httpx_auth.OAuth2ResourceOwnerPasswordCredentials` contains a new `early_expiry` parameter allowing to tweak the number of seconds before actual token expiry where the token will be considered as already expired. Default to 30s.
+- `httpx_auth.OAuth2ClientCredentials` contains a new `early_expiry` parameter allowing to tweak the number of seconds before actual token expiry where the token will be considered as already expired. Default to 30s.
+- `httpx_auth.OktaClientCredentials` contains a new `early_expiry` parameter allowing to tweak the number of seconds before actual token expiry where the token will be considered as already expired. Default to 30s.
+- `httpx_auth.OAuth2AuthorizationCode` contains a new `early_expiry` parameter allowing to tweak the number of seconds before actual token expiry where the token will be considered as already expired. Default to 30s.
+- `httpx_auth.OktaAuthorizationCode` contains a new `early_expiry` parameter allowing to tweak the number of seconds before actual token expiry where the token will be considered as already expired. Default to 30s.
+- `httpx_auth.OAuth2AuthorizationCodePKCE` contains a new `early_expiry` parameter allowing to tweak the number of seconds before actual token expiry where the token will be considered as already expired. Default to 30s.
+- `httpx_auth.OktaAuthorizationCodePKCE` contains a new `early_expiry` parameter allowing to tweak the number of seconds before actual token expiry where the token will be considered as already expired. Default to 30s.
+- `httpx_auth.OAuth2Implicit` contains a new `early_expiry` parameter allowing to tweak the number of seconds before actual token expiry where the token will be considered as already expired. Default to 30s.
+- `httpx_auth.AzureActiveDirectoryImplicit` contains a new `early_expiry` parameter allowing to tweak the number of seconds before actual token expiry where the token will be considered as already expired. Default to 30s.
+- `httpx_auth.AzureActiveDirectoryImplicitIdToken` contains a new `early_expiry` parameter allowing to tweak the number of seconds before actual token expiry where the token will be considered as already expired. Default to 30s.
+- `httpx_auth.OktaImplicit` contains a new `early_expiry` parameter allowing to tweak the number of seconds before actual token expiry where the token will be considered as already expired. Default to 30s.
+- `httpx_auth.OktaImplicitIdToken` contains a new `early_expiry` parameter allowing to tweak the number of seconds before actual token expiry where the token will be considered as already expired. Default to 30s.
+
 ## [0.7.0] - 2020-10-06
 ### Added
 - Explicit support for Python 3.9
@@ -67,7 +95,8 @@ Note that a few changes were made:
 ### Added
 - Placeholder for port of requests_auth to httpx
 
-[Unreleased]: https://github.com/Colin-b/httpx_auth/compare/v0.7.0...HEAD
+[Unreleased]: https://github.com/Colin-b/httpx_auth/compare/v0.8.0...HEAD
+[0.8.0]: https://github.com/Colin-b/httpx_auth/compare/v0.7.0...v0.8.0
 [0.7.0]: https://github.com/Colin-b/httpx_auth/compare/v0.6.0...v0.7.0
 [0.6.0]: https://github.com/Colin-b/httpx_auth/compare/v0.5.1...v0.6.0
 [0.5.1]: https://github.com/Colin-b/httpx_auth/compare/v0.5.0...v0.5.1

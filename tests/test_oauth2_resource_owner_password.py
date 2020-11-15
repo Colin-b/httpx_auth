@@ -60,6 +60,58 @@ def test_oauth2_password_credentials_flow_token_is_sent_in_authorization_header_
     )
 
 
+def test_oauth2_password_credentials_flow_token_is_expired_after_30_seconds_by_default(
+    token_cache, httpx_mock: HTTPXMock
+):
+    auth = httpx_auth.OAuth2ResourceOwnerPasswordCredentials(
+        "http://provide_access_token", username="test_user", password="test_pwd"
+    )
+    # Add a token that expires in 29 seconds, so should be considered as expired when issuing the request
+    token_cache._add_token(
+        key="db2be9203dd2718c7285319dde1270056808482fbf7fffa6a9362d092d1cf799b393dd15140ea13e4d76d1603e56390a6222ff7063736a1b686d317706b2c001",
+        token="2YotnFZFEjr1zCsicMWpAA",
+        expiry=httpx_auth.oauth2_tokens._to_expiry(expires_in=29),
+    )
+    # Meaning a new one will be requested
+    httpx_mock.add_response(
+        method="POST",
+        url="http://provide_access_token",
+        json={
+            "access_token": "2YotnFZFEjr1zCsicMWpAA",
+            "token_type": "example",
+            "expires_in": 3600,
+            "refresh_token": "tGzv3JOkF0XG5Qx2TlKWIA",
+            "example_parameter": "example_value",
+        },
+        match_content=b"grant_type=password&username=test_user&password=test_pwd",
+    )
+    assert (
+        get_header(httpx_mock, auth).get("Authorization")
+        == "Bearer 2YotnFZFEjr1zCsicMWpAA"
+    )
+
+
+def test_oauth2_password_credentials_flow_token_custom_expiry(
+    token_cache, httpx_mock: HTTPXMock
+):
+    auth = httpx_auth.OAuth2ResourceOwnerPasswordCredentials(
+        "http://provide_access_token",
+        username="test_user",
+        password="test_pwd",
+        early_expiry=28,
+    )
+    # Add a token that expires in 29 seconds, so should be considered as not expired when issuing the request
+    token_cache._add_token(
+        key="db2be9203dd2718c7285319dde1270056808482fbf7fffa6a9362d092d1cf799b393dd15140ea13e4d76d1603e56390a6222ff7063736a1b686d317706b2c001",
+        token="2YotnFZFEjr1zCsicMWpAA",
+        expiry=httpx_auth.oauth2_tokens._to_expiry(expires_in=29),
+    )
+    assert (
+        get_header(httpx_mock, auth).get("Authorization")
+        == "Bearer 2YotnFZFEjr1zCsicMWpAA"
+    )
+
+
 def test_expires_in_sent_as_str(token_cache, httpx_mock: HTTPXMock):
     auth = httpx_auth.OAuth2ResourceOwnerPasswordCredentials(
         "http://provide_access_token", username="test_user", password="test_pwd"
