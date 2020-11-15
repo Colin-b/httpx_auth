@@ -79,7 +79,7 @@ def test_oauth2_password_credentials_flow_token_is_expired_after_30_seconds_by_d
         json={
             "access_token": "2YotnFZFEjr1zCsicMWpAA",
             "token_type": "example",
-            "expires_in": 29,
+            "expires_in": 3600,
             "refresh_token": "tGzv3JOkF0XG5Qx2TlKWIA",
             "example_parameter": "example_value",
         },

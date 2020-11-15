@@ -296,6 +296,7 @@ with httpx.Client() as client:
 | `header_value`     | Format used to send the token value. "{token}" must be present as it will be replaced by the actual token. | Optional | Bearer {token} |
 | `scope`            | Scope parameter sent to token URL as body. Can also be a list of scopes. | Optional |  |
 | `token_field_name` | Field name containing the token.             | Optional  | access_token  |
+| `early_expiry`     | Number of seconds before actual token expiry where token will be considered as expired. Used to ensure token will not expire between the time of retrieval and the time the request reaches the actual server. Set it to 0 to deactivate this feature and use the same token until actual expiry. | Optional  | 30.0  |
 | `client`           | `httpx.Client` instance that will be used to request the token. Use it to provide a custom proxying rule for instance. | Optional |  |
 
 Any other parameter will be put as body parameter in the token URL.
@@ -335,6 +336,7 @@ with httpx.Client() as client:
 | `header_value`          | Format used to send the token value. "{token}" must be present as it will be replaced by the actual token. | Optional | Bearer {token} |
 | `scope`                 | Scope parameter sent in query. Can also be a list of scopes. | Optional | openid |
 | `token_field_name`      | Field name containing the token. | Optional | access_token |
+| `early_expiry`          | Number of seconds before actual token expiry where token will be considered as expired. Used to ensure token will not expire between the time of retrieval and the time the request reaches the actual server. Set it to 0 to deactivate this feature and use the same token until actual expiry. | Optional  | 30.0  |
 | `client`                | `httpx.Client` instance that will be used to request the token. Use it to provide a custom proxying rule for instance. | Optional |  |
 
 Any other parameter will be put as query parameter in the token URL.        

@@ -236,6 +236,9 @@ class OAuth2ClientCredentials(httpx.Auth, SupportMultiAuth):
         Token will be sent as "Bearer {token}" by default.
         :param scope: Scope parameter sent to token URL as body. Can also be a list of scopes. Not sent by default.
         :param token_field_name: Field name containing the token. access_token by default.
+        :param early_expiry: Number of seconds before actual token expiry where token will be considered as expired.
+        Default to 30 seconds to ensure token will not expire between the time of retrieval and the time the request
+        reaches the actual server. Set it to 0 to deactivate this feature and use the same token until actual expiry.
         :param client: httpx.Client instance that will be used to request the token.
         Use it to provide a custom proxying rule for instance.
         :param kwargs: all additional authorization parameters that should be put as query parameter in the token URL.
@@ -256,7 +259,7 @@ class OAuth2ClientCredentials(httpx.Auth, SupportMultiAuth):
             raise Exception("header_value parameter must contains {token}.")
 
         self.token_field_name = kwargs.pop("token_field_name", None) or "access_token"
-        self.early_expiry = 30.0
+        self.early_expiry = float(kwargs.pop("early_expiry", None) or 30.0)
 
         # Time is expressed in seconds
         self.timeout = int(kwargs.pop("timeout", None) or 60)
@@ -1067,6 +1070,9 @@ class OktaClientCredentials(OAuth2ClientCredentials):
         :param scope: Scope parameter sent to token URL as body. Can also be a list of scopes.
         Request 'openid' by default.
         :param token_field_name: Field name containing the token. access_token by default.
+        :param early_expiry: Number of seconds before actual token expiry where token will be considered as expired.
+        Default to 30 seconds to ensure token will not expire between the time of retrieval and the time the request
+        reaches the actual server. Set it to 0 to deactivate this feature and use the same token until actual expiry.
         :param client: httpx.Client instance that will be used to request the token.
         Use it to provide a custom proxying rule for instance.
         :param kwargs: all additional authorization parameters that should be put as query parameter in the token URL.
