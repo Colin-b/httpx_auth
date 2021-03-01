@@ -36,7 +36,7 @@ setup(
     packages=find_packages(exclude=["tests*"]),
     install_requires=[
         # Used for Base Authentication and to communicate with OAuth2 servers
-        "httpx==0.16.*"
+        "httpx==0.17.*"
     ],
     extras_require={
         "testing": [
