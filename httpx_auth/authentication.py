@@ -565,7 +565,7 @@ class OAuth2AuthorizationCodePKCE(httpx.Auth, SupportMultiAuth, BrowserAuth):
         # As described in https://tools.ietf.org/html/rfc6749#section-4.1.3
         # include the PKCE code verifier used in the second part of the flow
         self.token_data = {
-            "code_verifier": code_verifier,
+            "code_verifier": code_verifier.decode("ascii"),
             "grant_type": "authorization_code",
             "redirect_uri": self.redirect_uri,
         }
@@ -1152,8 +1152,8 @@ class QueryApiKey(httpx.Auth, SupportMultiAuth):
     def auth_flow(
         self, request: httpx.Request
     ) -> Generator[httpx.Request, httpx.Response, None]:
-        request.url = httpx.URL(
-            request.url, params={self.query_parameter_name: self.api_key}
+        request.url = request.url.copy_merge_params(
+            {self.query_parameter_name: self.api_key}
         )
         yield request
 
