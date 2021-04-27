@@ -1152,8 +1152,8 @@ class QueryApiKey(httpx.Auth, SupportMultiAuth):
     def auth_flow(
         self, request: httpx.Request
     ) -> Generator[httpx.Request, httpx.Response, None]:
-        request.url = httpx.URL(
-            request.url, params={self.query_parameter_name: self.api_key}
+        request.url = request.url.copy_merge_params(
+            {self.query_parameter_name: self.api_key}
         )
         yield request
 
