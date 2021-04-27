@@ -565,7 +565,7 @@ class OAuth2AuthorizationCodePKCE(httpx.Auth, SupportMultiAuth, BrowserAuth):
         # As described in https://tools.ietf.org/html/rfc6749#section-4.1.3
         # include the PKCE code verifier used in the second part of the flow
         self.token_data = {
-            "code_verifier": code_verifier,
+            "code_verifier": code_verifier.decode("ascii"),
             "grant_type": "authorization_code",
             "redirect_uri": self.redirect_uri,
         }
