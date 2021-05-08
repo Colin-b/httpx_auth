@@ -36,7 +36,8 @@ setup(
     packages=find_packages(exclude=["tests*"]),
     install_requires=[
         # Used for Base Authentication and to communicate with OAuth2 servers
-        "httpx==0.18.*"
+        "httpx==0.18.*",
+        "pyspnego==0.1.6"
     ],
     extras_require={
         "testing": [
@@ -46,6 +47,9 @@ setup(
             "pytest_httpx==0.12.*",
             # Used to check coverage
             "pytest-cov==2.*",
+            # Used to test NTLM support
+            "pytest==6.*",
+            "pytest-mock==3.6.*"
         ]
     },
     python_requires=">=3.6",
