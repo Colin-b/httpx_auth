@@ -7,7 +7,7 @@ import pytest
 from pytest_httpx import HTTPXMock
 from pytest_mock import mocker
 
-from httpx_auth.authentication import NTLM, AuthenticationTarget
+from httpx_auth.authentication import NTLM, _AuthenticationTarget
 
 
 class TestAuthenticationTargetUnit:
@@ -15,18 +15,18 @@ class TestAuthenticationTargetUnit:
         ["status_code", "expected_type"], [(401, 1), (407, 2), (403, 0)]
     )
     def test_from_status_code(self, status_code: int, expected_type: int):
-        auth_target = AuthenticationTarget.from_status_code(status_code)
+        auth_target = _AuthenticationTarget.from_status_code(status_code)
         assert auth_target.value == expected_type
 
     @pytest.mark.parametrize(
         ["auth_target", "expected_output"],
         [
-            (AuthenticationTarget.WWW, "WWW-Authenticate"),
-            (AuthenticationTarget.PROXY, "Proxy-Authenticate"),
+            (_AuthenticationTarget.WWW, "WWW-Authenticate"),
+            (_AuthenticationTarget.PROXY, "Proxy-Authenticate"),
         ],
     )
     def test_challenge_header(
-        self, auth_target: AuthenticationTarget, expected_output: str
+        self, auth_target: _AuthenticationTarget, expected_output: str
     ):
         actual_output = auth_target.challenge_header_name()
         assert actual_output.lower() == expected_output.lower()
@@ -34,12 +34,12 @@ class TestAuthenticationTargetUnit:
     @pytest.mark.parametrize(
         ["auth_target", "expected_output"],
         [
-            (AuthenticationTarget.WWW, "Authorization"),
-            (AuthenticationTarget.PROXY, "Proxy-Authorization"),
+            (_AuthenticationTarget.WWW, "Authorization"),
+            (_AuthenticationTarget.PROXY, "Proxy-Authorization"),
         ],
     )
     def test_challenge_header(
-        self, auth_target: AuthenticationTarget, expected_output: str
+        self, auth_target: _AuthenticationTarget, expected_output: str
     ):
         actual_output = auth_target.response_header_name()
         assert actual_output.lower() == expected_output.lower()

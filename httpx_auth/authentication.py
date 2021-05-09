@@ -1182,7 +1182,7 @@ class NTLM(httpx.Auth, SupportMultiAuth):
         self.username = username
         self.password = password
         self.domain = domain
-        self.authentication_target = AuthenticationTarget.NONE
+        self.authentication_target = _AuthenticationTarget.NONE
         self.authenticate_type: Optional[str] = None
         self.ntlm_auth_header = ""
 
@@ -1190,7 +1190,7 @@ class NTLM(httpx.Auth, SupportMultiAuth):
         self, request: httpx.Request
     ) -> Generator[httpx.Request, httpx.Response, None]:
 
-        if self.authentication_target is not AuthenticationTarget.NONE:
+        if self.authentication_target is not _AuthenticationTarget.NONE:
             request.headers[
                 self.authentication_target.response_header_name()
             ] = self.authentication_target
@@ -1203,7 +1203,7 @@ class NTLM(httpx.Auth, SupportMultiAuth):
             return response
 
         # Otherwise authenticate, determine whether we need to auth to the server or to a proxy
-        candidate_auth_target = AuthenticationTarget.from_status_code(
+        candidate_auth_target = _AuthenticationTarget.from_status_code(
             response.status_code
         )
         authenticate_header = response.headers.get(
@@ -1290,7 +1290,7 @@ class NTLM(httpx.Auth, SupportMultiAuth):
         return None
 
 
-class AuthenticationTarget(Enum):
+class _AuthenticationTarget(Enum):
     NONE = 0
     WWW = 1
     PROXY = 2
@@ -1320,18 +1320,18 @@ class AuthenticationTarget(Enum):
             return None
 
     @staticmethod
-    def from_status_code(status_code: int) -> "AuthenticationTarget":
+    def from_status_code(status_code: int) -> "_AuthenticationTarget":
         """
         Create an instance of an AuthenticationTarget from a response status code
         :param status_code: int HTTP status code
         :return: AuthenticationTarget
         """
         if status_code == 401:
-            return AuthenticationTarget.WWW
+            return _AuthenticationTarget.WWW
         elif status_code == 407:
-            return AuthenticationTarget.PROXY
+            return _AuthenticationTarget.PROXY
         else:
-            return AuthenticationTarget.NONE
+            return _AuthenticationTarget.NONE
 
 
 class _MultiAuth(httpx.Auth):
