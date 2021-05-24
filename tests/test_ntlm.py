@@ -125,17 +125,17 @@ def wrap_with_workstation(func):
 
 class TestNTLMFunctional:
     def test_http_200_response_makes_one_request(self, httpx_mock: HTTPXMock):
-        httpx_mock.add_response(url="http://www.example.com/test", status_code=200)
+        httpx_mock.add_response(url="https://www.example.com/test", status_code=200)
 
         with httpx.Client() as client:
             resp = client.get(
-                url="http://www.example.com/test", auth=NTLM("test_user", "test_pass")
+                url="https://www.example.com/test", auth=NTLM("test_user", "test_pass")
             )
             assert resp.status_code == 200
             assert len(httpx_mock.get_requests()) == 1
 
     def test_http_401s_make_three_requests_and_return_401(
-        self, httpx_mock: HTTPXMock, mocker_fixture: mocker
+        self, httpx_mock: HTTPXMock, mocker
     ):
         httpx_mock.add_response(status_code=401, headers={"WWW-Authenticate": "NTLM"})
         httpx_mock.add_response(
@@ -144,21 +144,21 @@ class TestNTLMFunctional:
             match_headers={"Authorization": "NTLM CAkKCwwNDg8="},
         )
 
-        mocker_fixture.patch(
+        mocker.patch(
             "httpx_auth.authentication.NTLMProxy.step",
             return_value=b"\x08\x09\x0A\x0B\x0C\x0D\x0E\x0F",
         )
 
         with httpx.Client() as client:
             resp = client.get(
-                url="http://www.example.com/test", auth=NTLM("test_user", "test_pass")
+                url="https://www.example.com/test", auth=NTLM("test_user", "test_pass")
             )
             assert resp.status_code == 401
             assert len(resp.history) == 2
             assert len(httpx_mock.get_requests()) == 3
 
     def test_http_407s_make_three_requests_and_return_407(
-        self, httpx_mock: HTTPXMock, mocker_fixture: mocker
+        self, httpx_mock: HTTPXMock, mocker
     ):
         httpx_mock.add_response(
             status_code=407, headers={"Proxy-Authenticate": "Negotiate"}
@@ -169,14 +169,14 @@ class TestNTLMFunctional:
             match_headers={"Proxy-Authorization": "Negotiate CAkKCwwNDg8="},
         )
 
-        mocker_fixture.patch(
+        mocker.patch(
             "httpx_auth.authentication.NTLMProxy.step",
             return_value=b"\x08\x09\x0A\x0B\x0C\x0D\x0E\x0F",
         )
 
         with httpx.Client() as client:
             resp = client.get(
-                url="http://www.example.com/test", auth=NTLM("test_user", "test_pass")
+                url="https://www.example.com/test", auth=NTLM("test_user", "test_pass")
             )
             assert resp.status_code == 407
             assert len(resp.history) == 2
@@ -185,7 +185,7 @@ class TestNTLMFunctional:
     @wrap_with_workstation
     @pytest.mark.parametrize("status_code", [200, 401, 403])
     def test_valid_handshake_returns_final_status(
-        self, httpx_mock, mocker_fixture: mocker, status_code: int
+        self, httpx_mock, mocker, status_code: int
     ):
         expect1 = {"Authorization": "NTLM TlRMTVNTUAABAAAAN4II4AAAAAAgAAAAAAAAACAAAAA="}
         response1 = {
@@ -205,29 +205,29 @@ class TestNTLMFunctional:
 
         # Mock os.urandom since the client challenge is generated for the AUTHENTICATE message with 8 bytes of random
         # date
-        mocker_fixture.patch(
+        mocker.patch(
             "httpx_auth.authentication.os.urandom",
             return_value=b"\xDE\xAD\xBE\xEF\xDE\xAD\xBE\xEF",
         )
 
         httpx_mock.add_response(
-            url="http://localhost/test",
+            url="https://localhost/test",
             status_code=401,
             headers={"WWW-Authenticate": "NTLM"},
         )
         httpx_mock.add_response(
-            url="http://localhost/test",
+            url="https://localhost/test",
             status_code=401,
             headers=response1,
             match_headers=expect1,
         )
         httpx_mock.add_response(
-            url="http://localhost/test", status_code=status_code, match_headers=expect2
+            url="https://localhost/test", status_code=status_code, match_headers=expect2
         )
 
         with httpx.Client() as client:
             resp = client.get(
-                url="http://localhost/test", auth=NTLM("IIS_Test", "rosebud")
+                url="https://localhost/test", auth=NTLM("IIS_Test", "rosebud")
             )
             print(resp.request.headers["Authorization"])
             assert resp.status_code == status_code
