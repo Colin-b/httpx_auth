@@ -5,14 +5,14 @@ import httpx
 
 
 class AuthenticationFailed(Exception):
-    """ User was not authenticated. """
+    """User was not authenticated."""
 
     def __init__(self):
         Exception.__init__(self, "User was not authenticated.")
 
 
 class TimeoutOccurred(Exception):
-    """ No response within timeout interval. """
+    """No response within timeout interval."""
 
     def __init__(self, timeout: float):
         Exception.__init__(
@@ -21,14 +21,14 @@ class TimeoutOccurred(Exception):
 
 
 class InvalidToken(Exception):
-    """ Token is invalid. """
+    """Token is invalid."""
 
     def __init__(self, token_name: str):
         Exception.__init__(self, f"{token_name} is invalid.")
 
 
 class GrantNotProvided(Exception):
-    """ Grant was not provided. """
+    """Grant was not provided."""
 
     def __init__(self, grant_name: str, dictionary_without_grant: dict):
         Exception.__init__(
@@ -115,7 +115,7 @@ class InvalidGrantRequest(Exception):
 
 
 class StateNotProvided(Exception):
-    """ State was not provided. """
+    """State was not provided."""
 
     def __init__(self, dictionary_without_state: dict):
         Exception.__init__(
@@ -124,7 +124,7 @@ class StateNotProvided(Exception):
 
 
 class TokenExpiryNotProvided(Exception):
-    """ Token expiry was not provided. """
+    """Token expiry was not provided."""
 
     def __init__(self, token_body: dict):
         Exception.__init__(self, f"Expiry (exp) is not provided in {token_body}.")
