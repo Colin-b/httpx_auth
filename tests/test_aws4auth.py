@@ -534,7 +534,7 @@ def test_aws_auth_path_quoting(httpx_mock: HTTPXMock, mock_aws_datetime):
         service="iam",
     )
     httpx_mock.add_response(
-        url="http://authorized_only/test/hello-*.&%5E%7E+%7B%7D!$%C2%A3_%20"
+        url="http://authorized_only/test/hello-*.&%5E~+%7B%7D!$%C2%A3_%20"
     )
 
     httpx.post("http://authorized_only/test/hello-*.&^~+{}!$£_ ", auth=auth)
@@ -558,7 +558,7 @@ def test_aws_auth_path_percent_encode_non_s3(httpx_mock: HTTPXMock, mock_aws_dat
         service="iam",
     )
     httpx_mock.add_response(
-        url="http://authorized_only/test/%252a%252b%2525/%7E-_%5E&%20%25%25"
+        url="http://authorized_only/test/%252a%252b%2525/~-_%5E&%20%25%25"
     )
 
     httpx.post("http://authorized_only/test/%2a%2b%25/~-_^& %%", auth=auth)
@@ -582,7 +582,7 @@ def test_aws_auth_path_percent_encode_s3(httpx_mock: HTTPXMock, mock_aws_datetim
         service="s3",
     )
     httpx_mock.add_response(
-        url="http://authorized_only/test/%252a%252b%2525/%7E-_%5E&%20%25%25"
+        url="http://authorized_only/test/%252a%252b%2525/~-_%5E&%20%25%25"
     )
 
     httpx.post("http://authorized_only/test/%2a%2b%25/~-_^& %%", auth=auth)

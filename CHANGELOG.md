@@ -10,6 +10,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Requires [`httpx`](https://www.python-httpx.org)==0.19.\*
 
+### Fixed
+- Tild character (`~`) is not URL encoded anymore.
+
 ## [0.10.0] - 2021-04-27
 ### Changed
 - Requires [`httpx`](https://www.python-httpx.org)==0.18.\*
