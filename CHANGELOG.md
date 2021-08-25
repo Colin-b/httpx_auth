@@ -15,6 +15,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Requires [`pytest`](https://docs.pytest.org/en/latest)==6.2.\* for testing
 - Requires [`pytest-mock`](https://github.com/pytest-dev/pytest-mock)==3.6.\* for testing
 
+## [0.11.0] - 2021-08-19
+### Changed
+- Requires [`httpx`](https://www.python-httpx.org)==0.19.\*
+
+### Fixed
+- Tild character (`~`) is not URL encoded anymore.
+
 ## [0.10.0] - 2021-04-27
 ### Changed
 - Requires [`httpx`](https://www.python-httpx.org)==0.18.\*
@@ -112,7 +119,8 @@ Note that a few changes were made:
 ### Added
 - Placeholder for port of requests_auth to httpx
 
-[Unreleased]: https://github.com/Colin-b/httpx_auth/compare/v0.10.0...HEAD
+[Unreleased]: https://github.com/Colin-b/httpx_auth/compare/v0.11.0...HEAD
+[0.11.0]: https://github.com/Colin-b/httpx_auth/compare/v0.10.0...v0.11.0
 [0.10.0]: https://github.com/Colin-b/httpx_auth/compare/v0.9.0...v0.10.0
 [0.9.0]: https://github.com/Colin-b/httpx_auth/compare/v0.8.0...v0.9.0
 [0.8.0]: https://github.com/Colin-b/httpx_auth/compare/v0.7.0...v0.8.0
