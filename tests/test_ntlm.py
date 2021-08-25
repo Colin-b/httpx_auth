@@ -3,7 +3,7 @@ from typing import Optional
 
 import httpx
 import pytest
-import spnego
+spnego = pytest.importorskip('spnego')
 from pytest_httpx import HTTPXMock
 
 from httpx_auth.authentication import Negotiate
