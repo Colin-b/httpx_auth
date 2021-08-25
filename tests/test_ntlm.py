@@ -95,6 +95,16 @@ class TestNegotiateUnit:
         assert spnego.NegotiateOptions.use_ntlm in proxy.options
         assert proxy.spn.lower() == "host/unspecified"
 
+    def test_password_with_no_username_throws(self):
+        with pytest.raises(ValueError) as exception_info:
+            _ = Negotiate(password=TEST_PASS)
+        assert "no username was provided" in str(exception_info)
+
+    def test_ntlm_with_no_credentials_throws(self):
+        with pytest.raises(ValueError) as exception_info:
+            _ = Negotiate(force_ntlm=True)
+        assert "provide a username and password" in str(exception_info)
+
 
 class TestNegotiateFunctional:
     def test_http_200_response_makes_one_request(self, httpx_mock: HTTPXMock):
@@ -108,7 +118,6 @@ class TestNegotiateFunctional:
             assert resp.status_code == 200
             assert len(httpx_mock.get_requests()) == 1
 
-    @pytest.mark.skipif(sys.platform != "nt", reason="Different proxy is used on linux")
     def test_http_401s_make_three_requests_and_return_401(
         self, httpx_mock: HTTPXMock, mocker
     ):
@@ -119,8 +128,12 @@ class TestNegotiateFunctional:
             match_headers={"Authorization": "NTLM CAkKCwwNDg8="},
         )
 
+        if sys.platform == "nt":
+            patch_object = "httpx_auth.authentication.spnego.sspi.SSPIProxy.step"
+        else:
+            patch_object = "httpx_auth.authentication.spnego.sspi.GSSAPIProxy.step"
         with mocker.patch(
-            "httpx_auth.authentication.spnego.sspi.SSPIProxy.step",
+            patch_object,
             return_value=b"\x08\x09\x0A\x0B\x0C\x0D\x0E\x0F",
         ):
             with httpx.Client() as client:
