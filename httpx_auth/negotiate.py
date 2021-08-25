@@ -125,7 +125,7 @@ class Negotiate(httpx.Auth, SupportMultiAuth):
         # Server responds with Challenge message, parse the authenticate header and deal with cookies. Some web apps use
         # cookies to store progress in the auth process.
         if "set-cookie" in responses[-1].headers:
-            request.headers["Cookie"] = responses[-1].headers["Cookie"]
+            request.headers["Cookie"] = responses[-1].headers["set-cookie"]
 
         auth_header_bytes = self._parse_authenticate_header(
             responses[-1].headers["WWW-Authenticate"]

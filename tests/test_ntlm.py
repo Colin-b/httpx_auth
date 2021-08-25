@@ -118,6 +118,19 @@ class TestNegotiateFunctional:
             assert resp.status_code == 200
             assert len(httpx_mock.get_requests()) == 1
 
+    def test_http_authenticate_with_digest_returns_401(self, httpx_mock: HTTPXMock):
+        httpx_mock.add_response(
+            url=TEST_URL, status_code=401, headers={"WWW-Authenticate": "Digest"}
+        )
+        with httpx.Client() as client:
+            resp = client.get(
+                url=TEST_URL,
+                auth=Negotiate("test_user", "test_pass"),
+            )
+            assert resp.status_code == 401
+            assert len(resp.history) == 0
+            assert len(httpx_mock.get_requests()) == 1
+
     def test_http_401s_make_three_requests_and_return_401(
         self, httpx_mock: HTTPXMock, mocker
     ):
@@ -147,6 +160,102 @@ class TestNegotiateFunctional:
                 assert resp.status_code == 401
                 assert len(resp.history) == 2
                 assert len(httpx_mock.get_requests()) == 3
+
+    def test_authentication_with_redirect_is_followed(self, httpx_mock: HTTPXMock, mocker):
+        redirect_url = TEST_URL + '/'
+        httpx_mock.add_response(
+            url=TEST_URL, status_code=401, headers={"WWW-Authenticate": "NTLM"}
+        )
+        httpx_mock.add_response(
+            url=TEST_URL,
+            status_code=401,
+            headers={"WWW-Authenticate": "NTLM AAECAwQFBgc="},
+            match_headers={"Authorization": "NTLM CAkKCwwNDg8="},
+        )
+        httpx_mock.add_response(
+            url=TEST_URL,
+            status_code=301,
+            match_headers={"Authorization": "NTLM Dw4NDAsKCQg="},
+            headers={"Location": redirect_url},
+        )
+        httpx_mock.add_response(
+            url=redirect_url, status_code=401, headers={"WWW-Authenticate": "NTLM"}
+        )
+        httpx_mock.add_response(
+            url=redirect_url,
+            status_code=401,
+            headers={"WWW-Authenticate": "NTLM AAECAwQFBgc="},
+            match_headers={"Authorization": "NTLM CAkKCwwNDg8="},
+        )
+        httpx_mock.add_response(
+            url=redirect_url,
+            status_code=200
+        )
+
+        if sys.platform == "win32":
+            patch_object = "httpx_auth.negotiate.spnego.sspi.SSPIProxy.step"
+        else:
+            patch_object = "httpx_auth.negotiate.spnego.negotiate.NegotiateProxy.step"
+
+        with mocker.patch(
+                patch_object,
+                side_effect=[
+                    b"\x08\x09\x0A\x0B\x0C\x0D\x0E\x0F",
+                    b"\x0F\x0E\x0D\x0C\x0B\x0A\x09\x08",
+                    b"\x08\x09\x0A\x0B\x0C\x0D\x0E\x0F",
+                    b"\x0F\x0E\x0D\x0C\x0B\x0A\x09\x08",
+                ],
+        ):
+            with httpx.Client() as client:
+                resp = client.get(
+                    url=TEST_URL,
+                    auth=Negotiate("test_user", "test_pass"),
+                )
+                assert resp.status_code == 200
+                assert len(resp.history) == 4
+                assert len(httpx_mock.get_requests()) == 6
+
+    def test_authentication_with_too_many_redirects_throws(self, httpx_mock: HTTPXMock, mocker):
+        redirect_url = TEST_URL + '/'
+        httpx_mock.add_response(
+            url=TEST_URL, status_code=401, headers={"WWW-Authenticate": "NTLM"}
+        )
+        httpx_mock.add_response(
+            url=TEST_URL,
+            status_code=401,
+            headers={"WWW-Authenticate": "NTLM AAECAwQFBgc="},
+            match_headers={"Authorization": "NTLM CAkKCwwNDg8="},
+        )
+        httpx_mock.add_response(
+            url=TEST_URL,
+            status_code=301,
+            match_headers={"Authorization": "NTLM Dw4NDAsKCQg="},
+            headers={"Location": redirect_url},
+        )
+        httpx_mock.add_response(
+            url=redirect_url, status_code=401, headers={"WWW-Authenticate": "NTLM"}
+        )
+
+        if sys.platform == "win32":
+            patch_object = "httpx_auth.negotiate.spnego.sspi.SSPIProxy.step"
+        else:
+            patch_object = "httpx_auth.negotiate.spnego.negotiate.NegotiateProxy.step"
+
+        with mocker.patch(
+                patch_object,
+                side_effect=[
+                    b"\x08\x09\x0A\x0B\x0C\x0D\x0E\x0F",
+                    b"\x0F\x0E\x0D\x0C\x0B\x0A\x09\x08",
+                ],
+        ):
+            with httpx.Client() as client:
+                with pytest.raises(httpx.TooManyRedirects) as exception_info:
+                    _ = client.get(
+                        url=TEST_URL,
+                        auth=Negotiate("test_user", "test_pass", max_redirects=0),
+                    )
+                assert "Redirected too many times" in str(exception_info)
+                assert "0" in str(exception_info)
 
     @pytest.mark.parametrize("status_code", [200, 403, 404])
     def test_http_response_reported_correctly_when_auth_completes(
@@ -185,5 +294,45 @@ class TestNegotiateFunctional:
                     auth=Negotiate("test_user", "test_pass"),
                 )
                 assert resp.status_code == status_code
+                assert len(resp.history) == 2
+                assert len(httpx_mock.get_requests()) == 3
+
+    def test_http_response_sets_cookie_if_required(
+        self, httpx_mock: HTTPXMock, mocker
+    ):
+        test_cookie = "foo=bar"
+        httpx_mock.add_response(
+            url=TEST_URL, status_code=401, headers={"WWW-Authenticate": "NTLM"}
+        )
+        httpx_mock.add_response(
+            url=TEST_URL,
+            status_code=401,
+            headers={"WWW-Authenticate": "NTLM AAECAwQFBgc=", "Set-Cookie": test_cookie},
+            match_headers={"Authorization": "NTLM CAkKCwwNDg8="},
+        )
+        httpx_mock.add_response(
+            url=TEST_URL,
+            status_code=200,
+            match_headers={"Authorization": "NTLM Dw4NDAsKCQg=", "Cookie": test_cookie},
+        )
+
+        if sys.platform == "win32":
+            patch_object = "httpx_auth.negotiate.spnego.sspi.SSPIProxy.step"
+        else:
+            patch_object = "httpx_auth.negotiate.spnego.negotiate.NegotiateProxy.step"
+
+        with mocker.patch(
+            patch_object,
+            side_effect=[
+                b"\x08\x09\x0A\x0B\x0C\x0D\x0E\x0F",
+                b"\x0F\x0E\x0D\x0C\x0B\x0A\x09\x08",
+            ],
+        ):
+            with httpx.Client() as client:
+                resp = client.get(
+                    url=TEST_URL,
+                    auth=Negotiate("test_user", "test_pass"),
+                )
+                assert resp.status_code == 200
                 assert len(resp.history) == 2
                 assert len(httpx_mock.get_requests()) == 3
