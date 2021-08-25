@@ -131,7 +131,7 @@ class TestNegotiateFunctional:
         if sys.platform == "nt":
             patch_object = "httpx_auth.authentication.spnego.sspi.SSPIProxy.step"
         else:
-            patch_object = "httpx_auth.authentication.spnego.sspi.GSSAPIProxy.step"
+            patch_object = "httpx_auth.authentication.spnego.gss.GSSAPIProxy.step"
         with mocker.patch(
             patch_object,
             return_value=b"\x08\x09\x0A\x0B\x0C\x0D\x0E\x0F",
