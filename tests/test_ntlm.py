@@ -1,7 +1,8 @@
 import sys
-from typing import Optional
+from typing import Optional, List
 from pytest_httpx import HTTPXMock
 from httpx_auth import Negotiate
+from collections import namedtuple
 
 import httpx
 import pytest
@@ -15,6 +16,11 @@ TEST_URL = "https://www.example.com/test"
 FLOW_CHALLENGE_RESPONSE = "NTLM CAkKCwwNDg8="
 FLOW_AUTHENTICATE_REQUEST = "NTLM AAECAwQFBgc="
 FLOW_AUTHORIZATION_RESPONSE = "NTLM Dw4NDAsKCQg="
+
+MockDefinition = namedtuple(
+    "mock_definition", ("url", "status_code", "match_headers", "headers")
+)
+MockDefinition.__new__.__defaults__ = ("", 0, {}, {})
 
 
 @pytest.fixture
@@ -125,10 +131,21 @@ def get_patch_method():
     return patch_object
 
 
-class TestNegotiateFunctional:
-    def test_http_200_response_makes_one_request(self, negotiate_auth_fixture, httpx_mock: HTTPXMock):
-        httpx_mock.add_response(url=TEST_URL, status_code=200)
+def make_mockery(httpx_mock: HTTPXMock, mockery_definition: List[namedtuple]) -> None:
+    for mock_definition in mockery_definition:
+        httpx_mock.add_response(
+            url=mock_definition.url,
+            status_code=mock_definition.status_code,
+            match_headers=mock_definition.match_headers,
+            headers=mock_definition.headers,
+        )
 
+
+class TestNegotiateFunctional:
+    def test_http_200_response_makes_one_request(
+        self, negotiate_auth_fixture, httpx_mock: HTTPXMock
+    ):
+        make_mockery(httpx_mock, [MockDefinition(TEST_URL, 200, {}, {})])
         with httpx.Client() as client:
             resp = client.get(
                 url=TEST_URL,
@@ -137,9 +154,12 @@ class TestNegotiateFunctional:
             assert resp.status_code == 200
             assert len(httpx_mock.get_requests()) == 1
 
-    def test_http_authenticate_with_digest_returns_401(self, negotiate_auth_fixture, httpx_mock: HTTPXMock):
-        httpx_mock.add_response(
-            url=TEST_URL, status_code=401, headers={"WWW-Authenticate": "Digest"}
+    def test_http_authenticate_with_digest_returns_401(
+        self, negotiate_auth_fixture, httpx_mock: HTTPXMock
+    ):
+        make_mockery(
+            httpx_mock,
+            [MockDefinition(TEST_URL, 401, {}, {"WWW-Authenticate": "Digest"})],
         )
         with httpx.Client() as client:
             resp = client.get(
@@ -153,14 +173,17 @@ class TestNegotiateFunctional:
     def test_http_401s_make_three_requests_and_return_401(
         self, negotiate_auth_fixture, httpx_mock: HTTPXMock, mocker
     ):
-        httpx_mock.add_response(
-            url=TEST_URL, status_code=401, headers={"WWW-Authenticate": "NTLM"}
-        )
-        httpx_mock.add_response(
-            url=TEST_URL,
-            status_code=401,
-            headers={"WWW-Authenticate": FLOW_AUTHENTICATE_REQUEST},
-            match_headers={"Authorization": FLOW_CHALLENGE_RESPONSE},
+        make_mockery(
+            httpx_mock,
+            [
+                MockDefinition(TEST_URL, 401, {}, {"WWW-Authenticate": "NTLM"}),
+                MockDefinition(
+                    TEST_URL,
+                    401,
+                    {"Authorization": FLOW_CHALLENGE_RESPONSE},
+                    {"WWW-Authenticate": FLOW_AUTHENTICATE_REQUEST},
+                ),
+            ],
         )
 
         with mocker.patch(
@@ -176,40 +199,44 @@ class TestNegotiateFunctional:
                 assert len(resp.history) == 2
                 assert len(httpx_mock.get_requests()) == 3
 
-    def test_authentication_with_redirect_is_followed(self, negotiate_auth_fixture, httpx_mock: HTTPXMock, mocker):
-        redirect_url = TEST_URL + '/'
-        httpx_mock.add_response(
-            url=TEST_URL, status_code=401, headers={"WWW-Authenticate": "NTLM"}
+    def test_authentication_with_redirect_is_followed(
+        self, negotiate_auth_fixture, httpx_mock: HTTPXMock, mocker
+    ):
+        redirect_url = TEST_URL + "/"
+        make_mockery(
+            httpx_mock,
+            [
+                MockDefinition(TEST_URL, 401, {}, {"WWW-Authenticate": "NTLM"}),
+                MockDefinition(
+                    TEST_URL,
+                    401,
+                    {"Authorization": FLOW_CHALLENGE_RESPONSE},
+                    {"WWW-Authenticate": FLOW_AUTHENTICATE_REQUEST},
+                ),
+                MockDefinition(
+                    TEST_URL,
+                    301,
+                    {"Authorization": FLOW_AUTHORIZATION_RESPONSE},
+                    {"Location": redirect_url},
+                ),
+                MockDefinition(redirect_url, 401, {}, {"WWW-Authenticate": "NTLM"}),
+                MockDefinition(
+                    redirect_url,
+                    401,
+                    {"Authorization": FLOW_CHALLENGE_RESPONSE},
+                    {"WWW-Authenticate": FLOW_AUTHENTICATE_REQUEST},
+                ),
+                MockDefinition(
+                    redirect_url,
+                    200,
+                    {"Authorization": FLOW_AUTHORIZATION_RESPONSE},
+                    {},
+                ),
+            ],
         )
-        httpx_mock.add_response(
-            url=TEST_URL,
-            status_code=401,
-            headers={"WWW-Authenticate": FLOW_AUTHENTICATE_REQUEST},
-            match_headers={"Authorization": FLOW_CHALLENGE_RESPONSE},
-        )
-        httpx_mock.add_response(
-            url=TEST_URL,
-            status_code=301,
-            match_headers={"Authorization": FLOW_AUTHORIZATION_RESPONSE},
-            headers={"Location": redirect_url},
-        )
-        httpx_mock.add_response(
-            url=redirect_url, status_code=401, headers={"WWW-Authenticate": "NTLM"}
-        )
-        httpx_mock.add_response(
-            url=redirect_url,
-            status_code=401,
-            headers={"WWW-Authenticate": FLOW_AUTHENTICATE_REQUEST},
-            match_headers={"Authorization": FLOW_CHALLENGE_RESPONSE},
-        )
-        httpx_mock.add_response(
-            url=redirect_url,
-            status_code=200
-        )
-
         with mocker.patch(
-                get_patch_method(),
-                side_effect=mock_auth_responses(2),
+            get_patch_method(),
+            side_effect=mock_auth_responses(2),
         ):
             with httpx.Client() as client:
                 resp = client.get(
@@ -220,30 +247,32 @@ class TestNegotiateFunctional:
                 assert len(resp.history) == 4
                 assert len(httpx_mock.get_requests()) == 6
 
-    def test_authentication_with_too_many_redirects_throws(self, negotiate_auth_fixture, httpx_mock: HTTPXMock, mocker):
-        redirect_url = TEST_URL + '/'
-        httpx_mock.add_response(
-            url=TEST_URL, status_code=401, headers={"WWW-Authenticate": "NTLM"}
+    def test_authentication_with_too_many_redirects_throws(
+        self, negotiate_auth_fixture, httpx_mock: HTTPXMock, mocker
+    ):
+        redirect_url = TEST_URL + "/"
+        make_mockery(
+            httpx_mock,
+            [
+                MockDefinition(TEST_URL, 401, {}, {"WWW-Authenticate": "NTLM"}),
+                MockDefinition(
+                    TEST_URL,
+                    401,
+                    {"Authorization": FLOW_CHALLENGE_RESPONSE},
+                    {"WWW-Authenticate": FLOW_AUTHENTICATE_REQUEST},
+                ),
+                MockDefinition(
+                    TEST_URL,
+                    301,
+                    {"Authorization": FLOW_AUTHORIZATION_RESPONSE},
+                    {"Location": redirect_url},
+                ),
+                MockDefinition(redirect_url, 401, {}, {"WWW-Authenticate": "NTLM"}),
+            ],
         )
-        httpx_mock.add_response(
-            url=TEST_URL,
-            status_code=401,
-            headers={"WWW-Authenticate": FLOW_AUTHENTICATE_REQUEST},
-            match_headers={"Authorization": FLOW_CHALLENGE_RESPONSE},
-        )
-        httpx_mock.add_response(
-            url=TEST_URL,
-            status_code=301,
-            match_headers={"Authorization": FLOW_AUTHORIZATION_RESPONSE},
-            headers={"Location": redirect_url},
-        )
-        httpx_mock.add_response(
-            url=redirect_url, status_code=401, headers={"WWW-Authenticate": "NTLM"}
-        )
-
         with mocker.patch(
-                get_patch_method(),
-                side_effect=mock_auth_responses(1),
+            get_patch_method(),
+            side_effect=mock_auth_responses(1),
         ):
             with httpx.Client() as client:
                 auth = negotiate_auth_fixture
@@ -260,19 +289,23 @@ class TestNegotiateFunctional:
     def test_http_response_reported_correctly_when_auth_completes(
         self, negotiate_auth_fixture, httpx_mock: HTTPXMock, mocker, status_code
     ):
-        httpx_mock.add_response(
-            url=TEST_URL, status_code=401, headers={"WWW-Authenticate": "NTLM"}
-        )
-        httpx_mock.add_response(
-            url=TEST_URL,
-            status_code=401,
-            headers={"WWW-Authenticate": FLOW_AUTHENTICATE_REQUEST},
-            match_headers={"Authorization": FLOW_CHALLENGE_RESPONSE},
-        )
-        httpx_mock.add_response(
-            url=TEST_URL,
-            status_code=status_code,
-            match_headers={"Authorization": FLOW_AUTHORIZATION_RESPONSE},
+        make_mockery(
+            httpx_mock,
+            [
+                MockDefinition(TEST_URL, 401, {}, {"WWW-Authenticate": "NTLM"}),
+                MockDefinition(
+                    TEST_URL,
+                    401,
+                    {"Authorization": FLOW_CHALLENGE_RESPONSE},
+                    {"WWW-Authenticate": FLOW_AUTHENTICATE_REQUEST},
+                ),
+                MockDefinition(
+                    TEST_URL,
+                    status_code,
+                    {"Authorization": FLOW_AUTHORIZATION_RESPONSE},
+                    {},
+                ),
+            ],
         )
 
         with mocker.patch(
@@ -292,21 +325,30 @@ class TestNegotiateFunctional:
         self, negotiate_auth_fixture, httpx_mock: HTTPXMock, mocker
     ):
         test_cookie = "foo=bar"
-        httpx_mock.add_response(
-            url=TEST_URL, status_code=401, headers={"WWW-Authenticate": "NTLM"}
+        make_mockery(
+            httpx_mock,
+            [
+                MockDefinition(TEST_URL, 401, {}, {"WWW-Authenticate": "NTLM"}),
+                MockDefinition(
+                    TEST_URL,
+                    401,
+                    {"Authorization": FLOW_CHALLENGE_RESPONSE},
+                    {
+                        "WWW-Authenticate": FLOW_AUTHENTICATE_REQUEST,
+                        "Set-Cookie": test_cookie,
+                    },
+                ),
+                MockDefinition(
+                    TEST_URL,
+                    200,
+                    {
+                        "Authorization": FLOW_AUTHORIZATION_RESPONSE,
+                        "Cookie": test_cookie,
+                    },
+                    {},
+                ),
+            ],
         )
-        httpx_mock.add_response(
-            url=TEST_URL,
-            status_code=401,
-            headers={"WWW-Authenticate": FLOW_AUTHENTICATE_REQUEST, "Set-Cookie": test_cookie},
-            match_headers={"Authorization": FLOW_CHALLENGE_RESPONSE},
-        )
-        httpx_mock.add_response(
-            url=TEST_URL,
-            status_code=200,
-            match_headers={"Authorization": FLOW_AUTHORIZATION_RESPONSE, "Cookie": test_cookie},
-        )
-
         with mocker.patch(
             get_patch_method(),
             side_effect=mock_auth_responses(1),
@@ -319,4 +361,3 @@ class TestNegotiateFunctional:
                 assert resp.status_code == 200
                 assert len(resp.history) == 2
                 assert len(httpx_mock.get_requests()) == 3
-
