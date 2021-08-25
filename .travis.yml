@@ -5,7 +5,7 @@ python:
   - "3.8"
   - "3.9"
 install:
-  - pip install .[testing, windows_auth]
+  - pip install .[testing,windows_auth]
 script:
   - pytest --cov=httpx_auth --cov-fail-under=100 --cov-report=term-missing
   - pip install idna==2.10
