@@ -12,8 +12,12 @@ TEST_USER = "test_user"
 TEST_PASS = "test_pass"
 TEST_URL = "https://www.example.com/test"
 
+FLOW_CHALLENGE_RESPONSE = "NTLM CAkKCwwNDg8="
+FLOW_AUTHENTICATE_REQUEST = "NTLM AAECAwQFBgc="
+FLOW_AUTHORIZATION_RESPONSE = "NTLM Dw4NDAsKCQg="
 
-@pytest.fixture()
+
+@pytest.fixture
 def negotiate_auth_fixture():
     yield Negotiate(TEST_USER, TEST_PASS)
 
@@ -106,33 +110,48 @@ class TestNegotiateUnit:
         assert "provide a username and password" in str(exception_info)
 
 
+def mock_auth_responses(request_count: int):
+    return [
+        b"\x08\x09\x0A\x0B\x0C\x0D\x0E\x0F",
+        b"\x0F\x0E\x0D\x0C\x0B\x0A\x09\x08",
+    ] * request_count
+
+
+def get_patch_method():
+    if sys.platform == "win32":
+        patch_object = "httpx_auth.negotiate.spnego.sspi.SSPIProxy.step"
+    else:
+        patch_object = "httpx_auth.negotiate.spnego.negotiate.NegotiateProxy.step"
+    return patch_object
+
+
 class TestNegotiateFunctional:
-    def test_http_200_response_makes_one_request(self, httpx_mock: HTTPXMock):
+    def test_http_200_response_makes_one_request(self, negotiate_auth_fixture, httpx_mock: HTTPXMock):
         httpx_mock.add_response(url=TEST_URL, status_code=200)
 
         with httpx.Client() as client:
             resp = client.get(
                 url=TEST_URL,
-                auth=Negotiate("test_user", "test_pass"),
+                auth=negotiate_auth_fixture,
             )
             assert resp.status_code == 200
             assert len(httpx_mock.get_requests()) == 1
 
-    def test_http_authenticate_with_digest_returns_401(self, httpx_mock: HTTPXMock):
+    def test_http_authenticate_with_digest_returns_401(self, negotiate_auth_fixture, httpx_mock: HTTPXMock):
         httpx_mock.add_response(
             url=TEST_URL, status_code=401, headers={"WWW-Authenticate": "Digest"}
         )
         with httpx.Client() as client:
             resp = client.get(
                 url=TEST_URL,
-                auth=Negotiate("test_user", "test_pass"),
+                auth=negotiate_auth_fixture,
             )
             assert resp.status_code == 401
             assert len(resp.history) == 0
             assert len(httpx_mock.get_requests()) == 1
 
     def test_http_401s_make_three_requests_and_return_401(
-        self, httpx_mock: HTTPXMock, mocker
+        self, negotiate_auth_fixture, httpx_mock: HTTPXMock, mocker
     ):
         httpx_mock.add_response(
             url=TEST_URL, status_code=401, headers={"WWW-Authenticate": "NTLM"}
@@ -140,28 +159,24 @@ class TestNegotiateFunctional:
         httpx_mock.add_response(
             url=TEST_URL,
             status_code=401,
-            headers={"WWW-Authenticate": "NTLM AAECAwQFBgc="},
-            match_headers={"Authorization": "NTLM CAkKCwwNDg8="},
+            headers={"WWW-Authenticate": FLOW_AUTHENTICATE_REQUEST},
+            match_headers={"Authorization": FLOW_CHALLENGE_RESPONSE},
         )
 
-        if sys.platform == "win32":
-            patch_object = "httpx_auth.negotiate.spnego.sspi.SSPIProxy.step"
-        else:
-            patch_object = "httpx_auth.negotiate.spnego.negotiate.NegotiateProxy.step"
         with mocker.patch(
-            patch_object,
-            return_value=b"\x08\x09\x0A\x0B\x0C\x0D\x0E\x0F",
+            get_patch_method(),
+            side_effect=mock_auth_responses(1),
         ):
             with httpx.Client() as client:
                 resp = client.get(
                     url=TEST_URL,
-                    auth=Negotiate("test_user", "test_pass"),
+                    auth=negotiate_auth_fixture,
                 )
                 assert resp.status_code == 401
                 assert len(resp.history) == 2
                 assert len(httpx_mock.get_requests()) == 3
 
-    def test_authentication_with_redirect_is_followed(self, httpx_mock: HTTPXMock, mocker):
+    def test_authentication_with_redirect_is_followed(self, negotiate_auth_fixture, httpx_mock: HTTPXMock, mocker):
         redirect_url = TEST_URL + '/'
         httpx_mock.add_response(
             url=TEST_URL, status_code=401, headers={"WWW-Authenticate": "NTLM"}
@@ -169,13 +184,13 @@ class TestNegotiateFunctional:
         httpx_mock.add_response(
             url=TEST_URL,
             status_code=401,
-            headers={"WWW-Authenticate": "NTLM AAECAwQFBgc="},
-            match_headers={"Authorization": "NTLM CAkKCwwNDg8="},
+            headers={"WWW-Authenticate": FLOW_AUTHENTICATE_REQUEST},
+            match_headers={"Authorization": FLOW_CHALLENGE_RESPONSE},
         )
         httpx_mock.add_response(
             url=TEST_URL,
             status_code=301,
-            match_headers={"Authorization": "NTLM Dw4NDAsKCQg="},
+            match_headers={"Authorization": FLOW_AUTHORIZATION_RESPONSE},
             headers={"Location": redirect_url},
         )
         httpx_mock.add_response(
@@ -184,38 +199,28 @@ class TestNegotiateFunctional:
         httpx_mock.add_response(
             url=redirect_url,
             status_code=401,
-            headers={"WWW-Authenticate": "NTLM AAECAwQFBgc="},
-            match_headers={"Authorization": "NTLM CAkKCwwNDg8="},
+            headers={"WWW-Authenticate": FLOW_AUTHENTICATE_REQUEST},
+            match_headers={"Authorization": FLOW_CHALLENGE_RESPONSE},
         )
         httpx_mock.add_response(
             url=redirect_url,
             status_code=200
         )
 
-        if sys.platform == "win32":
-            patch_object = "httpx_auth.negotiate.spnego.sspi.SSPIProxy.step"
-        else:
-            patch_object = "httpx_auth.negotiate.spnego.negotiate.NegotiateProxy.step"
-
         with mocker.patch(
-                patch_object,
-                side_effect=[
-                    b"\x08\x09\x0A\x0B\x0C\x0D\x0E\x0F",
-                    b"\x0F\x0E\x0D\x0C\x0B\x0A\x09\x08",
-                    b"\x08\x09\x0A\x0B\x0C\x0D\x0E\x0F",
-                    b"\x0F\x0E\x0D\x0C\x0B\x0A\x09\x08",
-                ],
+                get_patch_method(),
+                side_effect=mock_auth_responses(2),
         ):
             with httpx.Client() as client:
                 resp = client.get(
                     url=TEST_URL,
-                    auth=Negotiate("test_user", "test_pass"),
+                    auth=negotiate_auth_fixture,
                 )
                 assert resp.status_code == 200
                 assert len(resp.history) == 4
                 assert len(httpx_mock.get_requests()) == 6
 
-    def test_authentication_with_too_many_redirects_throws(self, httpx_mock: HTTPXMock, mocker):
+    def test_authentication_with_too_many_redirects_throws(self, negotiate_auth_fixture, httpx_mock: HTTPXMock, mocker):
         redirect_url = TEST_URL + '/'
         httpx_mock.add_response(
             url=TEST_URL, status_code=401, headers={"WWW-Authenticate": "NTLM"}
@@ -223,43 +228,37 @@ class TestNegotiateFunctional:
         httpx_mock.add_response(
             url=TEST_URL,
             status_code=401,
-            headers={"WWW-Authenticate": "NTLM AAECAwQFBgc="},
-            match_headers={"Authorization": "NTLM CAkKCwwNDg8="},
+            headers={"WWW-Authenticate": FLOW_AUTHENTICATE_REQUEST},
+            match_headers={"Authorization": FLOW_CHALLENGE_RESPONSE},
         )
         httpx_mock.add_response(
             url=TEST_URL,
             status_code=301,
-            match_headers={"Authorization": "NTLM Dw4NDAsKCQg="},
+            match_headers={"Authorization": FLOW_AUTHORIZATION_RESPONSE},
             headers={"Location": redirect_url},
         )
         httpx_mock.add_response(
             url=redirect_url, status_code=401, headers={"WWW-Authenticate": "NTLM"}
         )
 
-        if sys.platform == "win32":
-            patch_object = "httpx_auth.negotiate.spnego.sspi.SSPIProxy.step"
-        else:
-            patch_object = "httpx_auth.negotiate.spnego.negotiate.NegotiateProxy.step"
-
         with mocker.patch(
-                patch_object,
-                side_effect=[
-                    b"\x08\x09\x0A\x0B\x0C\x0D\x0E\x0F",
-                    b"\x0F\x0E\x0D\x0C\x0B\x0A\x09\x08",
-                ],
+                get_patch_method(),
+                side_effect=mock_auth_responses(1),
         ):
             with httpx.Client() as client:
+                auth = negotiate_auth_fixture
+                auth.max_redirects = 0
                 with pytest.raises(httpx.TooManyRedirects) as exception_info:
                     _ = client.get(
                         url=TEST_URL,
-                        auth=Negotiate("test_user", "test_pass", max_redirects=0),
+                        auth=auth,
                     )
                 assert "Redirected too many times" in str(exception_info)
                 assert "0" in str(exception_info)
 
     @pytest.mark.parametrize("status_code", [200, 403, 404])
     def test_http_response_reported_correctly_when_auth_completes(
-        self, httpx_mock: HTTPXMock, mocker, status_code
+        self, negotiate_auth_fixture, httpx_mock: HTTPXMock, mocker, status_code
     ):
         httpx_mock.add_response(
             url=TEST_URL, status_code=401, headers={"WWW-Authenticate": "NTLM"}
@@ -267,38 +266,30 @@ class TestNegotiateFunctional:
         httpx_mock.add_response(
             url=TEST_URL,
             status_code=401,
-            headers={"WWW-Authenticate": "NTLM AAECAwQFBgc="},
-            match_headers={"Authorization": "NTLM CAkKCwwNDg8="},
+            headers={"WWW-Authenticate": FLOW_AUTHENTICATE_REQUEST},
+            match_headers={"Authorization": FLOW_CHALLENGE_RESPONSE},
         )
         httpx_mock.add_response(
             url=TEST_URL,
             status_code=status_code,
-            match_headers={"Authorization": "NTLM Dw4NDAsKCQg="},
+            match_headers={"Authorization": FLOW_AUTHORIZATION_RESPONSE},
         )
 
-        if sys.platform == "win32":
-            patch_object = "httpx_auth.negotiate.spnego.sspi.SSPIProxy.step"
-        else:
-            patch_object = "httpx_auth.negotiate.spnego.negotiate.NegotiateProxy.step"
-
         with mocker.patch(
-            patch_object,
-            side_effect=[
-                b"\x08\x09\x0A\x0B\x0C\x0D\x0E\x0F",
-                b"\x0F\x0E\x0D\x0C\x0B\x0A\x09\x08",
-            ],
+            get_patch_method(),
+            side_effect=mock_auth_responses(1),
         ):
             with httpx.Client() as client:
                 resp = client.get(
                     url=TEST_URL,
-                    auth=Negotiate("test_user", "test_pass"),
+                    auth=negotiate_auth_fixture,
                 )
                 assert resp.status_code == status_code
                 assert len(resp.history) == 2
                 assert len(httpx_mock.get_requests()) == 3
 
     def test_http_response_sets_cookie_if_required(
-        self, httpx_mock: HTTPXMock, mocker
+        self, negotiate_auth_fixture, httpx_mock: HTTPXMock, mocker
     ):
         test_cookie = "foo=bar"
         httpx_mock.add_response(
@@ -307,32 +298,25 @@ class TestNegotiateFunctional:
         httpx_mock.add_response(
             url=TEST_URL,
             status_code=401,
-            headers={"WWW-Authenticate": "NTLM AAECAwQFBgc=", "Set-Cookie": test_cookie},
-            match_headers={"Authorization": "NTLM CAkKCwwNDg8="},
+            headers={"WWW-Authenticate": FLOW_AUTHENTICATE_REQUEST, "Set-Cookie": test_cookie},
+            match_headers={"Authorization": FLOW_CHALLENGE_RESPONSE},
         )
         httpx_mock.add_response(
             url=TEST_URL,
             status_code=200,
-            match_headers={"Authorization": "NTLM Dw4NDAsKCQg=", "Cookie": test_cookie},
+            match_headers={"Authorization": FLOW_AUTHORIZATION_RESPONSE, "Cookie": test_cookie},
         )
 
-        if sys.platform == "win32":
-            patch_object = "httpx_auth.negotiate.spnego.sspi.SSPIProxy.step"
-        else:
-            patch_object = "httpx_auth.negotiate.spnego.negotiate.NegotiateProxy.step"
-
         with mocker.patch(
-            patch_object,
-            side_effect=[
-                b"\x08\x09\x0A\x0B\x0C\x0D\x0E\x0F",
-                b"\x0F\x0E\x0D\x0C\x0B\x0A\x09\x08",
-            ],
+            get_patch_method(),
+            side_effect=mock_auth_responses(1),
         ):
             with httpx.Client() as client:
                 resp = client.get(
                     url=TEST_URL,
-                    auth=Negotiate("test_user", "test_pass"),
+                    auth=negotiate_auth_fixture,
                 )
                 assert resp.status_code == 200
                 assert len(resp.history) == 2
                 assert len(httpx_mock.get_requests()) == 3
+
