@@ -1,13 +1,12 @@
 import sys
 from typing import Optional
+from pytest_httpx import HTTPXMock
+from httpx_auth import Negotiate
 
 import httpx
 import pytest
-spnego = pytest.importorskip('spnego')
-from pytest_httpx import HTTPXMock
 
-from httpx_auth.authentication import Negotiate
-
+spnego = pytest.importorskip("spnego")
 
 TEST_USER = "test_user"
 TEST_PASS = "test_pass"
@@ -66,13 +65,13 @@ class TestNegotiateUnit:
         ],
     )
     def test_auth_type_from_header(
-        self, negotiate_auth_fixture, test_input: str, expected_output: Optional[str]
+            self, negotiate_auth_fixture, test_input: str, expected_output: Optional[str]
     ):
         actual_output = negotiate_auth_fixture._auth_type_from_header(test_input)
         assert actual_output.lower() == expected_output.lower()
 
     def test_auth_type_from_header_returns_none_when_not_ntlm(
-        self, negotiate_auth_fixture
+            self, negotiate_auth_fixture
     ):
         header_content = "Basic Failure"
         actual_output = negotiate_auth_fixture._auth_type_from_header(header_content)
@@ -119,7 +118,7 @@ class TestNegotiateFunctional:
             assert len(httpx_mock.get_requests()) == 1
 
     def test_http_401s_make_three_requests_and_return_401(
-        self, httpx_mock: HTTPXMock, mocker
+            self, httpx_mock: HTTPXMock, mocker
     ):
         httpx_mock.add_response(status_code=401, headers={"WWW-Authenticate": "NTLM"})
         httpx_mock.add_response(
@@ -128,13 +127,13 @@ class TestNegotiateFunctional:
             match_headers={"Authorization": "NTLM CAkKCwwNDg8="},
         )
 
-        if sys.platform == "nt":
-            patch_object = "httpx_auth.authentication.spnego.sspi.SSPIProxy.step"
+        if sys.platform == "win32":
+            patch_object = "httpx_auth.negotiate.spnego.sspi.SSPIProxy.step"
         else:
-            patch_object = "httpx_auth.authentication.spnego.gss.GSSAPIProxy.step"
+            patch_object = "httpx_auth.negotiate.spnego.gss.GSSAPIProxy.step"
         with mocker.patch(
-            patch_object,
-            return_value=b"\x08\x09\x0A\x0B\x0C\x0D\x0E\x0F",
+                patch_object,
+                return_value=b"\x08\x09\x0A\x0B\x0C\x0D\x0E\x0F",
         ):
             with httpx.Client() as client:
                 resp = client.get(
@@ -142,5 +141,41 @@ class TestNegotiateFunctional:
                     auth=Negotiate("test_user", "test_pass"),
                 )
                 assert resp.status_code == 401
+                assert len(resp.history) == 2
+                assert len(httpx_mock.get_requests()) == 3
+
+    @pytest.mark.parametrize('status_code', [200, 403, 404])
+    def test_http_response_reported_correctly_when_auth_completes(
+            self, httpx_mock: HTTPXMock, mocker, status_code
+    ):
+        httpx_mock.add_response(status_code=401, headers={"WWW-Authenticate": "NTLM"})
+        httpx_mock.add_response(
+            status_code=401,
+            headers={"WWW-Authenticate": "NTLM AAECAwQFBgc="},
+            match_headers={"Authorization": "NTLM CAkKCwwNDg8="},
+        )
+        httpx_mock.add_response(
+            status_code=status_code,
+            match_headers={"Authorization": "NTLM Dw4NDAsKCQg="},
+        )
+
+        if sys.platform == "win32":
+            patch_object = "httpx_auth.negotiate.spnego.sspi.SSPIProxy.step"
+        else:
+            patch_object = "httpx_auth.negotiate.spnego.gss.GSSAPIProxy.step"
+
+        with mocker.patch(
+                patch_object,
+                side_effect=[
+                    b"\x08\x09\x0A\x0B\x0C\x0D\x0E\x0F",
+                    b"\x0F\x0E\x0D\x0C\x0B\x0A\x09\x08"
+                ]
+        ):
+            with httpx.Client() as client:
+                resp = client.get(
+                    url="https://www.example.com/test",
+                    auth=Negotiate("test_user", "test_pass"),
+                )
+                assert resp.status_code == status_code
                 assert len(resp.history) == 2
                 assert len(httpx_mock.get_requests()) == 3
