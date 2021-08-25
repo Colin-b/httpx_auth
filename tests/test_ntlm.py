@@ -130,7 +130,7 @@ class TestNegotiateFunctional:
         if sys.platform == "win32":
             patch_object = "httpx_auth.negotiate.spnego.sspi.SSPIProxy.step"
         else:
-            patch_object = "httpx_auth.negotiate.spnego.gss.GSSAPIProxy.step"
+            patch_object = "httpx_auth.negotiate.spnego.negotiate.NegotiateProxy.step"
         with mocker.patch(
                 patch_object,
                 return_value=b"\x08\x09\x0A\x0B\x0C\x0D\x0E\x0F",
@@ -162,7 +162,7 @@ class TestNegotiateFunctional:
         if sys.platform == "win32":
             patch_object = "httpx_auth.negotiate.spnego.sspi.SSPIProxy.step"
         else:
-            patch_object = "httpx_auth.negotiate.spnego.gss.GSSAPIProxy.step"
+            patch_object = "httpx_auth.negotiate.spnego.negotiate.NegotiateProxy.step"
 
         with mocker.patch(
                 patch_object,
