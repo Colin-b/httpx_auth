@@ -3,11 +3,18 @@ import os
 import uuid
 from enum import Enum
 from hashlib import sha256, sha512
-from typing import Optional, Generator
+from typing import Optional, Generator, List
 from urllib.parse import parse_qs, urlsplit, urlunsplit, urlencode
 
 import httpx
-from spnego.ntlm import NTLMProxy
+
+try:
+    import spnego
+
+    WINDOWS_AUTH = True
+except ImportError:
+    spnego = None
+    WINDOWS_AUTH = False
 
 from httpx_auth import oauth2_authentication_responses_server, oauth2_tokens
 from httpx_auth.errors import InvalidGrantRequest, GrantNotProvided
@@ -1167,171 +1174,183 @@ class Basic(httpx.BasicAuth, SupportMultiAuth):
         httpx.BasicAuth.__init__(self, username, password)
 
 
-class NTLM(httpx.Auth, SupportMultiAuth):
-    """Describes plain NTLM challenge-response authentication
+class Negotiate(httpx.Auth, SupportMultiAuth):
+    """
     NOTE: This does not support Channel Bindings which can (and ought to be) supported by servers. This is due to a
     limitation in the HTTPCore library at present.
     """
 
-    def __init__(self, username: str, password: str, domain: str = None):
+    _username: str
+    _password: str
+    force_ntlm: bool
+    auth_header: str
+    auth_complete: bool
+    auth_type: str
+    _service: str
+    _context_proxy: "spnego._context.ContextProxy"
+    max_redirects: int = 10
+
+    def __init__(
+        self,
+        username: str = None,
+        password: str = None,
+        force_ntlm: bool = False,
+        service: str = None,
+        max_redirects: int = 10,
+    ) -> None:
         """
-        :param username: str username
-        :param password: str password
-        :param domain: str domain, default: None
+        :param username: Username and domain (if required). Optional for servers that support Kerberos, required for
+        those that require NTLM
+        :param password: Password if required by server for authentication.
+        :param force_ntlm: Force authentication to use NTLM if available.
+        :param service: Service portion of the target Service Principal Name (default HTTP)
+        :return: None
         """
-        self.username = username
-        self.password = password
-        self.domain = domain
-        self.authentication_target = _AuthenticationTarget.NONE
-        self.authenticate_type: Optional[str] = None
-        self.ntlm_auth_header = ""
+        if not WINDOWS_AUTH:
+            raise ImportError(
+                "Windows authentication support not enabled, install with the windows_auth extra."
+            )
+        if password and not username:
+            raise ValueError(
+                "Negotiate authentication with credentials requires username and password, no username was provided."
+            )
+        if force_ntlm and not (username and password):
+            raise ValueError(
+                "NTLM authentication requires credentials, provide a username and password."
+            )
+        self._username = username
+        self._password = password
+        self.force_ntlm = force_ntlm
+        self.auth_header = ""
+        self.auth_complete = False
+        self.auth_type = ""
+        self._service = service
+        self.max_redirects = max_redirects
 
     def auth_flow(
         self, request: httpx.Request
     ) -> Generator[httpx.Request, httpx.Response, None]:
 
-        if self.authentication_target is not _AuthenticationTarget.NONE:
-            request.headers[
-                self.authentication_target.response_header_name()
-            ] = self.authentication_target
-
+        responses = []
         response = yield request
+        responses.append(response)
+
+        redirect_count = 0
 
         # If anything comes back except an authenticate challenge then return it for the client to deal with, hopefully
         # a successful response.
-        if response.status_code not in [401, 407]:
-            return response
+        if responses[-1].status_code != 401:
+            return responses[-1]
 
-        # Otherwise authenticate, determine whether we need to auth to the server or to a proxy
-        candidate_auth_target = _AuthenticationTarget.from_status_code(
-            response.status_code
+        # Otherwise authenticate. Determine the authentication name to use, prefer Negotiate if available.
+        self.auth_type = self._auth_type_from_header(
+            responses[-1].headers.get("WWW-Authenticate")
         )
-        authenticate_header = response.headers.get(
-            candidate_auth_target.challenge_header_name(), ""
-        )
-        auth_type = self._auth_type_from_header(authenticate_header)
-        if auth_type is not None:
-            self.authentication_target = candidate_auth_target
-            self.authenticate_type = auth_type
-        else:
-            return response
+        if self.auth_type is None:
+            return responses[-1]
 
-        # Create the NTLM proxy object to handle the auth process
-        ntlm_proxy = NTLMProxy(self.username, self.password, request.url.host)
+        # Run authentication flow.
+        yield from self._do_auth_flow(request, responses)
 
+        # If we were redirected we will need to rerun the auth flow on the new url, repeat until either we receive a
+        # status that is not 401 Unauthorized, or until the url we ended up at is the same as the one we requested.
+        while responses[-1].status_code == 401 and responses[-1].url != request.url:
+            redirect_count += 1
+            if redirect_count > self.max_redirects:
+                raise httpx.TooManyRedirects(
+                    message=f"Redirected too many times ({self.max_redirects}).",
+                    request=request,
+                )
+            request.url = responses[-1].url
+            yield from self._do_auth_flow(request, responses)
+
+        return responses[-1]
+
+    def _do_auth_flow(
+        self, request: httpx.Request, responses: List[httpx.Response]
+    ) -> Generator[httpx.Request, httpx.Response, None]:
         # Phase 1:
-        # Generate ntlm Negotiate message header, attach to request and resend.
-        response_header = self._make_authorization_header(ntlm_proxy.step(None))
-        request.headers[
-            self.authentication_target.response_header_name()
-        ] = response_header
-        response2 = yield request
+        # Configure context proxy, generate message header, attach to request and resend.
+        host = request.url.host
+        self.context_proxy = self._new_context_proxy()
+        self.context_proxy.spn = "{0}/{1}".format(
+            self._service.upper() if self._service else "HTTP", host
+        )
+        request.headers["Authorization"] = self._make_authorization_header(
+            self.context_proxy.step(None)
+        )
+        response = yield request
+        responses.append(response)
 
         # Phase 2:
-        # Server responds with NTLM Challenge message, parse the authenticate header and deal with cookies. Some web
-        # apps use cookies to store progress in the auth process.
-        if "set-cookie" in response2.headers:
-            request.headers["Cookie"] = response2.headers["Cookie"]
+        # Server responds with Challenge message, parse the authenticate header and deal with cookies. Some web apps use
+        # cookies to store progress in the auth process.
+        if "set-cookie" in responses[-1].headers:
+            request.headers["Cookie"] = responses[-1].headers["Cookie"]
 
-        auth_header_value = response2.headers[
-            self.authentication_target.challenge_header_name()
-        ]
-        ntlm_header_bytes = self._parse_ntlm_authenticate_header(auth_header_value)
+        auth_header_bytes = self._parse_authenticate_header(
+            responses[-1].headers["WWW-Authenticate"]
+        )
 
         # Phase 3:
         # Generate Authenticate message, attach to the request and resend it. If the user is authorized then this will
         # succeed. If not then this will fail.
-        self.ntlm_auth_header = self._make_authorization_header(
-            ntlm_proxy.step(ntlm_header_bytes)
+        self.auth_header = self._make_authorization_header(
+            self.context_proxy.step(auth_header_bytes)
         )
-        request.headers[
-            self.authentication_target.response_header_name()
-        ] = self.ntlm_auth_header
-        response3 = yield request
-        return response3
+        request.headers["Authorization"] = self.auth_header
+        response = yield request
+        responses.append(response)
 
-    def _parse_ntlm_authenticate_header(self, header: str) -> bytes:
+    def _new_context_proxy(self) -> "spnego._context.ContextProxy":
+        client = spnego.client(
+            self._username,
+            self._password,
+            service=self._service,
+            protocol="ntlm" if self.force_ntlm else "negotiate",
+        )
+        if self.force_ntlm:
+            client.options = spnego.NegotiateOptions.use_ntlm
+            client.protocol = "ntlm"
+        return client
+
+    def _parse_authenticate_header(self, header: str) -> bytes:
         """
-        Extract NTLM/Negotiate value from authenticate header and convert to bytes
-        :param header: str www or proxy-authenticate header
-        :return: bytes NTLM challenge
+        Extract NTLM/Negotiate value from Authenticate header and convert to bytes
+        :param header: str WWW-Authenticate header
+        :return: bytes Negotiate challenge
         """
 
-        auth_strip = self.authenticate_type + " "
-        ntlm_header_value = next(
+        auth_strip = self.auth_type.lower() + " "
+        auth_header_value = next(
             s
             for s in (val.lstrip() for val in header.split(","))
-            if s.startswith(auth_strip)
+            if s.lower().startswith(auth_strip)
         )
-        return base64.b64decode(ntlm_header_value[len(auth_strip) :])
+        return base64.b64decode(auth_header_value[len(auth_strip) :])
 
     def _make_authorization_header(self, response_bytes: bytes) -> str:
         """
-        Convert the ntlm bytes to base64 encoded string and build authorization header.
-        :param response_bytes: bytes NTLM response content
+        Convert the auth bytes to base64 encoded string and build Authorization header.
+        :param response_bytes: bytes auth response content
         :return: str Authorization/Proxy-Authorization header
         """
 
-        ntlm_response = base64.b64encode(response_bytes).decode("ascii")
-        return "{} {}".format(self.authenticate_type, ntlm_response)
+        auth_response = base64.b64encode(response_bytes).decode("ascii")
+        return f"{self.auth_type} {auth_response}"
 
-    def _auth_type_from_header(self, header: str) -> Optional[str]:
+    @staticmethod
+    def _auth_type_from_header(header: str) -> Optional[str]:
         """
-        Given a WWW-Authenticate header or Proxy-Authenticate header, returns the authentication
-        type to use. Prefer NTLM if the server supports it.
+        Given a WWW-Authenticate header, returns the authentication type to use.
         :param header: str Authenticate header
         :return: Optional[str] Authentication type or None if not supported
         """
-
-        if "ntlm" in header.lower():
-            return "NTLM"
-        elif "negotiate" in header.lower():
+        if "negotiate" in header.lower():
             return "Negotiate"
+        elif "ntlm" in header.lower():
+            return "NTLM"
         return None
-
-
-class _AuthenticationTarget(Enum):
-    NONE = 0
-    WWW = 1
-    PROXY = 2
-
-    def response_header_name(self) -> Optional[str]:
-        """
-        The name of the header to be sent in a response
-        :return: str response header name
-        """
-        if self.value == 1:
-            return "Authorization"
-        elif self.value == 2:
-            return "Proxy-Authorization"
-        else:
-            return None
-
-    def challenge_header_name(self) -> Optional[str]:
-        """
-        The name of the header to expect in a challenge
-        :return: str challenge header name
-        """
-        if self.value == 1:
-            return "WWW-Authenticate"
-        elif self.value == 2:
-            return "Proxy-Authenticate"
-        else:
-            return None
-
-    @staticmethod
-    def from_status_code(status_code: int) -> "_AuthenticationTarget":
-        """
-        Create an instance of an AuthenticationTarget from a response status code
-        :param status_code: int HTTP status code
-        :return: AuthenticationTarget
-        """
-        if status_code == 401:
-            return _AuthenticationTarget.WWW
-        elif status_code == 407:
-            return _AuthenticationTarget.PROXY
-        else:
-            return _AuthenticationTarget.NONE
 
 
 class _MultiAuth(httpx.Auth):

@@ -36,8 +36,7 @@ setup(
     packages=find_packages(exclude=["tests*"]),
     install_requires=[
         # Used for Base Authentication and to communicate with OAuth2 servers
-        "httpx==0.18.*",
-        "pyspnego==0.1.6"
+        "httpx==0.18.*"
     ],
     extras_require={
         "testing": [
@@ -50,6 +49,9 @@ setup(
             # Used to test NTLM support
             "pytest==6.*",
             "pytest-mock==3.6.*"
+        ],
+        'windows_auth': [
+            "pyspnego[kerberos]==0.1.6"
         ]
     },
     python_requires=">=3.6",
