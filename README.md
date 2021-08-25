@@ -667,6 +667,51 @@ with httpx.Client() as client:
 | `username`              | User name.                     | Mandatory |               |
 | `password`              | User password.                 | Mandatory |               |
 
+## Negotiate and NTLM
+
+Support for Negotiate, Kerberos and NTLM authentication is optional, install with the `windows_auth` extra to enable
+this feature.
+
+You can use Negotiate, Kerberos and NTLM authentication with `httpx_auth.Negotiate`.
+
+### Using cached credentials for Kerberos authentication
+
+Cached credentials are used by default for Kerberos authentication, this relies on a Ticket-Granting Ticket being
+present on your system from `kinit` or similar. This is supported by default on Windows, on Linux it relies on system
+packages being installed. See documentation for the [pyspnego](https://pypi.org/project/pyspnego/) package for more
+information.
+
+```python
+import httpx
+from httpx_auth import Negotiate
+
+with httpx.Client() as client:
+    client.get('https://www.example.com', auth=Negotiate())
+```
+
+### Using provided credentials for NTLM authentication
+
+Where other credentials are required, or if Kerberos is not supported, provide a username and password for
+authentication:
+
+```python
+import httpx
+from httpx_auth import Negotiate
+
+with httpx.Client() as client:
+    client.get('https://www.example.com', auth=Negotiate('domain\\username', 'password'))
+```
+
+### Parameters
+
+| Name                    | Description                                                | Mandatory | Default value |
+|:------------------------|:-----------------------------------------------------------|:----------|:--------------|
+| `username`              | User name.                                                 | Optional  |               |
+| `password`              | User password.                                             | Optional  |               |
+| `force_ntlm`            | Force the use of NTLM auth                                 | Optional  | False         |
+| `service`               | Name portion of the server SPN                             | Optional  | "Service"     |
+| `max_redirects`         | Maximum number of redirects to follow while authenticating | Optional  | 10            |
+
 ## Multiple authentication at once
 
 You can also use a combination of authentication using `+`or `&`  as in the following sample:

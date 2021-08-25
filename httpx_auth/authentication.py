@@ -1,7 +1,6 @@
 import base64
 import os
 import uuid
-from enum import Enum
 from hashlib import sha256, sha512
 from typing import Optional, Generator, List
 from urllib.parse import parse_qs, urlsplit, urlunsplit, urlencode
