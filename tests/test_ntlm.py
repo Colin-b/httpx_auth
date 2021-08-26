@@ -3,6 +3,7 @@ from typing import Optional, List
 from pytest_httpx import HTTPXMock
 from httpx_auth import Negotiate
 from collections import namedtuple
+import importlib
 
 import httpx
 import pytest
