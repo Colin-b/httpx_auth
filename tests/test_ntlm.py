@@ -115,6 +115,13 @@ class TestNegotiateUnit:
             _ = Negotiate(force_ntlm=True)
         assert "provide a username and password" in str(exception_info)
 
+    def test_no_spnego_package_is_handled(self):
+        sys.modules['spnego'] = None
+        from negotiate import Negotiate
+        with pytest.raises(ImportError) as exception_info:
+            _ = Negotiate()
+        assert "Windows authentication support not enabled" in str(exception_info)
+
 
 def mock_auth_responses(request_count: int):
     return [
