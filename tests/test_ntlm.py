@@ -188,18 +188,18 @@ class TestNegotiateFunctional:
             ],
         )
 
-        with mocker.patch(
+        mocker.patch(
             get_patch_method(),
             side_effect=mock_auth_responses(1),
-        ):
-            with httpx.Client() as client:
-                resp = client.get(
-                    url=TEST_URL,
-                    auth=negotiate_auth_fixture,
-                )
-                assert resp.status_code == 401
-                assert len(resp.history) == 2
-                assert len(httpx_mock.get_requests()) == 3
+        )
+        with httpx.Client() as client:
+            resp = client.get(
+                url=TEST_URL,
+                auth=negotiate_auth_fixture,
+            )
+            assert resp.status_code == 401
+            assert len(resp.history) == 2
+            assert len(httpx_mock.get_requests()) == 3
 
     def test_authentication_with_redirect_is_followed(
         self, negotiate_auth_fixture, httpx_mock: HTTPXMock, mocker
@@ -236,18 +236,18 @@ class TestNegotiateFunctional:
                 ),
             ],
         )
-        with mocker.patch(
+        mocker.patch(
             get_patch_method(),
             side_effect=mock_auth_responses(2),
-        ):
-            with httpx.Client() as client:
-                resp = client.get(
-                    url=TEST_URL,
-                    auth=negotiate_auth_fixture,
-                )
-                assert resp.status_code == 200
-                assert len(resp.history) == 4
-                assert len(httpx_mock.get_requests()) == 6
+        )
+        with httpx.Client() as client:
+            resp = client.get(
+                url=TEST_URL,
+                auth=negotiate_auth_fixture,
+            )
+            assert resp.status_code == 200
+            assert len(resp.history) == 4
+            assert len(httpx_mock.get_requests()) == 6
 
     def test_authentication_with_too_many_redirects_throws(
         self, negotiate_auth_fixture, httpx_mock: HTTPXMock, mocker
@@ -272,20 +272,20 @@ class TestNegotiateFunctional:
                 MockDefinition(redirect_url, 401, {}, {"WWW-Authenticate": "NTLM"}),
             ],
         )
-        with mocker.patch(
+        mocker.patch(
             get_patch_method(),
             side_effect=mock_auth_responses(1),
-        ):
-            with httpx.Client() as client:
-                auth = negotiate_auth_fixture
-                auth.max_redirects = 0
-                with pytest.raises(httpx.TooManyRedirects) as exception_info:
-                    _ = client.get(
-                        url=TEST_URL,
-                        auth=auth,
-                    )
-                assert "Redirected too many times" in str(exception_info)
-                assert "0" in str(exception_info)
+        )
+        with httpx.Client() as client:
+            auth = negotiate_auth_fixture
+            auth.max_redirects = 0
+            with pytest.raises(httpx.TooManyRedirects) as exception_info:
+                _ = client.get(
+                    url=TEST_URL,
+                    auth=auth,
+                )
+            assert "Redirected too many times" in str(exception_info)
+            assert "0" in str(exception_info)
 
     @pytest.mark.parametrize("status_code", [200, 403, 404])
     def test_http_response_reported_correctly_when_auth_completes(
@@ -310,18 +310,18 @@ class TestNegotiateFunctional:
             ],
         )
 
-        with mocker.patch(
+        mocker.patch(
             get_patch_method(),
             side_effect=mock_auth_responses(1),
-        ):
-            with httpx.Client() as client:
-                resp = client.get(
-                    url=TEST_URL,
-                    auth=negotiate_auth_fixture,
-                )
-                assert resp.status_code == status_code
-                assert len(resp.history) == 2
-                assert len(httpx_mock.get_requests()) == 3
+        )
+        with httpx.Client() as client:
+            resp = client.get(
+                url=TEST_URL,
+                auth=negotiate_auth_fixture,
+            )
+            assert resp.status_code == status_code
+            assert len(resp.history) == 2
+            assert len(httpx_mock.get_requests()) == 3
 
     def test_http_response_sets_cookie_if_required(
         self, negotiate_auth_fixture, httpx_mock: HTTPXMock, mocker
@@ -351,15 +351,15 @@ class TestNegotiateFunctional:
                 ),
             ],
         )
-        with mocker.patch(
+        mocker.patch(
             get_patch_method(),
             side_effect=mock_auth_responses(1),
-        ):
-            with httpx.Client() as client:
-                resp = client.get(
-                    url=TEST_URL,
-                    auth=negotiate_auth_fixture,
-                )
-                assert resp.status_code == 200
-                assert len(resp.history) == 2
-                assert len(httpx_mock.get_requests()) == 3
+        )
+        with httpx.Client() as client:
+            resp = client.get(
+                url=TEST_URL,
+                auth=negotiate_auth_fixture,
+            )
+            assert resp.status_code == 200
+            assert len(resp.history) == 2
+            assert len(httpx_mock.get_requests()) == 3
