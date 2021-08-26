@@ -7,7 +7,7 @@ from collections import namedtuple
 import httpx
 import pytest
 
-spnego = pytest.importorskip("spnego")
+_ = pytest.importorskip("spnego")
 
 TEST_USER = "test_user"
 TEST_PASS = "test_pass"
@@ -89,20 +89,22 @@ class TestNegotiateUnit:
         assert actual_output is None
 
     def test_new_context_proxy(self, negotiate_auth_fixture):
+        import spnego as spnego_
         proxy = negotiate_auth_fixture._new_context_proxy()
         assert proxy.username == TEST_USER
         assert proxy.password == TEST_PASS
         assert proxy.protocol.lower() == "negotiate"
-        assert spnego.NegotiateOptions.use_ntlm not in proxy.options
+        assert spnego_.NegotiateOptions.use_ntlm not in proxy.options
         assert proxy.spn.lower() == "host/unspecified"
 
     def test_new_context_proxy_with_ntlm(self, negotiate_auth_fixture):
+        import spnego as spnego_
         negotiate_auth_fixture.force_ntlm = True
         proxy = negotiate_auth_fixture._new_context_proxy()
         assert proxy.username == TEST_USER
         assert proxy.password == TEST_PASS
         assert proxy.protocol.lower() == "ntlm"
-        assert spnego.NegotiateOptions.use_ntlm in proxy.options
+        assert spnego_.NegotiateOptions.use_ntlm in proxy.options
         assert proxy.spn.lower() == "host/unspecified"
 
     def test_password_with_no_username_throws(self):
@@ -114,13 +116,6 @@ class TestNegotiateUnit:
         with pytest.raises(ValueError) as exception_info:
             _ = Negotiate(force_ntlm=True)
         assert "provide a username and password" in str(exception_info)
-
-    def test_no_spnego_package_is_handled(self):
-        sys.modules['spnego'] = None
-        from negotiate import Negotiate
-        with pytest.raises(ImportError) as exception_info:
-            _ = Negotiate()
-        assert "Windows authentication support not enabled" in str(exception_info)
 
 
 def mock_auth_responses(request_count: int):
