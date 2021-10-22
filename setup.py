@@ -36,16 +36,16 @@ setup(
     packages=find_packages(exclude=["tests*"]),
     install_requires=[
         # Used for Base Authentication and to communicate with OAuth2 servers
-        "httpx==0.19.*"
+        "httpx==0.20.*"
     ],
     extras_require={
         "testing": [
             # Used to generate test tokens
-            "pyjwt==1.*",
+            "pyjwt==2.*",
             # Used to mock httpx
-            "pytest_httpx==0.13.*",
+            "pytest_httpx==0.14.*",
             # Used to check coverage
-            "pytest-cov==2.*",
+            "pytest-cov==3.*",
         ]
     },
     python_requires=">=3.6",
