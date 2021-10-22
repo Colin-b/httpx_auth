@@ -12,10 +12,7 @@ import httpx_auth
 def create_token(expiry: Optional[datetime.datetime]) -> str:
     import jwt  # Consider jwt an optional dependency for testing
 
-    token = (
-        jwt.encode({"exp": expiry}, "secret") if expiry else jwt.encode({}, "secret")
-    )
-    return token.decode("unicode_escape")
+    return jwt.encode({"exp": expiry}, "secret") if expiry else jwt.encode({}, "secret")
 
 
 @pytest.fixture
