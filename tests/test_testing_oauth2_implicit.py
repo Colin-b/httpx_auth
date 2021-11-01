@@ -12,7 +12,7 @@ def token_mock() -> str:
 
 
 def test_oauth2_implicit_flow(token_cache_mock, httpx_mock: HTTPXMock):
-    auth = httpx_auth.OAuth2Implicit("http://provide_token")
+    auth = httpx_auth.OAuth2Implicit("https://provide_token")
     assert (
         get_header(httpx_mock, auth).get("Authorization")
         == "Bearer 2YotnFZFEjr1zCsicMWpAA"
