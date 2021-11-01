@@ -794,8 +794,8 @@ def test_response_type_can_be_provided_in_url(
         response_type="not_used",
     )
     tab = browser_mock.add_response(
-        opened_url="https://provide_code?response_type=%5B%27my_code%27%5D&state=b32e05720bd3722e0ac87bf72897a78b669a0810adf8da46b675793dcfe0f41a40f7d7fdda952bd73ea533a2462907d805adf8c1a162d51b99b2ddec0d411feb&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F&code_challenge=5C_ph_KZ3DstYUc965SiqmKAA-ShvKF4Ut7daKd3fjc&code_challenge_method=S256",
-        reply_url="http://localhost:5000#code=SplxlOBeZQQYbYS6WxSbIA&state=b32e05720bd3722e0ac87bf72897a78b669a0810adf8da46b675793dcfe0f41a40f7d7fdda952bd73ea533a2462907d805adf8c1a162d51b99b2ddec0d411feb",
+        opened_url="https://provide_code?response_type=%5B%27my_code%27%5D&state=863572fb4a5d1cc06834070baaaa08020928779095e2b61a60513e55a7ad17e9683441b436080a1c654a58b8f5c35837ee96e610919075ea01c82e27b6a86219&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F&code_challenge=5C_ph_KZ3DstYUc965SiqmKAA-ShvKF4Ut7daKd3fjc&code_challenge_method=S256",
+        reply_url="http://localhost:5000#code=SplxlOBeZQQYbYS6WxSbIA&state=863572fb4a5d1cc06834070baaaa08020928779095e2b61a60513e55a7ad17e9683441b436080a1c654a58b8f5c35837ee96e610919075ea01c82e27b6a86219",
     )
     httpx_mock.add_response(
         method="POST",
@@ -814,7 +814,7 @@ def test_response_type_can_be_provided_in_url(
         == "Bearer 2YotnFZFEjr1zCsicMWpAA"
     )
     tab.assert_success(
-        "You are now authenticated on b32e05720bd3722e0ac87bf72897a78b669a0810adf8da46b675793dcfe0f41a40f7d7fdda952bd73ea533a2462907d805adf8c1a162d51b99b2ddec0d411feb. You may close this tab."
+        "You are now authenticated on 863572fb4a5d1cc06834070baaaa08020928779095e2b61a60513e55a7ad17e9683441b436080a1c654a58b8f5c35837ee96e610919075ea01c82e27b6a86219. You may close this tab."
     )
 
 

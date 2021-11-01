@@ -770,8 +770,8 @@ def test_response_type_can_be_provided_in_url(
         response_type="not_used",
     )
     tab = browser_mock.add_response(
-        opened_url="https://provide_code?response_type=my_code&state=49b67a19e70f692c3fc09dd124e5782b41a86f4f4931e1cc938ccbb466eecf1b730edb9eb01e42005de77ce3dd5a016418f8e780f30c4477d71102fe03e39e62&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F",
-        reply_url="http://localhost:5000#code=SplxlOBeZQQYbYS6WxSbIA&state=49b67a19e70f692c3fc09dd124e5782b41a86f4f4931e1cc938ccbb466eecf1b730edb9eb01e42005de77ce3dd5a016418f8e780f30c4477d71102fe03e39e62",
+        opened_url="https://provide_code?response_type=my_code&state=5defbae6aaa3054ba94783c34108866c3a348b94225bdd3df193ab640b24d56ab2e2ca314b913e6745d4d2e4ae410d3b851f2c5ac307de408571aceeca60b0a9&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F",
+        reply_url="http://localhost:5000#code=SplxlOBeZQQYbYS6WxSbIA&state=5defbae6aaa3054ba94783c34108866c3a348b94225bdd3df193ab640b24d56ab2e2ca314b913e6745d4d2e4ae410d3b851f2c5ac307de408571aceeca60b0a9",
     )
     httpx_mock.add_response(
         method="POST",
@@ -792,7 +792,7 @@ def test_response_type_can_be_provided_in_url(
     # Send a request to this dummy URL with authentication
     httpx.get("https://authorized_only", auth=auth)
     tab.assert_success(
-        "You are now authenticated on 49b67a19e70f692c3fc09dd124e5782b41a86f4f4931e1cc938ccbb466eecf1b730edb9eb01e42005de77ce3dd5a016418f8e780f30c4477d71102fe03e39e62. You may close this tab."
+        "You are now authenticated on 5defbae6aaa3054ba94783c34108866c3a348b94225bdd3df193ab640b24d56ab2e2ca314b913e6745d4d2e4ae410d3b851f2c5ac307de408571aceeca60b0a9. You may close this tab."
     )
 
 
