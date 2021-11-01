@@ -1,3 +1,5 @@
+import time
+
 from pytest_httpx import HTTPXMock
 import pytest
 import httpx
@@ -29,6 +31,39 @@ def test_oauth2_client_credentials_flow_uses_provided_client(
         },
         match_headers={"x-test": "Test value"},
     )
+    assert (
+        get_header(httpx_mock, auth).get("Authorization")
+        == "Bearer 2YotnFZFEjr1zCsicMWpAA"
+    )
+
+
+def test_oauth2_client_credentials_flow_is_able_to_reuse_client(
+    token_cache, httpx_mock: HTTPXMock
+):
+    client = httpx.Client(headers={"x-test": "Test value"})
+    auth = httpx_auth.OAuth2ClientCredentials(
+        "http://provide_access_token",
+        client_id="test_user",
+        client_secret="test_pwd",
+        client=client,
+    )
+    httpx_mock.add_response(
+        method="POST",
+        url="http://provide_access_token",
+        json={
+            "access_token": "2YotnFZFEjr1zCsicMWpAA",
+            "token_type": "example",
+            "expires_in": 10,
+            "refresh_token": "tGzv3JOkF0XG5Qx2TlKWIA",
+            "example_parameter": "example_value",
+        },
+        match_headers={"x-test": "Test value"},
+    )
+    assert (
+        get_header(httpx_mock, auth).get("Authorization")
+        == "Bearer 2YotnFZFEjr1zCsicMWpAA"
+    )
+    time.sleep(10)
     assert (
         get_header(httpx_mock, auth).get("Authorization")
         == "Bearer 2YotnFZFEjr1zCsicMWpAA"
