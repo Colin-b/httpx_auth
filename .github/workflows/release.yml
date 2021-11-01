@@ -33,4 +33,4 @@ jobs:
     - name: Publish packages
       run: |
         python -m pip install twine
-        python -m twine upload dist\* --skip-existing --username __token__ --password ${{ secrets.pypi_password }}
+        python -m twine upload dist/* --skip-existing --username __token__ --password ${{ secrets.pypi_password }}
