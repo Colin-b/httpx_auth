@@ -39,9 +39,9 @@ def test_aws_auth_without_content_in_request(httpx_mock: HTTPXMock, mock_aws_dat
         region="us-east-1",
         service="iam",
     )
-    httpx_mock.add_response(url="http://authorized_only")
+    httpx_mock.add_response(url="https://authorized_only")
 
-    httpx.post("http://authorized_only", auth=auth)
+    httpx.post("https://authorized_only", auth=auth)
     headers = httpx_mock.get_request().headers
     assert (
         headers["x-amz-content-sha256"]
@@ -61,9 +61,9 @@ def test_aws_auth_with_content_in_request(httpx_mock: HTTPXMock, mock_aws_dateti
         region="us-east-1",
         service="iam",
     )
-    httpx_mock.add_response(url="http://authorized_only")
+    httpx_mock.add_response(url="https://authorized_only")
 
-    httpx.post("http://authorized_only", json=[{"key": "value"}], auth=auth)
+    httpx.post("https://authorized_only", json=[{"key": "value"}], auth=auth)
     headers = httpx_mock.get_request().headers
     assert (
         headers["x-amz-content-sha256"]
@@ -86,9 +86,9 @@ def test_aws_auth_with_security_token_and_without_content_in_request(
         service="iam",
         security_token="security_token",
     )
-    httpx_mock.add_response(url="http://authorized_only")
+    httpx_mock.add_response(url="https://authorized_only")
 
-    httpx.post("http://authorized_only", auth=auth)
+    httpx.post("https://authorized_only", auth=auth)
     headers = httpx_mock.get_request().headers
     assert (
         headers["x-amz-content-sha256"]
@@ -112,9 +112,9 @@ def test_aws_auth_with_security_token_and_content_in_request(
         service="iam",
         security_token="security_token",
     )
-    httpx_mock.add_response(url="http://authorized_only")
+    httpx_mock.add_response(url="https://authorized_only")
 
-    httpx.post("http://authorized_only", json=[{"key": "value"}], auth=auth)
+    httpx.post("https://authorized_only", json=[{"key": "value"}], auth=auth)
     headers = httpx_mock.get_request().headers
     assert (
         headers["x-amz-content-sha256"]
@@ -135,10 +135,10 @@ def test_aws_auth_override_x_amz_date_header(httpx_mock: HTTPXMock, mock_aws_dat
         region="us-east-1",
         service="iam",
     )
-    httpx_mock.add_response(url="http://authorized_only")
+    httpx_mock.add_response(url="https://authorized_only")
 
     httpx.post(
-        "http://authorized_only", headers={"x-amz-date": "20201011T150505Z"}, auth=auth
+        "https://authorized_only", headers={"x-amz-date": "20201011T150505Z"}, auth=auth
     )
     headers = httpx_mock.get_request().headers
     assert (
@@ -159,9 +159,9 @@ def test_aws_auth_root_path(httpx_mock: HTTPXMock, mock_aws_datetime):
         region="us-east-1",
         service="iam",
     )
-    httpx_mock.add_response(url="http://authorized_only/")
+    httpx_mock.add_response(url="https://authorized_only/")
 
-    httpx.post("http://authorized_only/", auth=auth)
+    httpx.post("https://authorized_only/", auth=auth)
     headers = httpx_mock.get_request().headers
     assert (
         headers["x-amz-content-sha256"]
@@ -181,9 +181,9 @@ def test_aws_auth_query_parameters(httpx_mock: HTTPXMock, mock_aws_datetime):
         region="us-east-1",
         service="iam",
     )
-    httpx_mock.add_response(url="http://authorized_only?param1&param2=blah*")
+    httpx_mock.add_response(url="https://authorized_only?param1&param2=blah*")
 
-    httpx.post("http://authorized_only?param1&param2=blah*", auth=auth)
+    httpx.post("https://authorized_only?param1&param2=blah*", auth=auth)
     headers = httpx_mock.get_request().headers
     assert (
         headers["x-amz-content-sha256"]
@@ -203,9 +203,9 @@ def test_aws_auth_path_normalize(httpx_mock: HTTPXMock, mock_aws_datetime):
         region="us-east-1",
         service="iam",
     )
-    httpx_mock.add_response(url="http://authorized_only/stuff//more/")
+    httpx_mock.add_response(url="https://authorized_only/stuff//more/")
 
-    httpx.post("http://authorized_only/./test/../stuff//more/", auth=auth)
+    httpx.post("https://authorized_only/./test/../stuff//more/", auth=auth)
     headers = httpx_mock.get_request().headers
     assert (
         headers["x-amz-content-sha256"]
@@ -226,10 +226,10 @@ def test_aws_auth_path_quoting(httpx_mock: HTTPXMock, mock_aws_datetime):
         service="iam",
     )
     httpx_mock.add_response(
-        url="http://authorized_only/test/hello-*.&%5E~+%7B%7D!$%C2%A3_%20"
+        url="https://authorized_only/test/hello-*.&%5E~+%7B%7D!$%C2%A3_%20"
     )
 
-    httpx.post("http://authorized_only/test/hello-*.&^~+{}!$£_ ", auth=auth)
+    httpx.post("https://authorized_only/test/hello-*.&^~+{}!$£_ ", auth=auth)
     headers = httpx_mock.get_request().headers
     assert (
         headers["x-amz-content-sha256"]
@@ -250,10 +250,10 @@ def test_aws_auth_path_percent_encode_non_s3(httpx_mock: HTTPXMock, mock_aws_dat
         service="iam",
     )
     httpx_mock.add_response(
-        url="http://authorized_only/test/%252a%252b%2525/~-_%5E&%20%25%25"
+        url="https://authorized_only/test/%252a%252b%2525/~-_%5E&%20%25%25"
     )
 
-    httpx.post("http://authorized_only/test/%2a%2b%25/~-_^& %%", auth=auth)
+    httpx.post("https://authorized_only/test/%2a%2b%25/~-_^& %%", auth=auth)
     headers = httpx_mock.get_request().headers
     assert (
         headers["x-amz-content-sha256"]
@@ -274,10 +274,10 @@ def test_aws_auth_path_percent_encode_s3(httpx_mock: HTTPXMock, mock_aws_datetim
         service="s3",
     )
     httpx_mock.add_response(
-        url="http://authorized_only/test/%252a%252b%2525/~-_%5E&%20%25%25"
+        url="https://authorized_only/test/%252a%252b%2525/~-_%5E&%20%25%25"
     )
 
-    httpx.post("http://authorized_only/test/%2a%2b%25/~-_^& %%", auth=auth)
+    httpx.post("https://authorized_only/test/%2a%2b%25/~-_^& %%", auth=auth)
     headers = httpx_mock.get_request().headers
     assert (
         headers["x-amz-content-sha256"]
@@ -297,9 +297,9 @@ def test_aws_auth_without_path(httpx_mock: HTTPXMock, mock_aws_datetime):
         region="us-east-1",
         service="iam",
     )
-    httpx_mock.add_response(url="http://authorized_only")
+    httpx_mock.add_response(url="https://authorized_only")
 
-    httpx.get("http://authorized_only", auth=auth)
+    httpx.get("https://authorized_only", auth=auth)
     headers = httpx_mock.get_request().headers
     assert (
         headers["x-amz-content-sha256"]

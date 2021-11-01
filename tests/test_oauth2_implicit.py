@@ -18,7 +18,7 @@ def test_oauth2_implicit_flow_url_is_mandatory():
 
 def test_header_value_must_contains_token():
     with pytest.raises(Exception) as exception_info:
-        httpx_auth.OAuth2Implicit("http://test_url", header_value="Bearer token")
+        httpx_auth.OAuth2Implicit("https://test_url", header_value="Bearer token")
     assert str(exception_info.value) == "header_value parameter must contains {token}."
 
 
@@ -26,14 +26,14 @@ def test_oauth2_implicit_flow_token_is_not_reused_if_a_url_parameter_is_changing
     token_cache, httpx_mock: HTTPXMock, browser_mock: BrowserMock
 ):
     auth1 = httpx_auth.OAuth2Implicit(
-        "http://provide_token?response_type=custom_token&fake_param=1",
+        "https://provide_token?response_type=custom_token&fake_param=1",
         token_field_name="custom_token",
     )
     expiry_in_1_hour = datetime.datetime.utcnow() + datetime.timedelta(hours=1)
     first_token = create_token(expiry_in_1_hour)
     tab1 = browser_mock.add_response(
-        opened_url="http://provide_token?response_type=custom_token&fake_param=1&state=5652a8138e3a99dab7b94532c73ed5b10f19405316035d1efdc8bf7e0713690485254c2eaff912040eac44031889ef0a5ed5730c8a111541120d64a898c31afe&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F",
-        reply_url="http://localhost:5000",
+        opened_url="https://provide_token?response_type=custom_token&fake_param=1&state=5652a8138e3a99dab7b94532c73ed5b10f19405316035d1efdc8bf7e0713690485254c2eaff912040eac44031889ef0a5ed5730c8a111541120d64a898c31afe&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F",
+        reply_url="https://localhost:5000",
         data=f"custom_token={first_token}&state=5652a8138e3a99dab7b94532c73ed5b10f19405316035d1efdc8bf7e0713690485254c2eaff912040eac44031889ef0a5ed5730c8a111541120d64a898c31afe",
     )
 
@@ -45,16 +45,16 @@ def test_oauth2_implicit_flow_token_is_not_reused_if_a_url_parameter_is_changing
     )
 
     auth2 = httpx_auth.OAuth2Implicit(
-        "http://provide_token?response_type=custom_token&fake_param=2",
+        "https://provide_token?response_type=custom_token&fake_param=2",
         token_field_name="custom_token",
     )
     second_token = create_token(expiry_in_1_hour)
     tab2 = browser_mock.add_response(
-        opened_url="http://provide_token?response_type=custom_token&fake_param=2&state=5c3940ccf78ac6e7d6d8d06782d9fd95a533aa5425b616eaa38dc3ec9508fbd55152c58a0d8dd8a087e76b77902559285819a41cb78ce8713e5a3b974bf07ce9&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F",
-        reply_url="http://localhost:5000",
+        opened_url="https://provide_token?response_type=custom_token&fake_param=2&state=5c3940ccf78ac6e7d6d8d06782d9fd95a533aa5425b616eaa38dc3ec9508fbd55152c58a0d8dd8a087e76b77902559285819a41cb78ce8713e5a3b974bf07ce9&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F",
+        reply_url="https://localhost:5000",
         data=f"custom_token={second_token}&state=5c3940ccf78ac6e7d6d8d06782d9fd95a533aa5425b616eaa38dc3ec9508fbd55152c58a0d8dd8a087e76b77902559285819a41cb78ce8713e5a3b974bf07ce9",
     )
-    response = httpx.get("http://authorized_only", auth=auth2)
+    response = httpx.get("https://authorized_only", auth=auth2)
     # Return headers received on this dummy URL
     assert response.request.headers.get("Authorization") == f"Bearer {second_token}"
     tab1.assert_success(
@@ -69,23 +69,23 @@ def test_oauth2_implicit_flow_token_is_reused_if_only_nonce_differs(
     token_cache, httpx_mock: HTTPXMock, browser_mock: BrowserMock
 ):
     auth1 = httpx_auth.OAuth2Implicit(
-        "http://provide_token?response_type=custom_token&nonce=1",
+        "https://provide_token?response_type=custom_token&nonce=1",
         token_field_name="custom_token",
     )
     expiry_in_1_hour = datetime.datetime.utcnow() + datetime.timedelta(hours=1)
     token = create_token(expiry_in_1_hour)
     tab = browser_mock.add_response(
-        opened_url="http://provide_token?response_type=custom_token&state=67b95d2c7555751d1d72c97c7cd9ad6630c8395e0eaa51ee86ac7e451211ded9cd98a7190848789fe93632d8960425710e93f1f5549c6c6bc328bf3865a85ff2&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F&nonce=%5B%271%27%5D",
-        reply_url="http://localhost:5000",
+        opened_url="https://provide_token?response_type=custom_token&state=67b95d2c7555751d1d72c97c7cd9ad6630c8395e0eaa51ee86ac7e451211ded9cd98a7190848789fe93632d8960425710e93f1f5549c6c6bc328bf3865a85ff2&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F&nonce=%5B%271%27%5D",
+        reply_url="https://localhost:5000",
         data=f"custom_token={token}&state=67b95d2c7555751d1d72c97c7cd9ad6630c8395e0eaa51ee86ac7e451211ded9cd98a7190848789fe93632d8960425710e93f1f5549c6c6bc328bf3865a85ff2",
     )
     assert get_header(httpx_mock, auth1).get("Authorization") == f"Bearer {token}"
 
     auth2 = httpx_auth.OAuth2Implicit(
-        "http://provide_token?response_type=custom_token&nonce=2",
+        "https://provide_token?response_type=custom_token&nonce=2",
         token_field_name="custom_token",
     )
-    response = httpx.get("http://authorized_only", auth=auth2)
+    response = httpx.get("https://authorized_only", auth=auth2)
     # Return headers received on this dummy URL
     assert response.request.headers.get("Authorization") == f"Bearer {token}"
     tab.assert_success(
@@ -99,13 +99,13 @@ def test_oauth2_implicit_flow_token_can_be_requested_on_a_custom_server_port(
     # TODO Should use a method to retrieve a free port instead
     available_port = 5002
     auth = httpx_auth.OAuth2Implicit(
-        "http://provide_token", redirect_uri_port=available_port
+        "https://provide_token", redirect_uri_port=available_port
     )
     expiry_in_1_hour = datetime.datetime.utcnow() + datetime.timedelta(hours=1)
     token = create_token(expiry_in_1_hour)
     tab = browser_mock.add_response(
-        opened_url="http://provide_token?response_type=token&state=42a85b271b7a652ca3cc4c398cfd3f01b9ad36bf9c945ba823b023e8f8b95c4638576a0e3dcc96838b838bec33ec6c0ee2609d62ed82480b3b8114ca494c0521&redirect_uri=http%3A%2F%2Flocalhost%3A5002%2F",
-        reply_url="http://localhost:5002",
+        opened_url="https://provide_token?response_type=token&state=42a85b271b7a652ca3cc4c398cfd3f01b9ad36bf9c945ba823b023e8f8b95c4638576a0e3dcc96838b838bec33ec6c0ee2609d62ed82480b3b8114ca494c0521&redirect_uri=http%3A%2F%2Flocalhost%3A5002%2F",
+        reply_url="https://localhost:5002",
         data=f"access_token={token}&state=42a85b271b7a652ca3cc4c398cfd3f01b9ad36bf9c945ba823b023e8f8b95c4638576a0e3dcc96838b838bec33ec6c0ee2609d62ed82480b3b8114ca494c0521",
     )
     assert get_header(httpx_mock, auth).get("Authorization") == f"Bearer {token}"
@@ -117,12 +117,12 @@ def test_oauth2_implicit_flow_token_can_be_requested_on_a_custom_server_port(
 def test_oauth2_implicit_flow_post_token_is_sent_in_authorization_header_by_default(
     token_cache, httpx_mock: HTTPXMock, browser_mock: BrowserMock
 ):
-    auth = httpx_auth.OAuth2Implicit("http://provide_token")
+    auth = httpx_auth.OAuth2Implicit("https://provide_token")
     expiry_in_1_hour = datetime.datetime.utcnow() + datetime.timedelta(hours=1)
     token = create_token(expiry_in_1_hour)
     tab = browser_mock.add_response(
-        opened_url="http://provide_token?response_type=token&state=42a85b271b7a652ca3cc4c398cfd3f01b9ad36bf9c945ba823b023e8f8b95c4638576a0e3dcc96838b838bec33ec6c0ee2609d62ed82480b3b8114ca494c0521&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F",
-        reply_url="http://localhost:5000",
+        opened_url="https://provide_token?response_type=token&state=42a85b271b7a652ca3cc4c398cfd3f01b9ad36bf9c945ba823b023e8f8b95c4638576a0e3dcc96838b838bec33ec6c0ee2609d62ed82480b3b8114ca494c0521&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F",
+        reply_url="https://localhost:5000",
         data=f"access_token={token}&state=42a85b271b7a652ca3cc4c398cfd3f01b9ad36bf9c945ba823b023e8f8b95c4638576a0e3dcc96838b838bec33ec6c0ee2609d62ed82480b3b8114ca494c0521",
     )
     assert get_header(httpx_mock, auth).get("Authorization") == f"Bearer {token}"
@@ -134,7 +134,7 @@ def test_oauth2_implicit_flow_post_token_is_sent_in_authorization_header_by_defa
 def test_oauth2_implicit_flow_post_token_is_expired_after_30_seconds_by_default(
     token_cache, httpx_mock: HTTPXMock, browser_mock: BrowserMock
 ):
-    auth = httpx_auth.OAuth2Implicit("http://provide_token")
+    auth = httpx_auth.OAuth2Implicit("https://provide_token")
     # Add a token that expires in 29 seconds, so should be considered as expired when issuing the request
     expiry_in_29_seconds = datetime.datetime.utcnow() + datetime.timedelta(seconds=29)
     token_cache._add_token(
@@ -146,8 +146,8 @@ def test_oauth2_implicit_flow_post_token_is_expired_after_30_seconds_by_default(
     expiry_in_1_hour = datetime.datetime.utcnow() + datetime.timedelta(hours=1)
     token = create_token(expiry_in_1_hour)
     tab = browser_mock.add_response(
-        opened_url="http://provide_token?response_type=token&state=42a85b271b7a652ca3cc4c398cfd3f01b9ad36bf9c945ba823b023e8f8b95c4638576a0e3dcc96838b838bec33ec6c0ee2609d62ed82480b3b8114ca494c0521&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F",
-        reply_url="http://localhost:5000",
+        opened_url="https://provide_token?response_type=token&state=42a85b271b7a652ca3cc4c398cfd3f01b9ad36bf9c945ba823b023e8f8b95c4638576a0e3dcc96838b838bec33ec6c0ee2609d62ed82480b3b8114ca494c0521&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F",
+        reply_url="https://localhost:5000",
         data=f"access_token={token}&state=42a85b271b7a652ca3cc4c398cfd3f01b9ad36bf9c945ba823b023e8f8b95c4638576a0e3dcc96838b838bec33ec6c0ee2609d62ed82480b3b8114ca494c0521",
     )
     assert get_header(httpx_mock, auth).get("Authorization") == f"Bearer {token}"
@@ -159,7 +159,7 @@ def test_oauth2_implicit_flow_post_token_is_expired_after_30_seconds_by_default(
 def test_oauth2_implicit_flow_post_token_custom_expiry(
     token_cache, httpx_mock: HTTPXMock, browser_mock: BrowserMock
 ):
-    auth = httpx_auth.OAuth2Implicit("http://provide_token", early_expiry=28)
+    auth = httpx_auth.OAuth2Implicit("https://provide_token", early_expiry=28)
     # Add a token that expires in 29 seconds, so should be considered as not expired when issuing the request
     expiry_in_29_seconds = datetime.datetime.utcnow() + datetime.timedelta(seconds=29)
     token = create_token(expiry_in_29_seconds)
@@ -174,7 +174,7 @@ def test_oauth2_implicit_flow_post_token_custom_expiry(
 def test_browser_opening_failure(token_cache, httpx_mock: HTTPXMock, monkeypatch):
     import httpx_auth.oauth2_authentication_responses_server
 
-    auth = httpx_auth.OAuth2Implicit("http://provide_token", timeout=0.1)
+    auth = httpx_auth.OAuth2Implicit("https://provide_token", timeout=0.1)
 
     class FakeBrowser:
         def open(self, url, new):
@@ -188,10 +188,10 @@ def test_browser_opening_failure(token_cache, httpx_mock: HTTPXMock, monkeypatch
 
     httpx_mock.add_response(
         method="GET",
-        url="http://provide_token?response_type=token&state=42a85b271b7a652ca3cc4c398cfd3f01b9ad36bf9c945ba823b023e8f8b95c4638576a0e3dcc96838b838bec33ec6c0ee2609d62ed82480b3b8114ca494c0521&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F",
+        url="https://provide_token?response_type=token&state=42a85b271b7a652ca3cc4c398cfd3f01b9ad36bf9c945ba823b023e8f8b95c4638576a0e3dcc96838b838bec33ec6c0ee2609d62ed82480b3b8114ca494c0521&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F",
     )
     with pytest.raises(httpx_auth.TimeoutOccurred) as exception_info:
-        httpx.get("http://authorized_only", auth=auth)
+        httpx.get("https://authorized_only", auth=auth)
     assert (
         str(exception_info.value)
         == "User authentication was not received within 0.1 seconds."
@@ -201,7 +201,7 @@ def test_browser_opening_failure(token_cache, httpx_mock: HTTPXMock, monkeypatch
 def test_browser_error(token_cache, httpx_mock: HTTPXMock, monkeypatch):
     import httpx_auth.oauth2_authentication_responses_server
 
-    auth = httpx_auth.OAuth2Implicit("http://provide_token", timeout=0.1)
+    auth = httpx_auth.OAuth2Implicit("https://provide_token", timeout=0.1)
 
     class FakeBrowser:
         def open(self, url, new):
@@ -217,10 +217,10 @@ def test_browser_error(token_cache, httpx_mock: HTTPXMock, monkeypatch):
 
     httpx_mock.add_response(
         method="GET",
-        url="http://provide_token?response_type=token&state=42a85b271b7a652ca3cc4c398cfd3f01b9ad36bf9c945ba823b023e8f8b95c4638576a0e3dcc96838b838bec33ec6c0ee2609d62ed82480b3b8114ca494c0521&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F",
+        url="https://provide_token?response_type=token&state=42a85b271b7a652ca3cc4c398cfd3f01b9ad36bf9c945ba823b023e8f8b95c4638576a0e3dcc96838b838bec33ec6c0ee2609d62ed82480b3b8114ca494c0521&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F",
     )
     with pytest.raises(httpx_auth.TimeoutOccurred) as exception_info:
-        httpx.get("http://authorized_only", auth=auth)
+        httpx.get("https://authorized_only", auth=auth)
     assert (
         str(exception_info.value)
         == "User authentication was not received within 0.1 seconds."
@@ -228,12 +228,12 @@ def test_browser_error(token_cache, httpx_mock: HTTPXMock, monkeypatch):
 
 
 def test_state_change(token_cache, httpx_mock: HTTPXMock, browser_mock: BrowserMock):
-    auth = httpx_auth.OAuth2Implicit("http://provide_token")
+    auth = httpx_auth.OAuth2Implicit("https://provide_token")
     expiry_in_1_hour = datetime.datetime.utcnow() + datetime.timedelta(hours=1)
     token = create_token(expiry_in_1_hour)
     tab = browser_mock.add_response(
-        opened_url="http://provide_token?response_type=token&state=42a85b271b7a652ca3cc4c398cfd3f01b9ad36bf9c945ba823b023e8f8b95c4638576a0e3dcc96838b838bec33ec6c0ee2609d62ed82480b3b8114ca494c0521&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F",
-        reply_url="http://localhost:5000",
+        opened_url="https://provide_token?response_type=token&state=42a85b271b7a652ca3cc4c398cfd3f01b9ad36bf9c945ba823b023e8f8b95c4638576a0e3dcc96838b838bec33ec6c0ee2609d62ed82480b3b8114ca494c0521&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F",
+        reply_url="https://localhost:5000",
         data=f"access_token={token}&state=123456",
     )
     assert get_header(httpx_mock, auth).get("Authorization") == f"Bearer {token}"
@@ -242,14 +242,14 @@ def test_state_change(token_cache, httpx_mock: HTTPXMock, browser_mock: BrowserM
 
 def test_empty_token_is_invalid(token_cache, browser_mock: BrowserMock):
     tab = browser_mock.add_response(
-        opened_url="http://provide_token?response_type=token&state=42a85b271b7a652ca3cc4c398cfd3f01b9ad36bf9c945ba823b023e8f8b95c4638576a0e3dcc96838b838bec33ec6c0ee2609d62ed82480b3b8114ca494c0521&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F",
-        reply_url="http://localhost:5000",
+        opened_url="https://provide_token?response_type=token&state=42a85b271b7a652ca3cc4c398cfd3f01b9ad36bf9c945ba823b023e8f8b95c4638576a0e3dcc96838b838bec33ec6c0ee2609d62ed82480b3b8114ca494c0521&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F",
+        reply_url="https://localhost:5000",
         data=f"access_token=&state=42a85b271b7a652ca3cc4c398cfd3f01b9ad36bf9c945ba823b023e8f8b95c4638576a0e3dcc96838b838bec33ec6c0ee2609d62ed82480b3b8114ca494c0521",
     )
     with pytest.raises(httpx_auth.InvalidToken) as exception_info:
         httpx.get(
-            "http://authorized_only",
-            auth=httpx_auth.OAuth2Implicit("http://provide_token"),
+            "https://authorized_only",
+            auth=httpx_auth.OAuth2Implicit("https://provide_token"),
         )
     assert str(exception_info.value) == " is invalid."
     tab.assert_success(
@@ -259,14 +259,14 @@ def test_empty_token_is_invalid(token_cache, browser_mock: BrowserMock):
 
 def test_token_without_expiry_is_invalid(token_cache, browser_mock: BrowserMock):
     tab = browser_mock.add_response(
-        opened_url="http://provide_token?response_type=token&state=42a85b271b7a652ca3cc4c398cfd3f01b9ad36bf9c945ba823b023e8f8b95c4638576a0e3dcc96838b838bec33ec6c0ee2609d62ed82480b3b8114ca494c0521&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F",
-        reply_url="http://localhost:5000",
+        opened_url="https://provide_token?response_type=token&state=42a85b271b7a652ca3cc4c398cfd3f01b9ad36bf9c945ba823b023e8f8b95c4638576a0e3dcc96838b838bec33ec6c0ee2609d62ed82480b3b8114ca494c0521&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F",
+        reply_url="https://localhost:5000",
         data=f"access_token={create_token(None)}&state=42a85b271b7a652ca3cc4c398cfd3f01b9ad36bf9c945ba823b023e8f8b95c4638576a0e3dcc96838b838bec33ec6c0ee2609d62ed82480b3b8114ca494c0521",
     )
     with pytest.raises(httpx_auth.TokenExpiryNotProvided) as exception_info:
         httpx.get(
-            "http://authorized_only",
-            auth=httpx_auth.OAuth2Implicit("http://provide_token"),
+            "https://authorized_only",
+            auth=httpx_auth.OAuth2Implicit("https://provide_token"),
         )
     assert str(exception_info.value) == "Expiry (exp) is not provided in None."
     tab.assert_success(
@@ -277,12 +277,12 @@ def test_token_without_expiry_is_invalid(token_cache, browser_mock: BrowserMock)
 def test_oauth2_implicit_flow_get_token_is_sent_in_authorization_header_by_default(
     token_cache, httpx_mock: HTTPXMock, browser_mock: BrowserMock
 ):
-    auth = httpx_auth.OAuth2Implicit("http://provide_token")
+    auth = httpx_auth.OAuth2Implicit("https://provide_token")
     expiry_in_1_hour = datetime.datetime.utcnow() + datetime.timedelta(hours=1)
     token = create_token(expiry_in_1_hour)
     tab = browser_mock.add_response(
-        opened_url="http://provide_token?response_type=token&state=42a85b271b7a652ca3cc4c398cfd3f01b9ad36bf9c945ba823b023e8f8b95c4638576a0e3dcc96838b838bec33ec6c0ee2609d62ed82480b3b8114ca494c0521&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F",
-        reply_url=f"http://localhost:5000#access_token={token}&state=42a85b271b7a652ca3cc4c398cfd3f01b9ad36bf9c945ba823b023e8f8b95c4638576a0e3dcc96838b838bec33ec6c0ee2609d62ed82480b3b8114ca494c0521",
+        opened_url="https://provide_token?response_type=token&state=42a85b271b7a652ca3cc4c398cfd3f01b9ad36bf9c945ba823b023e8f8b95c4638576a0e3dcc96838b838bec33ec6c0ee2609d62ed82480b3b8114ca494c0521&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F",
+        reply_url=f"https://localhost:5000#access_token={token}&state=42a85b271b7a652ca3cc4c398cfd3f01b9ad36bf9c945ba823b023e8f8b95c4638576a0e3dcc96838b838bec33ec6c0ee2609d62ed82480b3b8114ca494c0521",
     )
     assert get_header(httpx_mock, auth).get("Authorization") == f"Bearer {token}"
     tab.assert_success(
@@ -294,13 +294,13 @@ def test_oauth2_implicit_flow_token_is_sent_in_requested_field(
     token_cache, httpx_mock: HTTPXMock, browser_mock: BrowserMock
 ):
     auth = httpx_auth.OAuth2Implicit(
-        "http://provide_token", header_name="Bearer", header_value="{token}"
+        "https://provide_token", header_name="Bearer", header_value="{token}"
     )
     expiry_in_1_hour = datetime.datetime.utcnow() + datetime.timedelta(hours=1)
     token = create_token(expiry_in_1_hour)
     tab = browser_mock.add_response(
-        opened_url="http://provide_token?response_type=token&state=42a85b271b7a652ca3cc4c398cfd3f01b9ad36bf9c945ba823b023e8f8b95c4638576a0e3dcc96838b838bec33ec6c0ee2609d62ed82480b3b8114ca494c0521&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F",
-        reply_url="http://localhost:5000",
+        opened_url="https://provide_token?response_type=token&state=42a85b271b7a652ca3cc4c398cfd3f01b9ad36bf9c945ba823b023e8f8b95c4638576a0e3dcc96838b838bec33ec6c0ee2609d62ed82480b3b8114ca494c0521&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F",
+        reply_url="https://localhost:5000",
         data=f"access_token={token}&state=42a85b271b7a652ca3cc4c398cfd3f01b9ad36bf9c945ba823b023e8f8b95c4638576a0e3dcc96838b838bec33ec6c0ee2609d62ed82480b3b8114ca494c0521",
     )
     assert get_header(httpx_mock, auth).get("Bearer") == token
@@ -313,15 +313,15 @@ def test_oauth2_implicit_flow_can_send_a_custom_response_type_and_expects_token_
     token_cache, httpx_mock: HTTPXMock, browser_mock: BrowserMock
 ):
     auth = httpx_auth.OAuth2Implicit(
-        "http://provide_token",
+        "https://provide_token",
         response_type="custom_token",
         token_field_name="custom_token",
     )
     expiry_in_1_hour = datetime.datetime.utcnow() + datetime.timedelta(hours=1)
     token = create_token(expiry_in_1_hour)
     tab = browser_mock.add_response(
-        opened_url="http://provide_token?response_type=custom_token&state=67b95d2c7555751d1d72c97c7cd9ad6630c8395e0eaa51ee86ac7e451211ded9cd98a7190848789fe93632d8960425710e93f1f5549c6c6bc328bf3865a85ff2&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F",
-        reply_url="http://localhost:5000",
+        opened_url="https://provide_token?response_type=custom_token&state=67b95d2c7555751d1d72c97c7cd9ad6630c8395e0eaa51ee86ac7e451211ded9cd98a7190848789fe93632d8960425710e93f1f5549c6c6bc328bf3865a85ff2&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F",
+        reply_url="https://localhost:5000",
         data=f"custom_token={token}&state=67b95d2c7555751d1d72c97c7cd9ad6630c8395e0eaa51ee86ac7e451211ded9cd98a7190848789fe93632d8960425710e93f1f5549c6c6bc328bf3865a85ff2",
     )
     assert get_header(httpx_mock, auth).get("Authorization") == f"Bearer {token}"
@@ -333,12 +333,12 @@ def test_oauth2_implicit_flow_can_send_a_custom_response_type_and_expects_token_
 def test_oauth2_implicit_flow_expects_token_in_id_token_if_response_type_is_id_token(
     token_cache, httpx_mock: HTTPXMock, browser_mock: BrowserMock
 ):
-    auth = httpx_auth.OAuth2Implicit("http://provide_token", response_type="id_token")
+    auth = httpx_auth.OAuth2Implicit("https://provide_token", response_type="id_token")
     expiry_in_1_hour = datetime.datetime.utcnow() + datetime.timedelta(hours=1)
     token = create_token(expiry_in_1_hour)
     tab = browser_mock.add_response(
-        opened_url="http://provide_token?response_type=id_token&state=87c4108ec0eb03599335333a40434a36674269690b6957fef684bfb6c5a849ce660ef7031aa874c44d67cd3eada8febdfce41efb1ed3bc53a0a7e716cbba025a&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F",
-        reply_url="http://localhost:5000",
+        opened_url="https://provide_token?response_type=id_token&state=87c4108ec0eb03599335333a40434a36674269690b6957fef684bfb6c5a849ce660ef7031aa874c44d67cd3eada8febdfce41efb1ed3bc53a0a7e716cbba025a&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F",
+        reply_url="https://localhost:5000",
         data=f"id_token={token}&state=87c4108ec0eb03599335333a40434a36674269690b6957fef684bfb6c5a849ce660ef7031aa874c44d67cd3eada8febdfce41efb1ed3bc53a0a7e716cbba025a",
     )
     assert get_header(httpx_mock, auth).get("Authorization") == f"Bearer {token}"
@@ -350,12 +350,12 @@ def test_oauth2_implicit_flow_expects_token_in_id_token_if_response_type_is_id_t
 def test_oauth2_implicit_flow_expects_token_in_id_token_if_response_type_in_url_is_id_token(
     token_cache, httpx_mock: HTTPXMock, browser_mock: BrowserMock
 ):
-    auth = httpx_auth.OAuth2Implicit("http://provide_token?response_type=id_token")
+    auth = httpx_auth.OAuth2Implicit("https://provide_token?response_type=id_token")
     expiry_in_1_hour = datetime.datetime.utcnow() + datetime.timedelta(hours=1)
     token = create_token(expiry_in_1_hour)
     tab = browser_mock.add_response(
-        opened_url="http://provide_token?response_type=id_token&state=87c4108ec0eb03599335333a40434a36674269690b6957fef684bfb6c5a849ce660ef7031aa874c44d67cd3eada8febdfce41efb1ed3bc53a0a7e716cbba025a&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F",
-        reply_url="http://localhost:5000",
+        opened_url="https://provide_token?response_type=id_token&state=87c4108ec0eb03599335333a40434a36674269690b6957fef684bfb6c5a849ce660ef7031aa874c44d67cd3eada8febdfce41efb1ed3bc53a0a7e716cbba025a&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F",
+        reply_url="https://localhost:5000",
         data=f"id_token={token}&state=87c4108ec0eb03599335333a40434a36674269690b6957fef684bfb6c5a849ce660ef7031aa874c44d67cd3eada8febdfce41efb1ed3bc53a0a7e716cbba025a",
     )
     assert get_header(httpx_mock, auth).get("Authorization") == f"Bearer {token}"
@@ -367,12 +367,12 @@ def test_oauth2_implicit_flow_expects_token_in_id_token_if_response_type_in_url_
 def test_oauth2_implicit_flow_expects_token_to_be_stored_in_access_token_by_default(
     token_cache, httpx_mock: HTTPXMock, browser_mock: BrowserMock
 ):
-    auth = httpx_auth.OAuth2Implicit("http://provide_token")
+    auth = httpx_auth.OAuth2Implicit("https://provide_token")
     expiry_in_1_hour = datetime.datetime.utcnow() + datetime.timedelta(hours=1)
     token = create_token(expiry_in_1_hour)
     tab = browser_mock.add_response(
-        opened_url="http://provide_token?response_type=token&state=42a85b271b7a652ca3cc4c398cfd3f01b9ad36bf9c945ba823b023e8f8b95c4638576a0e3dcc96838b838bec33ec6c0ee2609d62ed82480b3b8114ca494c0521&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F",
-        reply_url="http://localhost:5000",
+        opened_url="https://provide_token?response_type=token&state=42a85b271b7a652ca3cc4c398cfd3f01b9ad36bf9c945ba823b023e8f8b95c4638576a0e3dcc96838b838bec33ec6c0ee2609d62ed82480b3b8114ca494c0521&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F",
+        reply_url="https://localhost:5000",
         data=f"access_token={token}&state=42a85b271b7a652ca3cc4c398cfd3f01b9ad36bf9c945ba823b023e8f8b95c4638576a0e3dcc96838b838bec33ec6c0ee2609d62ed82480b3b8114ca494c0521",
     )
     assert get_header(httpx_mock, auth).get("Authorization") == f"Bearer {token}"
@@ -384,18 +384,18 @@ def test_oauth2_implicit_flow_expects_token_to_be_stored_in_access_token_by_defa
 def test_oauth2_implicit_flow_token_is_reused_if_not_expired(
     token_cache, httpx_mock: HTTPXMock, browser_mock: BrowserMock
 ):
-    auth1 = httpx_auth.OAuth2Implicit("http://provide_token")
+    auth1 = httpx_auth.OAuth2Implicit("https://provide_token")
     expiry_in_1_hour = datetime.datetime.utcnow() + datetime.timedelta(hours=1)
     token = create_token(expiry_in_1_hour)
     tab = browser_mock.add_response(
-        opened_url="http://provide_token?response_type=token&state=42a85b271b7a652ca3cc4c398cfd3f01b9ad36bf9c945ba823b023e8f8b95c4638576a0e3dcc96838b838bec33ec6c0ee2609d62ed82480b3b8114ca494c0521&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F",
-        reply_url="http://localhost:5000",
+        opened_url="https://provide_token?response_type=token&state=42a85b271b7a652ca3cc4c398cfd3f01b9ad36bf9c945ba823b023e8f8b95c4638576a0e3dcc96838b838bec33ec6c0ee2609d62ed82480b3b8114ca494c0521&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F",
+        reply_url="https://localhost:5000",
         data=f"access_token={token}&state=42a85b271b7a652ca3cc4c398cfd3f01b9ad36bf9c945ba823b023e8f8b95c4638576a0e3dcc96838b838bec33ec6c0ee2609d62ed82480b3b8114ca494c0521",
     )
     assert get_header(httpx_mock, auth1).get("Authorization") == f"Bearer {token}"
 
-    oauth2 = httpx_auth.OAuth2Implicit("http://provide_token")
-    response = httpx.get("http://authorized_only", auth=oauth2)
+    oauth2 = httpx_auth.OAuth2Implicit("https://provide_token")
+    response = httpx.get("https://authorized_only", auth=oauth2)
     # Return headers received on this dummy URL
     assert response.request.headers.get("Authorization") == f"Bearer {token}"
     tab.assert_success(
@@ -407,14 +407,14 @@ def test_oauth2_implicit_flow_post_failure_if_token_is_not_provided(
     token_cache, browser_mock: BrowserMock
 ):
     tab = browser_mock.add_response(
-        opened_url="http://provide_token?response_type=token&state=42a85b271b7a652ca3cc4c398cfd3f01b9ad36bf9c945ba823b023e8f8b95c4638576a0e3dcc96838b838bec33ec6c0ee2609d62ed82480b3b8114ca494c0521&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F",
-        reply_url="http://localhost:5000",
+        opened_url="https://provide_token?response_type=token&state=42a85b271b7a652ca3cc4c398cfd3f01b9ad36bf9c945ba823b023e8f8b95c4638576a0e3dcc96838b838bec33ec6c0ee2609d62ed82480b3b8114ca494c0521&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F",
+        reply_url="https://localhost:5000",
         data="",
     )
     with pytest.raises(Exception) as exception_info:
         httpx.get(
-            "http://authorized_only",
-            auth=httpx_auth.OAuth2Implicit("http://provide_token"),
+            "https://authorized_only",
+            auth=httpx_auth.OAuth2Implicit("https://provide_token"),
         )
     assert str(exception_info.value) == "access_token not provided within {}."
     tab.assert_failure(
@@ -426,13 +426,13 @@ def test_oauth2_implicit_flow_get_failure_if_token_is_not_provided(
     token_cache, browser_mock: BrowserMock
 ):
     tab = browser_mock.add_response(
-        opened_url="http://provide_token?response_type=token&state=42a85b271b7a652ca3cc4c398cfd3f01b9ad36bf9c945ba823b023e8f8b95c4638576a0e3dcc96838b838bec33ec6c0ee2609d62ed82480b3b8114ca494c0521&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F",
-        reply_url="http://localhost:5000",
+        opened_url="https://provide_token?response_type=token&state=42a85b271b7a652ca3cc4c398cfd3f01b9ad36bf9c945ba823b023e8f8b95c4638576a0e3dcc96838b838bec33ec6c0ee2609d62ed82480b3b8114ca494c0521&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F",
+        reply_url="https://localhost:5000",
     )
     with pytest.raises(Exception) as exception_info:
         httpx.get(
-            "http://authorized_only",
-            auth=httpx_auth.OAuth2Implicit("http://provide_token"),
+            "https://authorized_only",
+            auth=httpx_auth.OAuth2Implicit("https://provide_token"),
         )
     assert str(exception_info.value) == "access_token not provided within {}."
     tab.assert_failure(
@@ -446,14 +446,14 @@ def test_oauth2_implicit_flow_post_failure_if_state_is_not_provided(
     expiry_in_1_hour = datetime.datetime.utcnow() + datetime.timedelta(hours=1)
     token = create_token(expiry_in_1_hour)
     tab = browser_mock.add_response(
-        opened_url="http://provide_token?response_type=token&state=42a85b271b7a652ca3cc4c398cfd3f01b9ad36bf9c945ba823b023e8f8b95c4638576a0e3dcc96838b838bec33ec6c0ee2609d62ed82480b3b8114ca494c0521&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F",
-        reply_url="http://localhost:5000",
+        opened_url="https://provide_token?response_type=token&state=42a85b271b7a652ca3cc4c398cfd3f01b9ad36bf9c945ba823b023e8f8b95c4638576a0e3dcc96838b838bec33ec6c0ee2609d62ed82480b3b8114ca494c0521&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F",
+        reply_url="https://localhost:5000",
         data=f"access_token={token}",
     )
     with pytest.raises(httpx_auth.StateNotProvided) as exception_info:
         httpx.get(
-            "http://authorized_only",
-            auth=httpx_auth.OAuth2Implicit("http://provide_token"),
+            "https://authorized_only",
+            auth=httpx_auth.OAuth2Implicit("https://provide_token"),
         )
     assert (
         str(exception_info.value)
@@ -470,13 +470,13 @@ def test_oauth2_implicit_flow_get_failure_if_state_is_not_provided(
     expiry_in_1_hour = datetime.datetime.utcnow() + datetime.timedelta(hours=1)
     token = create_token(expiry_in_1_hour)
     tab = browser_mock.add_response(
-        opened_url="http://provide_token?response_type=token&state=42a85b271b7a652ca3cc4c398cfd3f01b9ad36bf9c945ba823b023e8f8b95c4638576a0e3dcc96838b838bec33ec6c0ee2609d62ed82480b3b8114ca494c0521&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F",
-        reply_url=f"http://localhost:5000#access_token={token}",
+        opened_url="https://provide_token?response_type=token&state=42a85b271b7a652ca3cc4c398cfd3f01b9ad36bf9c945ba823b023e8f8b95c4638576a0e3dcc96838b838bec33ec6c0ee2609d62ed82480b3b8114ca494c0521&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F",
+        reply_url=f"https://localhost:5000#access_token={token}",
     )
     with pytest.raises(httpx_auth.StateNotProvided) as exception_info:
         httpx.get(
-            "http://authorized_only",
-            auth=httpx_auth.OAuth2Implicit("http://provide_token"),
+            "https://authorized_only",
+            auth=httpx_auth.OAuth2Implicit("https://provide_token"),
         )
     assert (
         str(exception_info.value)
@@ -491,13 +491,13 @@ def test_with_invalid_token_request_invalid_request_error(
     token_cache, browser_mock: BrowserMock
 ):
     tab = browser_mock.add_response(
-        opened_url="http://provide_token?response_type=token&state=42a85b271b7a652ca3cc4c398cfd3f01b9ad36bf9c945ba823b023e8f8b95c4638576a0e3dcc96838b838bec33ec6c0ee2609d62ed82480b3b8114ca494c0521&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F",
-        reply_url="http://localhost:5000#error=invalid_request",
+        opened_url="https://provide_token?response_type=token&state=42a85b271b7a652ca3cc4c398cfd3f01b9ad36bf9c945ba823b023e8f8b95c4638576a0e3dcc96838b838bec33ec6c0ee2609d62ed82480b3b8114ca494c0521&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F",
+        reply_url="https://localhost:5000#error=invalid_request",
     )
     with pytest.raises(httpx_auth.InvalidGrantRequest) as exception_info:
         httpx.get(
-            "http://authorized_only",
-            auth=httpx_auth.OAuth2Implicit("http://provide_token"),
+            "https://authorized_only",
+            auth=httpx_auth.OAuth2Implicit("https://provide_token"),
         )
     assert (
         str(exception_info.value)
@@ -512,13 +512,13 @@ def test_with_invalid_token_request_invalid_request_error_and_error_description(
     token_cache, browser_mock: BrowserMock
 ):
     tab = browser_mock.add_response(
-        opened_url="http://provide_token?response_type=token&state=42a85b271b7a652ca3cc4c398cfd3f01b9ad36bf9c945ba823b023e8f8b95c4638576a0e3dcc96838b838bec33ec6c0ee2609d62ed82480b3b8114ca494c0521&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F",
-        reply_url="http://localhost:5000#error=invalid_request&error_description=desc",
+        opened_url="https://provide_token?response_type=token&state=42a85b271b7a652ca3cc4c398cfd3f01b9ad36bf9c945ba823b023e8f8b95c4638576a0e3dcc96838b838bec33ec6c0ee2609d62ed82480b3b8114ca494c0521&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F",
+        reply_url="https://localhost:5000#error=invalid_request&error_description=desc",
     )
     with pytest.raises(httpx_auth.InvalidGrantRequest) as exception_info:
         httpx.get(
-            "http://authorized_only",
-            auth=httpx_auth.OAuth2Implicit("http://provide_token"),
+            "https://authorized_only",
+            auth=httpx_auth.OAuth2Implicit("https://provide_token"),
         )
     assert str(exception_info.value) == "invalid_request: desc"
     tab.assert_failure(
@@ -530,20 +530,20 @@ def test_with_invalid_token_request_invalid_request_error_and_error_description_
     token_cache, browser_mock: BrowserMock
 ):
     tab = browser_mock.add_response(
-        opened_url="http://provide_token?response_type=token&state=42a85b271b7a652ca3cc4c398cfd3f01b9ad36bf9c945ba823b023e8f8b95c4638576a0e3dcc96838b838bec33ec6c0ee2609d62ed82480b3b8114ca494c0521&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F",
-        reply_url="http://localhost:5000#error=invalid_request&error_description=desc&error_uri=http://test_url",
+        opened_url="https://provide_token?response_type=token&state=42a85b271b7a652ca3cc4c398cfd3f01b9ad36bf9c945ba823b023e8f8b95c4638576a0e3dcc96838b838bec33ec6c0ee2609d62ed82480b3b8114ca494c0521&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F",
+        reply_url="https://localhost:5000#error=invalid_request&error_description=desc&error_uri=https://test_url",
     )
     with pytest.raises(httpx_auth.InvalidGrantRequest) as exception_info:
         httpx.get(
-            "http://authorized_only",
-            auth=httpx_auth.OAuth2Implicit("http://provide_token"),
+            "https://authorized_only",
+            auth=httpx_auth.OAuth2Implicit("https://provide_token"),
         )
     assert (
         str(exception_info.value)
-        == "invalid_request: desc\nMore information can be found on http://test_url"
+        == "invalid_request: desc\nMore information can be found on https://test_url"
     )
     tab.assert_failure(
-        "Unable to properly perform authentication: invalid_request: desc\nMore information can be found on http://test_url"
+        "Unable to properly perform authentication: invalid_request: desc\nMore information can be found on https://test_url"
     )
 
 
@@ -551,20 +551,20 @@ def test_with_invalid_token_request_invalid_request_error_and_error_description_
     token_cache, browser_mock: BrowserMock
 ):
     tab = browser_mock.add_response(
-        opened_url="http://provide_token?response_type=token&state=42a85b271b7a652ca3cc4c398cfd3f01b9ad36bf9c945ba823b023e8f8b95c4638576a0e3dcc96838b838bec33ec6c0ee2609d62ed82480b3b8114ca494c0521&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F",
-        reply_url="http://localhost:5000#error=invalid_request&error_description=desc&error_uri=http://test_url&other=test",
+        opened_url="https://provide_token?response_type=token&state=42a85b271b7a652ca3cc4c398cfd3f01b9ad36bf9c945ba823b023e8f8b95c4638576a0e3dcc96838b838bec33ec6c0ee2609d62ed82480b3b8114ca494c0521&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F",
+        reply_url="https://localhost:5000#error=invalid_request&error_description=desc&error_uri=https://test_url&other=test",
     )
     with pytest.raises(httpx_auth.InvalidGrantRequest) as exception_info:
         httpx.get(
-            "http://authorized_only",
-            auth=httpx_auth.OAuth2Implicit("http://provide_token"),
+            "https://authorized_only",
+            auth=httpx_auth.OAuth2Implicit("https://provide_token"),
         )
     assert (
         str(exception_info.value)
-        == "invalid_request: desc\nMore information can be found on http://test_url\nAdditional information: {'other': ['test']}"
+        == "invalid_request: desc\nMore information can be found on https://test_url\nAdditional information: {'other': ['test']}"
     )
     tab.assert_failure(
-        "Unable to properly perform authentication: invalid_request: desc\nMore information can be found on http://test_url\nAdditional information: {'other': ['test']}"
+        "Unable to properly perform authentication: invalid_request: desc\nMore information can be found on https://test_url\nAdditional information: {'other': ['test']}"
     )
 
 
@@ -572,13 +572,13 @@ def test_with_invalid_token_request_unauthorized_client_error(
     token_cache, browser_mock: BrowserMock
 ):
     tab = browser_mock.add_response(
-        opened_url="http://provide_token?response_type=token&state=42a85b271b7a652ca3cc4c398cfd3f01b9ad36bf9c945ba823b023e8f8b95c4638576a0e3dcc96838b838bec33ec6c0ee2609d62ed82480b3b8114ca494c0521&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F",
-        reply_url="http://localhost:5000#error=unauthorized_client",
+        opened_url="https://provide_token?response_type=token&state=42a85b271b7a652ca3cc4c398cfd3f01b9ad36bf9c945ba823b023e8f8b95c4638576a0e3dcc96838b838bec33ec6c0ee2609d62ed82480b3b8114ca494c0521&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F",
+        reply_url="https://localhost:5000#error=unauthorized_client",
     )
     with pytest.raises(httpx_auth.InvalidGrantRequest) as exception_info:
         httpx.get(
-            "http://authorized_only",
-            auth=httpx_auth.OAuth2Implicit("http://provide_token"),
+            "https://authorized_only",
+            auth=httpx_auth.OAuth2Implicit("https://provide_token"),
         )
     assert (
         str(exception_info.value)
@@ -593,13 +593,13 @@ def test_with_invalid_token_request_access_denied_error(
     token_cache, browser_mock: BrowserMock
 ):
     tab = browser_mock.add_response(
-        opened_url="http://provide_token?response_type=token&state=42a85b271b7a652ca3cc4c398cfd3f01b9ad36bf9c945ba823b023e8f8b95c4638576a0e3dcc96838b838bec33ec6c0ee2609d62ed82480b3b8114ca494c0521&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F",
-        reply_url="http://localhost:5000#error=access_denied",
+        opened_url="https://provide_token?response_type=token&state=42a85b271b7a652ca3cc4c398cfd3f01b9ad36bf9c945ba823b023e8f8b95c4638576a0e3dcc96838b838bec33ec6c0ee2609d62ed82480b3b8114ca494c0521&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F",
+        reply_url="https://localhost:5000#error=access_denied",
     )
     with pytest.raises(httpx_auth.InvalidGrantRequest) as exception_info:
         httpx.get(
-            "http://authorized_only",
-            auth=httpx_auth.OAuth2Implicit("http://provide_token"),
+            "https://authorized_only",
+            auth=httpx_auth.OAuth2Implicit("https://provide_token"),
         )
     assert (
         str(exception_info.value)
@@ -614,13 +614,13 @@ def test_with_invalid_token_request_unsupported_response_type_error(
     token_cache, browser_mock: BrowserMock
 ):
     tab = browser_mock.add_response(
-        opened_url="http://provide_token?response_type=token&state=42a85b271b7a652ca3cc4c398cfd3f01b9ad36bf9c945ba823b023e8f8b95c4638576a0e3dcc96838b838bec33ec6c0ee2609d62ed82480b3b8114ca494c0521&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F",
-        reply_url="http://localhost:5000#error=unsupported_response_type",
+        opened_url="https://provide_token?response_type=token&state=42a85b271b7a652ca3cc4c398cfd3f01b9ad36bf9c945ba823b023e8f8b95c4638576a0e3dcc96838b838bec33ec6c0ee2609d62ed82480b3b8114ca494c0521&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F",
+        reply_url="https://localhost:5000#error=unsupported_response_type",
     )
     with pytest.raises(httpx_auth.InvalidGrantRequest) as exception_info:
         httpx.get(
-            "http://authorized_only",
-            auth=httpx_auth.OAuth2Implicit("http://provide_token"),
+            "https://authorized_only",
+            auth=httpx_auth.OAuth2Implicit("https://provide_token"),
         )
     assert (
         str(exception_info.value)
@@ -635,13 +635,13 @@ def test_with_invalid_token_request_invalid_scope_error(
     token_cache, browser_mock: BrowserMock
 ):
     tab = browser_mock.add_response(
-        opened_url="http://provide_token?response_type=token&state=42a85b271b7a652ca3cc4c398cfd3f01b9ad36bf9c945ba823b023e8f8b95c4638576a0e3dcc96838b838bec33ec6c0ee2609d62ed82480b3b8114ca494c0521&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F",
-        reply_url="http://localhost:5000#error=invalid_scope",
+        opened_url="https://provide_token?response_type=token&state=42a85b271b7a652ca3cc4c398cfd3f01b9ad36bf9c945ba823b023e8f8b95c4638576a0e3dcc96838b838bec33ec6c0ee2609d62ed82480b3b8114ca494c0521&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F",
+        reply_url="https://localhost:5000#error=invalid_scope",
     )
     with pytest.raises(httpx_auth.InvalidGrantRequest) as exception_info:
         httpx.get(
-            "http://authorized_only",
-            auth=httpx_auth.OAuth2Implicit("http://provide_token"),
+            "https://authorized_only",
+            auth=httpx_auth.OAuth2Implicit("https://provide_token"),
         )
     assert (
         str(exception_info.value)
@@ -656,13 +656,13 @@ def test_with_invalid_token_request_server_error_error(
     token_cache, browser_mock: BrowserMock
 ):
     tab = browser_mock.add_response(
-        opened_url="http://provide_token?response_type=token&state=42a85b271b7a652ca3cc4c398cfd3f01b9ad36bf9c945ba823b023e8f8b95c4638576a0e3dcc96838b838bec33ec6c0ee2609d62ed82480b3b8114ca494c0521&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F",
-        reply_url="http://localhost:5000#error=server_error",
+        opened_url="https://provide_token?response_type=token&state=42a85b271b7a652ca3cc4c398cfd3f01b9ad36bf9c945ba823b023e8f8b95c4638576a0e3dcc96838b838bec33ec6c0ee2609d62ed82480b3b8114ca494c0521&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F",
+        reply_url="https://localhost:5000#error=server_error",
     )
     with pytest.raises(httpx_auth.InvalidGrantRequest) as exception_info:
         httpx.get(
-            "http://authorized_only",
-            auth=httpx_auth.OAuth2Implicit("http://provide_token"),
+            "https://authorized_only",
+            auth=httpx_auth.OAuth2Implicit("https://provide_token"),
         )
     assert (
         str(exception_info.value)
@@ -677,13 +677,13 @@ def test_with_invalid_token_request_temporarily_unavailable_error(
     token_cache, browser_mock: BrowserMock
 ):
     tab = browser_mock.add_response(
-        opened_url="http://provide_token?response_type=token&state=42a85b271b7a652ca3cc4c398cfd3f01b9ad36bf9c945ba823b023e8f8b95c4638576a0e3dcc96838b838bec33ec6c0ee2609d62ed82480b3b8114ca494c0521&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F",
-        reply_url="http://localhost:5000#error=temporarily_unavailable",
+        opened_url="https://provide_token?response_type=token&state=42a85b271b7a652ca3cc4c398cfd3f01b9ad36bf9c945ba823b023e8f8b95c4638576a0e3dcc96838b838bec33ec6c0ee2609d62ed82480b3b8114ca494c0521&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F",
+        reply_url="https://localhost:5000#error=temporarily_unavailable",
     )
     with pytest.raises(httpx_auth.InvalidGrantRequest) as exception_info:
         httpx.get(
-            "http://authorized_only",
-            auth=httpx_auth.OAuth2Implicit("http://provide_token"),
+            "https://authorized_only",
+            auth=httpx_auth.OAuth2Implicit("https://provide_token"),
         )
     assert (
         str(exception_info.value)
@@ -698,14 +698,14 @@ def test_oauth2_implicit_flow_failure_if_token_is_not_received_within_the_timeou
     token_cache, browser_mock: BrowserMock
 ):
     browser_mock.add_response(
-        opened_url="http://provide_token?response_type=token&state=42a85b271b7a652ca3cc4c398cfd3f01b9ad36bf9c945ba823b023e8f8b95c4638576a0e3dcc96838b838bec33ec6c0ee2609d62ed82480b3b8114ca494c0521&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F",
+        opened_url="https://provide_token?response_type=token&state=42a85b271b7a652ca3cc4c398cfd3f01b9ad36bf9c945ba823b023e8f8b95c4638576a0e3dcc96838b838bec33ec6c0ee2609d62ed82480b3b8114ca494c0521&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F",
         # Simulate no redirect
         reply_url=None,
     )
     with pytest.raises(httpx_auth.TimeoutOccurred) as exception_info:
         httpx.get(
-            "http://authorized_only",
-            auth=httpx_auth.OAuth2Implicit("http://provide_token", timeout=0.1),
+            "https://authorized_only",
+            auth=httpx_auth.OAuth2Implicit("https://provide_token", timeout=0.1),
         )
     assert (
         str(exception_info.value)
@@ -716,15 +716,15 @@ def test_oauth2_implicit_flow_failure_if_token_is_not_received_within_the_timeou
 def test_oauth2_implicit_flow_token_is_requested_again_if_expired(
     token_cache, httpx_mock: HTTPXMock, browser_mock: BrowserMock
 ):
-    auth = httpx_auth.OAuth2Implicit("http://provide_token")
+    auth = httpx_auth.OAuth2Implicit("https://provide_token")
     # This token will expires in 100 milliseconds
     expiry_in_1_second = datetime.datetime.utcnow() + datetime.timedelta(
         milliseconds=100
     )
     first_token = create_token(expiry_in_1_second)
     tab1 = browser_mock.add_response(
-        opened_url="http://provide_token?response_type=token&state=42a85b271b7a652ca3cc4c398cfd3f01b9ad36bf9c945ba823b023e8f8b95c4638576a0e3dcc96838b838bec33ec6c0ee2609d62ed82480b3b8114ca494c0521&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F",
-        reply_url="http://localhost:5000",
+        opened_url="https://provide_token?response_type=token&state=42a85b271b7a652ca3cc4c398cfd3f01b9ad36bf9c945ba823b023e8f8b95c4638576a0e3dcc96838b838bec33ec6c0ee2609d62ed82480b3b8114ca494c0521&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F",
+        reply_url="https://localhost:5000",
         data=f"access_token={first_token}&state=42a85b271b7a652ca3cc4c398cfd3f01b9ad36bf9c945ba823b023e8f8b95c4638576a0e3dcc96838b838bec33ec6c0ee2609d62ed82480b3b8114ca494c0521",
     )
     assert get_header(httpx_mock, auth).get("Authorization") == f"Bearer {first_token}"
@@ -736,11 +736,11 @@ def test_oauth2_implicit_flow_token_is_requested_again_if_expired(
     expiry_in_1_hour = datetime.datetime.utcnow() + datetime.timedelta(hours=1)
     second_token = create_token(expiry_in_1_hour)
     tab2 = browser_mock.add_response(
-        opened_url="http://provide_token?response_type=token&state=42a85b271b7a652ca3cc4c398cfd3f01b9ad36bf9c945ba823b023e8f8b95c4638576a0e3dcc96838b838bec33ec6c0ee2609d62ed82480b3b8114ca494c0521&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F",
-        reply_url="http://localhost:5000",
+        opened_url="https://provide_token?response_type=token&state=42a85b271b7a652ca3cc4c398cfd3f01b9ad36bf9c945ba823b023e8f8b95c4638576a0e3dcc96838b838bec33ec6c0ee2609d62ed82480b3b8114ca494c0521&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F",
+        reply_url="https://localhost:5000",
         data=f"access_token={second_token}&state=42a85b271b7a652ca3cc4c398cfd3f01b9ad36bf9c945ba823b023e8f8b95c4638576a0e3dcc96838b838bec33ec6c0ee2609d62ed82480b3b8114ca494c0521",
     )
-    response = httpx.get("http://authorized_only", auth=auth)
+    response = httpx.get("https://authorized_only", auth=auth)
     # Return headers received on this dummy URL
     assert response.request.headers.get("Authorization") == f"Bearer {second_token}"
     tab1.assert_success(
