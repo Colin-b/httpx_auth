@@ -27,9 +27,9 @@ def test_header_api_key_is_sent_in_x_api_key_by_default(httpx_mock: HTTPXMock):
 def test_query_api_key_is_sent_in_api_key_by_default(httpx_mock: HTTPXMock):
     auth = httpx_auth.QueryApiKey("my_provided_api_key")
     # Mock a dummy response
-    httpx_mock.add_response(url="http://authorized_only?api_key=my_provided_api_key")
+    httpx_mock.add_response(url="https://authorized_only?api_key=my_provided_api_key")
     # Send a request to this dummy URL with authentication
-    httpx.get("http://authorized_only", auth=auth)
+    httpx.get("https://authorized_only", auth=auth)
 
 
 def test_header_api_key_can_be_sent_in_a_custom_field_name(httpx_mock: HTTPXMock):
@@ -41,7 +41,7 @@ def test_query_api_key_can_be_sent_in_a_custom_field_name(httpx_mock: HTTPXMock)
     auth = httpx_auth.QueryApiKey("my_provided_api_key", "X-API-QUERY-KEY")
     # Mock a dummy response
     httpx_mock.add_response(
-        url="http://authorized_only?X-API-QUERY-KEY=my_provided_api_key"
+        url="https://authorized_only?X-API-QUERY-KEY=my_provided_api_key"
     )
     # Send a request to this dummy URL with authentication
-    httpx.get("http://authorized_only", auth=auth)
+    httpx.get("https://authorized_only", auth=auth)

@@ -13,7 +13,7 @@ def token_mock() -> str:
 
 def test_oauth2_authorization_code_flow(token_cache_mock, httpx_mock: HTTPXMock):
     auth = httpx_auth.OAuth2AuthorizationCode(
-        "http://provide_code", "http://provide_access_token"
+        "https://provide_code", "https://provide_access_token"
     )
     assert (
         get_header(httpx_mock, auth).get("Authorization")
@@ -33,7 +33,7 @@ def test_okta_authorization_code_flow(token_cache_mock, httpx_mock: HTTPXMock):
 
 def test_oauth2_authorization_code_pkce_flow(token_cache_mock, httpx_mock: HTTPXMock):
     auth = httpx_auth.OAuth2AuthorizationCodePKCE(
-        "http://provide_code", "http://provide_access_token"
+        "https://provide_code", "https://provide_access_token"
     )
     assert (
         get_header(httpx_mock, auth).get("Authorization")
