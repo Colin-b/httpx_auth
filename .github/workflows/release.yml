@@ -28,6 +28,7 @@ jobs:
         pytest --cov=httpx_auth --cov-fail-under=100 --cov-report=term-missing
     - name: Create packages
       run: |
+        python -m pip install wheel
         python setup.py sdist bdist_wheel
     - name: Publish packages
       run: |
