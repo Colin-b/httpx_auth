@@ -467,7 +467,7 @@ def test_aws_auth_root_path(httpx_mock: HTTPXMock, mock_aws_datetime):
         region="us-east-1",
         service="iam",
     )
-    httpx_mock.add_response(url="http://authorized_only")
+    httpx_mock.add_response(url="http://authorized_only/")
 
     httpx.post("http://authorized_only/", auth=auth)
     headers = httpx_mock.get_request().headers
