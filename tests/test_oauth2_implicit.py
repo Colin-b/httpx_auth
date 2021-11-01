@@ -105,7 +105,7 @@ def test_oauth2_implicit_flow_token_can_be_requested_on_a_custom_server_port(
     token = create_token(expiry_in_1_hour)
     tab = browser_mock.add_response(
         opened_url="https://provide_token?response_type=token&state=bee505cb6ceb14b9f6ac3573cd700b3b3e965004078d7bb57c7b92df01e448c992a7a46b4804164fc998ea166ece3f3d5849ca2405c4a548f43b915b0677231c&redirect_uri=http%3A%2F%2Flocalhost%3A5002%2F",
-        reply_url="https://localhost:5002",
+        reply_url="http://localhost:5002",
         data=f"access_token={token}&state=bee505cb6ceb14b9f6ac3573cd700b3b3e965004078d7bb57c7b92df01e448c992a7a46b4804164fc998ea166ece3f3d5849ca2405c4a548f43b915b0677231c",
     )
     assert get_header(httpx_mock, auth).get("Authorization") == f"Bearer {token}"
