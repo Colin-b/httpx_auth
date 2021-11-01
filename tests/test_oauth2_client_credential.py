@@ -101,7 +101,7 @@ def test_oauth2_client_credentials_flow_token_is_expired_after_30_seconds_by_def
     )
     # Add a token that expires in 29 seconds, so should be considered as expired when issuing the request
     token_cache._add_token(
-        key="a8a1c17ded24b3710524306819084310b08f97e151c79f4f1979202c541f3e8506c93176f7ee816bfcd2b2f6de9c5c3e16aaff220f1ad8f08d31ee086e8618da",
+        key="76c85306ab93a2db901b2c7add8eaf607fe803c60b24914a1799bdb7cc861b6ef96386025b5a1b97681b557ab761c6fa4040d4731d6f238d3c2b19b0e2ad7344",
         token="2YotnFZFEjr1zCsicMWpAA",
         expiry=httpx_auth.oauth2_tokens._to_expiry(expires_in=29),
     )
@@ -134,7 +134,7 @@ def test_oauth2_client_credentials_flow_token_custom_expiry(
     )
     # Add a token that expires in 29 seconds, so should be considered as not expired when issuing the request
     token_cache._add_token(
-        key="a8a1c17ded24b3710524306819084310b08f97e151c79f4f1979202c541f3e8506c93176f7ee816bfcd2b2f6de9c5c3e16aaff220f1ad8f08d31ee086e8618da",
+        key="76c85306ab93a2db901b2c7add8eaf607fe803c60b24914a1799bdb7cc861b6ef96386025b5a1b97681b557ab761c6fa4040d4731d6f238d3c2b19b0e2ad7344",
         token="2YotnFZFEjr1zCsicMWpAA",
         expiry=httpx_auth.oauth2_tokens._to_expiry(expires_in=29),
     )
