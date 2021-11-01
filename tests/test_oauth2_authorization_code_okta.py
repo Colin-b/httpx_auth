@@ -176,7 +176,7 @@ def test_with_invalid_grant_request_no_json(
     httpx_mock.add_response(
         method="POST",
         url="https://testserver.okta-emea.com/oauth2/default/v1/token",
-        data="failure",
+        text="failure",
         status_code=400,
     )
     with pytest.raises(httpx_auth.InvalidGrantRequest) as exception_info:
