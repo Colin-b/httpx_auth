@@ -26,29 +26,29 @@ setup(
         "Natural Language :: English",
         "Programming Language :: Python",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
         "Topic :: Software Development :: Build Tools",
     ],
     keywords=["authentication", "oauth2", "aws", "okta", "aad"],
     packages=find_packages(exclude=["tests*"]),
     install_requires=[
         # Used for Base Authentication and to communicate with OAuth2 servers
-        "httpx==0.21.*"
+        "httpx==0.22.*"
     ],
     extras_require={
         "testing": [
             # Used to generate test tokens
             "pyjwt==2.*",
             # Used to mock httpx
-            "pytest_httpx==0.15.*",
+            "pytest_httpx==0.19.*",
             # Used to check coverage
             "pytest-cov==3.*",
         ]
     },
-    python_requires=">=3.6",
+    python_requires=">=3.7",
     project_urls={
         "GitHub": "https://github.com/Colin-b/httpx_auth",
         "Changelog": "https://github.com/Colin-b/httpx_auth/blob/master/CHANGELOG.md",
