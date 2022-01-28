@@ -1345,11 +1345,18 @@ class _MultiAuth(httpx.Auth):
     def __init__(self, *authentication_modes):
         self.authentication_modes = authentication_modes
 
-    def auth_flow(
+    def sync_auth_flow(
         self, request: httpx.Request
     ) -> Generator[httpx.Request, httpx.Response, None]:
         for authentication_mode in self.authentication_modes:
-            next(authentication_mode.auth_flow(request))
+            next(authentication_mode.sync_auth_flow(request))
+        yield request
+
+    async def async_auth_flow(
+        self, request: httpx.Request
+    ) -> AsyncGenerator[httpx.Request, httpx.Response, None]:
+        for authentication_mode in self.authentication_modes:
+            await authentication_mode.async_auth_flow(request).__anext__()
         yield request
 
     def __add__(self, other) -> "_MultiAuth":
