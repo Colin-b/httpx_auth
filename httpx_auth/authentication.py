@@ -540,7 +540,7 @@ class OAuth2AuthorizationCode(httpx.Auth, SupportMultiAuth, BrowserAuth):
         # Handle both Access and Bearer tokens
         return (self.state, token, expires_in) if expires_in else (self.state, token)
 
-    def request_new_token_async(self) -> tuple:
+    async def request_new_token_async(self) -> tuple:
         # Request code
         state, code = oauth2_authentication_responses_server.request_new_grant(
             self.code_grant_details
