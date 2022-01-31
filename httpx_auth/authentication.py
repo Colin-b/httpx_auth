@@ -204,7 +204,7 @@ class OAuth2ResourceOwnerPasswordCredentials(httpx.Auth, SupportMultiAuth):
 
     async def async_auth_flow(
         self, request: httpx.Request
-    ) -> AsyncGenerator[httpx.Request, httpx.Response, None]:
+    ) -> AsyncGenerator[httpx.Request, httpx.Response]:
         token = await OAuth2.token_cache.get_token_async(
             self.state,
             early_expiry=self.early_expiry,
@@ -507,7 +507,7 @@ class OAuth2AuthorizationCode(httpx.Auth, SupportMultiAuth, BrowserAuth):
 
     async def async_sync_auth_flow(
         self, request: httpx.Request
-    ) -> AsyncGenerator[httpx.Request, httpx.Response, None]:
+    ) -> AsyncGenerator[httpx.Request, httpx.Response]:
         token = await OAuth2.token_cache.get_token_async(
             self.state,
             early_expiry=self.early_expiry,
@@ -711,7 +711,7 @@ class OAuth2AuthorizationCodePKCE(httpx.Auth, SupportMultiAuth, BrowserAuth):
 
     async def async_auth_flow(
         self, request: httpx.Request
-    ) -> AsyncGenerator[httpx.Request, httpx.Response, None]:
+    ) -> AsyncGenerator[httpx.Request, httpx.Response]:
         token = await OAuth2.token_cache.get_token_async(
             self.state,
             early_expiry=self.early_expiry,
@@ -1354,7 +1354,7 @@ class _MultiAuth(httpx.Auth):
 
     async def async_auth_flow(
         self, request: httpx.Request
-    ) -> AsyncGenerator[httpx.Request, httpx.Response, None]:
+    ) -> AsyncGenerator[httpx.Request, httpx.Response]:
         for authentication_mode in self.authentication_modes:
             await authentication_mode.async_auth_flow(request).__anext__()
         yield request
