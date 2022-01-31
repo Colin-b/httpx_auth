@@ -178,7 +178,7 @@ class TokenMemoryCache:
         :raise AuthenticationFailed: in case token cannot be retrieved.
         """
         logger.debug(f'Retrieving token with "{key}" key.')
-        with self.forbid_concurrent_cache_access_async:
+        async with self.forbid_concurrent_cache_access_async:
             self._load_tokens()
             if key in self.tokens:
                 bearer, expiry = self.tokens[key]
@@ -193,7 +193,7 @@ class TokenMemoryCache:
 
         logger.debug("Token cannot be found in cache.")
         if on_missing_token is not None:
-            with self.forbid_concurrent_missing_token_function_call_async:
+            async with self.forbid_concurrent_missing_token_function_call_async:
                 new_token = await on_missing_token(**on_missing_token_kwargs)
                 if len(new_token) == 2:  # Bearer token
                     state, token = new_token
@@ -205,7 +205,7 @@ class TokenMemoryCache:
                     logger.warning(
                         f"Using a token received on another key than expected. Expecting {key} but was {state}."
                     )
-            with self.forbid_concurrent_cache_access_async:
+            async with self.forbid_concurrent_cache_access_async:
                 if state in self.tokens:
                     bearer, expiry = self.tokens[state]
                     logger.debug(
