@@ -24,6 +24,7 @@ setup(
         "Intended Audience :: Developers",
         "License :: OSI Approved :: MIT License",
         "Natural Language :: English",
+        "Typing :: Typed",
         "Programming Language :: Python",
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3.7",
@@ -33,6 +34,7 @@ setup(
         "Topic :: Software Development :: Build Tools",
     ],
     keywords=["authentication", "oauth2", "aws", "okta", "aad"],
+    package_data={"httpx_auth": ["py.typed"]},
     packages=find_packages(exclude=["tests*"]),
     install_requires=[
         # Used for Base Authentication and to communicate with OAuth2 servers
