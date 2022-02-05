@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Fixed
 - Type information is now provided following [PEP 561](https://www.python.org/dev/peps/pep-0561/)
+- Allow for users to run `mypy --strict`.
 
 ## [0.14.0] - 2022-01-26
 ### Changed
