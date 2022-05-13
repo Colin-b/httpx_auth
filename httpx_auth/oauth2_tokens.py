@@ -47,9 +47,22 @@ class TokenMemoryCache:
     def __init__(self):
         self.tokens = {}
         self.forbid_concurrent_cache_access = threading.Lock()
-        self.forbid_concurrent_cache_access_async = asyncio.Lock()
+        self._forbid_concurrent_cache_access_async = None
         self.forbid_concurrent_missing_token_function_call = threading.Lock()
-        self.forbid_concurrent_missing_token_function_call_async = asyncio.Lock()
+        self._forbid_concurrent_missing_token_function_call_async = None
+
+    @property
+    def forbid_concurrent_cache_access_async(self):
+        if self._forbid_concurrent_cache_access_async is None:
+            self._forbid_concurrent_cache_access_async = asyncio.Lock()
+        return self._forbid_concurrent_cache_access_async
+
+    @property
+    def forbid_concurrent_missing_token_function_call_async(self):
+        if self._forbid_concurrent_missing_token_function_call_async is None:
+            self._forbid_concurrent_missing_token_function_call_async = asyncio.Lock()
+        return self._forbid_concurrent_missing_token_function_call_async
+
 
     def _add_bearer_token(self, key: str, token: str):
         """
