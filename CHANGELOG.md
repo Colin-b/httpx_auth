@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.15.0] - 2022-06-01
+### Changed
+- Requires [`httpx`](https://www.python-httpx.org)==0.23.\*
+
 ## [0.14.1] - 2022-02-05
 ### Fixed
 - Type information is now provided following [PEP 561](https://www.python.org/dev/peps/pep-0561/)
@@ -153,7 +157,8 @@ Note that a few changes were made:
 ### Added
 - Placeholder for port of requests_auth to httpx
 
-[Unreleased]: https://github.com/Colin-b/httpx_auth/compare/v0.14.1...HEAD
+[Unreleased]: https://github.com/Colin-b/httpx_auth/compare/v0.15.0...HEAD
+[0.15.0]: https://github.com/Colin-b/httpx_auth/compare/v0.14.1...v0.15.0
 [0.14.1]: https://github.com/Colin-b/httpx_auth/compare/v0.14.0...v0.14.1
 [0.14.0]: https://github.com/Colin-b/httpx_auth/compare/v0.13.0...v0.14.0
 [0.13.0]: https://github.com/Colin-b/httpx_auth/compare/v0.12.0...v0.13.0
