@@ -15,6 +15,53 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Requires [`pytest`](https://docs.pytest.org/en/latest)==6.2.\* for testing
 - Requires [`pytest-mock`](https://github.com/pytest-dev/pytest-mock)==3.6.\* for testing
 
+## [0.15.0] - 2022-06-01
+### Changed
+- Requires [`httpx`](https://www.python-httpx.org)==0.23.\*
+
+## [0.14.1] - 2022-02-05
+### Fixed
+- Type information is now provided following [PEP 561](https://www.python.org/dev/peps/pep-0561/)
+- Allow for users to run `mypy --strict`.
+
+## [0.14.0] - 2022-01-26
+### Changed
+- Requires [`httpx`](https://www.python-httpx.org)==0.22.\*
+
+### Removed
+- Python 3.6 is no longer supported.
+
+## [0.13.0] - 2021-11-16
+### Changed
+- Requires [`httpx`](https://www.python-httpx.org)==0.21.\*
+
+## [0.12.0] - 2021-11-01
+### Changed
+- Requires [`httpx`](https://www.python-httpx.org)==0.20.\*
+- `OAuth2ResourceOwnerPasswordCredentials.client` attribute is now set to None in case it was not provided as parameter.
+- `OAuth2ClientCredentials.client` attribute is now set to None in case it was not provided as parameter.
+- `OktaClientCredentials.client` attribute is now set to None in case it was not provided as parameter.
+- `OAuth2AuthorizationCode.client` attribute is now set to None in case it was not provided as parameter.
+- `OktaAuthorizationCode.client` attribute is now set to None in case it was not provided as parameter.
+- `OAuth2AuthorizationCodePKCE.client` attribute is now set to None in case it was not provided as parameter.
+- `OktaAuthorizationCodePKCE.client` attribute is now set to None in case it was not provided as parameter.
+- `httpx.Client` provided as `client` parameter to `OAuth2ResourceOwnerPasswordCredentials` is not closed anymore. You are now responsible for closing it when no more requests are expected to be issued.
+- `httpx.Client` provided as `client` parameter to `OAuth2ClientCredentials` is not closed anymore. You are now responsible for closing it when no more requests are expected to be issued.
+- `httpx.Client` provided as `client` parameter to `OktaClientCredentials` is not closed anymore. You are now responsible for closing it when no more requests are expected to be issued.
+- `httpx.Client` provided as `client` parameter to `OAuth2AuthorizationCode` is not closed anymore. You are now responsible for closing it when no more requests are expected to be issued.
+- `httpx.Client` provided as `client` parameter to `OktaAuthorizationCode` is not closed anymore. You are now responsible for closing it when no more requests are expected to be issued.
+- `httpx.Client` provided as `client` parameter to `OAuth2AuthorizationCodePKCE` is not closed anymore. You are now responsible for closing it when no more requests are expected to be issued.
+- `httpx.Client` provided as `client` parameter to `OktaAuthorizationCodePKCE` is not closed anymore. You are now responsible for closing it when no more requests are expected to be issued.
+
+### Fixed
+- A new client is created (if not provided as `client` parameter) upon request of a new token for `OAuth2ResourceOwnerPasswordCredentials` flow. Re-using previously closed client was raising an issue upon token expiry.
+- A new client is created (if not provided as `client` parameter) upon request of a new token for `OAuth2ClientCredentials` flow. Re-using previously closed client was raising an issue upon token expiry.
+- A new client is created (if not provided as `client` parameter) upon request of a new token for `OktaClientCredentials` flow. Re-using previously closed client was raising an issue upon token expiry.
+- A new client is created (if not provided as `client` parameter) upon request of a new token for `OAuth2AuthorizationCode` flow. Re-using previously closed client was raising an issue upon token expiry.
+- A new client is created (if not provided as `client` parameter) upon request of a new token for `OktaAuthorizationCode` flow. Re-using previously closed client was raising an issue upon token expiry.
+- A new client is created (if not provided as `client` parameter) upon request of a new token for `OAuth2AuthorizationCodePKCE` flow. Re-using previously closed client was raising an issue upon token expiry.
+- A new client is created (if not provided as `client` parameter) upon request of a new token for `OktaAuthorizationCodePKCE` flow. Re-using previously closed client was raising an issue upon token expiry.
+
 ## [0.11.0] - 2021-08-19
 ### Changed
 - Requires [`httpx`](https://www.python-httpx.org)==0.19.\*
@@ -119,7 +166,12 @@ Note that a few changes were made:
 ### Added
 - Placeholder for port of requests_auth to httpx
 
-[Unreleased]: https://github.com/Colin-b/httpx_auth/compare/v0.11.0...HEAD
+[Unreleased]: https://github.com/Colin-b/httpx_auth/compare/v0.15.0...HEAD
+[0.15.0]: https://github.com/Colin-b/httpx_auth/compare/v0.14.1...v0.15.0
+[0.14.1]: https://github.com/Colin-b/httpx_auth/compare/v0.14.0...v0.14.1
+[0.14.0]: https://github.com/Colin-b/httpx_auth/compare/v0.13.0...v0.14.0
+[0.13.0]: https://github.com/Colin-b/httpx_auth/compare/v0.12.0...v0.13.0
+[0.12.0]: https://github.com/Colin-b/httpx_auth/compare/v0.11.0...v0.12.0
 [0.11.0]: https://github.com/Colin-b/httpx_auth/compare/v0.10.0...v0.11.0
 [0.10.0]: https://github.com/Colin-b/httpx_auth/compare/v0.9.0...v0.10.0
 [0.9.0]: https://github.com/Colin-b/httpx_auth/compare/v0.8.0...v0.9.0

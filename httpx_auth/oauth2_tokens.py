@@ -105,7 +105,7 @@ class TokenMemoryCache:
         :param early_expiry: As the time between the token extraction from cache and the token reception on server side
         might not higher than one second, on slow networks, token might be expired when received by the actual server,
         even if still valid when fetched.
-        This is the number of seconds to substract to the actual token expiry. Token will be considered as
+        This is the number of seconds to subtract to the actual token expiry. Token will be considered as
         expired 30 seconds before real expiry by default.
         :param on_missing_token: function to call when token is expired or missing (returning token and expiry tuple)
         :param on_missing_token_kwargs: arguments of the function (key-value arguments)

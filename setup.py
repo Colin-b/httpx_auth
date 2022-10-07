@@ -24,28 +24,30 @@ setup(
         "Intended Audience :: Developers",
         "License :: OSI Approved :: MIT License",
         "Natural Language :: English",
+        "Typing :: Typed",
         "Programming Language :: Python",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
         "Topic :: Software Development :: Build Tools",
     ],
     keywords=["authentication", "oauth2", "aws", "okta", "aad"],
+    package_data={"httpx_auth": ["py.typed"]},
     packages=find_packages(exclude=["tests*"]),
     install_requires=[
         # Used for Base Authentication and to communicate with OAuth2 servers
-        "httpx==0.19.*"
+        "httpx==0.23.*"
     ],
     extras_require={
         "testing": [
             # Used to generate test tokens
-            "pyjwt==1.*",
+            "pyjwt==2.*",
             # Used to mock httpx
-            "pytest_httpx==0.13.*",
+            "pytest_httpx==0.21.*",
             # Used to check coverage
-            "pytest-cov==2.*",
+            "pytest-cov==3.*",
             # Used to test NTLM support
             "pytest==6.*",
             "pytest-mock==3.6.*"
@@ -54,7 +56,7 @@ setup(
             "pyspnego[kerberos]==0.1.6"
         ]
     },
-    python_requires=">=3.6",
+    python_requires=">=3.7",
     project_urls={
         "GitHub": "https://github.com/Colin-b/httpx_auth",
         "Changelog": "https://github.com/Colin-b/httpx_auth/blob/master/CHANGELOG.md",
