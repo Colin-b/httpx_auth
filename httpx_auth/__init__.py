@@ -16,6 +16,7 @@ from httpx_auth.authentication import (
     OktaClientCredentials,
     OAuth2ResourceOwnerPasswordCredentials,
 )
+from httpx_auth.negotiate import Negotiate
 from httpx_auth.oauth2_tokens import JsonTokenFileCache
 from httpx_auth.aws import AWS4Auth
 from httpx_auth.errors import (

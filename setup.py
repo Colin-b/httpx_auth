@@ -48,6 +48,12 @@ setup(
             "pytest_httpx==0.21.*",
             # Used to check coverage
             "pytest-cov==3.*",
+            # Used to test NTLM support
+            "pytest==6.*",
+            "pytest-mock==3.6.*"
+        ],
+        'windows_auth': [
+            "pyspnego[kerberos]==0.1.6"
         ]
     },
     python_requires=">=3.7",

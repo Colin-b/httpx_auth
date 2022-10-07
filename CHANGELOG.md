@@ -5,6 +5,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Added
+- `httpx_auth.authentication` contains a new `Negotiate` class that supports Kerberos and NTLM authentication without 
+  support for channel binding tokens
+- Added extra `windows_auth` to enable support for Negotiate and NTLM authentication
+  
+### Changed
+- Optionally requires [`pyspnego[kerberos]`](https://github.com/jborean93/pyspnego)==0.1.6
+- Requires [`pytest`](https://docs.pytest.org/en/latest)==6.2.\* for testing
+- Requires [`pytest-mock`](https://github.com/pytest-dev/pytest-mock)==3.6.\* for testing
 
 ## [0.15.0] - 2022-06-01
 ### Changed

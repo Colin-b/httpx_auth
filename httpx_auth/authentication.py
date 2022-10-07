@@ -2,8 +2,8 @@ import base64
 import os
 import uuid
 from hashlib import sha256, sha512
-from urllib.parse import parse_qs, urlsplit, urlunsplit, urlencode
 from typing import Optional, Generator
+from urllib.parse import parse_qs, urlsplit, urlunsplit, urlencode
 
 import httpx
 
