@@ -62,7 +62,7 @@ def _get_query_parameter(url: str, param_name: str) -> Optional[str]:
 def request_new_grant_with_post(
     url: str, data, grant_name: str, client: httpx.Client
 ) -> (str, int):
-    response = client.post(url, data=data)
+    response = client.post(url, data=data, headers={"Accept": "application/json"})
 
     if response.is_error:
         # As described in https://tools.ietf.org/html/rfc6749#section-5.2
