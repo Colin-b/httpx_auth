@@ -5,6 +5,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Fixed
+- Handle `text/html; charset=utf-8` content-type in token responses. Thanks to [`Marcelo Trylesinski`](https://github.com/Kludex).
+
+### Added
+- `httpx_auth.WakaTimeAuthorizationCode` handling access to the [WakaTime API](https://wakatime.com/developers).
 
 ## [0.14.1] - 2022-02-05
 ### Fixed

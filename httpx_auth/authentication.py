@@ -1062,6 +1062,60 @@ class OktaAuthorizationCode(OAuth2AuthorizationCode):
         )
 
 
+class WakaTimeAuthorizationCode(OAuth2AuthorizationCode):
+    """
+    Describes a WakaTime (OAuth 2) "Access Token" authorization code flow requests authentication.
+    """
+
+    def __init__(self, client_id: str, client_secret: str, **kwargs):
+        """
+        :param client_id: WakaTime Application Identifier (formatted as an Universal Unique Identifier)
+        :param client_secret: WakaTime Application Secret (formatted as waka_sec_ followed by an Universal Unique Identifier)
+        :param response_type: Value of the response_type query parameter.
+        token by default.
+        :param token_field_name: Name of the expected field containing the token.
+        access_token by default.
+        :param early_expiry: Number of seconds before actual token expiry where token will be considered as expired.
+        Default to 30 seconds to ensure token will not expire between the time of retrieval and the time the request
+        reaches the actual server. Set it to 0 to deactivate this feature and use the same token until actual expiry.
+        :param nonce: Refer to http://openid.net/specs/openid-connect-core-1_0.html#IDToken for more details
+        (formatted as an Universal Unique Identifier - UUID). Use a newly generated UUID by default.
+        :param scope: Scope parameter sent in query. Can also be a list of scopes.
+        :param redirect_uri_endpoint: Custom endpoint that will be used as redirect_uri the following way:
+        http://localhost:<redirect_uri_port>/<redirect_uri_endpoint>. Default value is to redirect on / (root).
+        :param redirect_uri_port: The port on which the server listening for the OAuth 2 token will be started.
+        Listen on port 5000 by default.
+        :param timeout: Maximum amount of seconds to wait for a token to be received once requested.
+        Wait for 1 minute by default.
+        :param success_display_time: In case a token is successfully received,
+        this is the maximum amount of milliseconds the success page will be displayed in your browser.
+        Display the page for 1 millisecond by default.
+        :param failure_display_time: In case received token is not valid,
+        this is the maximum amount of milliseconds the failure page will be displayed in your browser.
+        Display the page for 5 seconds by default.
+        :param header_name: Name of the header field used to send token.
+        Token will be sent in Authorization header field by default.
+        :param header_value: Format used to send the token value.
+        "{token}" must be present as it will be replaced by the actual token.
+        Token will be sent as "Bearer {token}" by default.
+        :param client: httpx.Client instance that will be used to request the token.
+        Use it to provide a custom proxying rule for instance.
+        :param kwargs: all additional authorization parameters that should be put as query parameter
+        in the authorization URL.
+        """
+        scopes = kwargs.pop("scope", None)
+        if scopes:
+            kwargs["scope"] = ",".join(scopes) if isinstance(scopes, list) else scopes
+        OAuth2AuthorizationCode.__init__(
+            self,
+            "https://wakatime.com/oauth/authorize",
+            "https://wakatime.com/oauth/token",
+            client_id=client_id,
+            client_secret=client_secret,
+            **kwargs,
+        )
+
+
 class OktaAuthorizationCodePKCE(OAuth2AuthorizationCodePKCE):
     """
     Describes an Okta (OAuth 2) "Access Token" Proof Key for Code Exchange (PKCE) flow requests authentication.
