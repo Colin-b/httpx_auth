@@ -5,6 +5,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Changed
+- Requires [`httpx`](https://www.python-httpx.org)==0.24.\*
+
 ### Fixed
 - Handle `text/html; charset=utf-8` content-type in token responses. Thanks to [`Marcelo Trylesinski`](https://github.com/Kludex).
 
