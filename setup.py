@@ -27,7 +27,6 @@ setup(
         "Typing :: Typed",
         "Programming Language :: Python",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
@@ -51,7 +50,7 @@ setup(
             "pytest-cov==4.*",
         ]
     },
-    python_requires=">=3.7",
+    python_requires=">=3.8",
     project_urls={
         "GitHub": "https://github.com/Colin-b/httpx_auth",
         "Changelog": "https://github.com/Colin-b/httpx_auth/blob/master/CHANGELOG.md",

@@ -14,6 +14,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - `httpx_auth.WakaTimeAuthorizationCode` handling access to the [WakaTime API](https://wakatime.com/developers).
 
+### Removed
+- Python 3.7 is no longer supported.
+
 ## [0.15.0] - 2022-06-01
 ### Changed
 - Requires [`httpx`](https://www.python-httpx.org)==0.23.\*
