@@ -3,7 +3,7 @@ import os
 import uuid
 from hashlib import sha256, sha512
 from urllib.parse import parse_qs, urlsplit, urlunsplit, urlencode
-from typing import Optional, Generator
+from typing import Optional, Generator, Union, Iterable
 
 import httpx
 
@@ -1067,10 +1067,11 @@ class WakaTimeAuthorizationCode(OAuth2AuthorizationCode):
     Describes a WakaTime (OAuth 2) "Access Token" authorization code flow requests authentication.
     """
 
-    def __init__(self, client_id: str, client_secret: str, **kwargs):
+    def __init__(self, client_id: str, client_secret: str, scope: Union[str, Iterable[str]], **kwargs):
         """
         :param client_id: WakaTime Application Identifier (formatted as an Universal Unique Identifier)
         :param client_secret: WakaTime Application Secret (formatted as waka_sec_ followed by an Universal Unique Identifier)
+        :param scope: Scope parameter sent in query. Can also be a list of scopes.
         :param response_type: Value of the response_type query parameter.
         token by default.
         :param token_field_name: Name of the expected field containing the token.
@@ -1080,7 +1081,6 @@ class WakaTimeAuthorizationCode(OAuth2AuthorizationCode):
         reaches the actual server. Set it to 0 to deactivate this feature and use the same token until actual expiry.
         :param nonce: Refer to http://openid.net/specs/openid-connect-core-1_0.html#IDToken for more details
         (formatted as an Universal Unique Identifier - UUID). Use a newly generated UUID by default.
-        :param scope: Scope parameter sent in query. Can also be a list of scopes.
         :param redirect_uri_endpoint: Custom endpoint that will be used as redirect_uri the following way:
         http://localhost:<redirect_uri_port>/<redirect_uri_endpoint>. Default value is to redirect on / (root).
         :param redirect_uri_port: The port on which the server listening for the OAuth 2 token will be started.
@@ -1103,15 +1103,15 @@ class WakaTimeAuthorizationCode(OAuth2AuthorizationCode):
         :param kwargs: all additional authorization parameters that should be put as query parameter
         in the authorization URL.
         """
-        scopes = kwargs.pop("scope", None)
-        if scopes:
-            kwargs["scope"] = ",".join(scopes) if isinstance(scopes, list) else scopes
+        if not scope:
+            raise Exception("Scope is mandatory.")
         OAuth2AuthorizationCode.__init__(
             self,
             "https://wakatime.com/oauth/authorize",
             "https://wakatime.com/oauth/token",
             client_id=client_id,
             client_secret=client_secret,
+            scope=",".join(scope) if isinstance(scope, list) else scope,
             **kwargs,
         )
 

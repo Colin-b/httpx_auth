@@ -11,7 +11,7 @@
 
 > Version 1.0.0 will be released once httpx is considered as stable (release of 1.0.0).
 >
-> However current state can be considered as stable.
+> However, current state can be considered as stable.
 
 Provides authentication classes to be used with [`httpx`][1] [authentication parameter][2].
 
@@ -170,19 +170,19 @@ with httpx.Client() as client:
 |:------------------------|:---------------------------|:----------|:---------------------------------------------|
 | `client_id`             | WakaTime Application Identifier (formatted as an Universal Unique Identifier). | Mandatory |                                              |
 | `client_secret`         | WakaTime Application Secret (formatted as waka_sec_ followed by an Universal Unique Identifier). | Mandatory |                                              |
-| `response_type`         | Value of the response_type query parameter if not already provided in authorization URL. | Optional | token                                        |
-| `token_field_name`      | Field name containing the token. | Optional | access_token                                 |
+| `scope`                 | Scope parameter sent in query. Can also be a list of scopes. | Mandatory |                                              |
+| `response_type`         | Value of the response_type query parameter if not already provided in authorization URL. | Optional  | token                                        |
+| `token_field_name`      | Field name containing the token. | Optional  | access_token                                 |
 | `early_expiry`          | Number of seconds before actual token expiry where token will be considered as expired. Used to ensure token will not expire between the time of retrieval and the time the request reaches the actual server. Set it to 0 to deactivate this feature and use the same token until actual expiry. | Optional  | 30.0                                         |
-| `nonce`                 | Refer to [OpenID ID Token specifications][3] for more details. | Optional | Newly generated Universal Unique Identifier. |
-| `scope`                 | Scope parameter sent in query. Can also be a list of scopes. | Optional |                                              |
-| `redirect_uri_endpoint` | Custom endpoint that will be used as redirect_uri the following way: http://localhost:<redirect_uri_port>/<redirect_uri_endpoint>. | Optional | ''                                           |
-| `redirect_uri_port`     | The port on which the server listening for the OAuth 2 token will be started. | Optional | 5000                                         |
-| `timeout`               | Maximum amount of seconds to wait for a token to be received once requested. | Optional | 60                                           |
-| `success_display_time`  | In case a token is successfully received, this is the maximum amount of milliseconds the success page will be displayed in your browser. | Optional | 1                                            |
-| `failure_display_time`  | In case received token is not valid, this is the maximum amount of milliseconds the failure page will be displayed in your browser. | Optional | 5000                                         |
-| `header_name`           | Name of the header field used to send token. | Optional | Authorization                                |
-| `header_value`          | Format used to send the token value. "{token}" must be present as it will be replaced by the actual token. | Optional | Bearer {token}                               |
-| `client`                | `httpx.Client` instance that will be used to request the token. Use it to provide a custom proxying rule for instance. | Optional |                                              |
+| `nonce`                 | Refer to [OpenID ID Token specifications][3] for more details. | Optional  | Newly generated Universal Unique Identifier. |
+| `redirect_uri_endpoint` | Custom endpoint that will be used as redirect_uri the following way: http://localhost:<redirect_uri_port>/<redirect_uri_endpoint>. | Optional  | ''                                           |
+| `redirect_uri_port`     | The port on which the server listening for the OAuth 2 token will be started. | Optional  | 5000                                         |
+| `timeout`               | Maximum amount of seconds to wait for a token to be received once requested. | Optional  | 60                                           |
+| `success_display_time`  | In case a token is successfully received, this is the maximum amount of milliseconds the success page will be displayed in your browser. | Optional  | 1                                            |
+| `failure_display_time`  | In case received token is not valid, this is the maximum amount of milliseconds the failure page will be displayed in your browser. | Optional  | 5000                                         |
+| `header_name`           | Name of the header field used to send token. | Optional  | Authorization                                |
+| `header_value`          | Format used to send the token value. "{token}" must be present as it will be replaced by the actual token. | Optional  | Bearer {token}                               |
+| `client`                | `httpx.Client` instance that will be used to request the token. Use it to provide a custom proxying rule for instance. | Optional  |                                              |
 
 Any other parameter will be put as query parameter in the authorization URL.
 
