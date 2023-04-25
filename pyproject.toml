@@ -1,0 +1,57 @@
+[build-system]
+requires = ["setuptools", "setuptools_scm"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "httpx_auth"
+description = "Authentication for HTTPX"
+readme = "README.md"
+requires-python = ">=3.8"
+license = {file = "LICENSE"}
+authors = [
+    {name = "Colin Bounouar", email = "colin.bounouar.dev@gmail.com" }
+]
+maintainers = [
+    {name = "Colin Bounouar", email = "colin.bounouar.dev@gmail.com" }
+]
+keywords = ["authentication", "oauth2", "aws", "okta", "aad"]
+classifiers=[
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Natural Language :: English",
+    "Typing :: Typed",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Topic :: Software Development :: Build Tools",
+]
+dependencies = [
+    "httpx==0.24.*",
+]
+dynamic = ["version"]
+
+[project.urls]
+documentation = "https://colin-b.github.io/httpx_auth/"
+repository = "https://github.com/Colin-b/httpx_auth"
+changelog = "https://github.com/Colin-b/httpx_auth/blob/master/CHANGELOG.md"
+issues = "https://github.com/Colin-b/httpx_auth/issues"
+
+[project.optional-dependencies]
+testing = [
+    # Used to generate test tokens
+    "pyjwt==2.*",
+    # Used to mock httpx
+    "pytest_httpx==0.22.*",
+    # Used to check coverage
+    "pytest-cov==4.*",
+]
+
+[tool.setuptools.packages.find]
+exclude = ["tests*"]
+
+[tool.setuptools.dynamic]
+version = {attr = "httpx_auth.version.__version__"}
