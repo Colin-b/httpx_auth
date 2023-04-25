@@ -5,13 +5,13 @@
 <a href="https://github.com/Colin-b/httpx_auth/actions"><img alt="Build status" src="https://github.com/Colin-b/httpx_auth/workflows/Release/badge.svg"></a>
 <a href="https://github.com/Colin-b/httpx_auth/actions"><img alt="Coverage" src="https://img.shields.io/badge/coverage-100%25-brightgreen"></a>
 <a href="https://github.com/psf/black"><img alt="Code style: black" src="https://img.shields.io/badge/code%20style-black-000000.svg"></a>
-<a href="https://github.com/Colin-b/httpx_auth/actions"><img alt="Number of tests" src="https://img.shields.io/badge/tests-275 passed-blue"></a>
+<a href="https://github.com/Colin-b/httpx_auth/actions"><img alt="Number of tests" src="https://img.shields.io/badge/tests-307 passed-blue"></a>
 <a href="https://pypi.org/project/httpx-auth/"><img alt="Number of downloads" src="https://img.shields.io/pypi/dm/httpx_auth"></a>
 </p>
 
 > Version 1.0.0 will be released once httpx is considered as stable (release of 1.0.0).
 >
-> However current state can be considered as stable.
+> However, current state can be considered as stable.
 
 Provides authentication classes to be used with [`httpx`][1] [authentication parameter][2].
 
@@ -27,6 +27,7 @@ Provides authentication classes to be used with [`httpx`][1] [authentication par
 - [OAuth2](#oauth-2)
   - [Authorization Code Flow](#authorization-code-flow)
     - [Okta](#okta-oauth2-authorization-code)
+    - [WakaTime](#wakatime-oauth2-authorization-code)
   - [Authorization Code Flow with PKCE](#authorization-code-flow-with-proof-key-for-code-exchange)
     - [Okta](#okta-oauth2-proof-key-for-code-exchange)
   - [Resource Owner Password Credentials flow](#resource-owner-password-credentials-flow)
@@ -146,6 +147,44 @@ Usual extra parameters are:
 | Name            | Description                                                          |
 |:----------------|:---------------------------------------------------------------------|
 | `prompt`        | none to avoid prompting the user if a session is already opened.     |
+
+##### WakaTime (OAuth2 Authorization Code)
+
+[WakaTime Authorization Code Grant](https://wakatime.com/developers#authentication) providing access tokens is supported.
+
+Use `httpx_auth.WakaTimeAuthorizationCode` to configure this kind of authentication.
+
+```python
+import httpx
+from httpx_auth import WakaTimeAuthorizationCode
+
+
+waka_time = WakaTimeAuthorizationCode(client_id="aPJQV0op6Pu3b66MWDi9b1wB", client_secret="waka_sec_0c5MB", scope="email")
+with httpx.Client() as client:
+    client.get('https://wakatime.com/api/v1/users/current', auth=waka_time)
+```
+
+###### Parameters
+
+| Name                    | Description                | Mandatory | Default value                                |
+|:------------------------|:---------------------------|:----------|:---------------------------------------------|
+| `client_id`             | WakaTime Application Identifier (formatted as an Universal Unique Identifier). | Mandatory |                                              |
+| `client_secret`         | WakaTime Application Secret (formatted as waka_sec_ followed by an Universal Unique Identifier). | Mandatory |                                              |
+| `scope`                 | Scope parameter sent in query. Can also be a list of scopes. | Mandatory |                                              |
+| `response_type`         | Value of the response_type query parameter if not already provided in authorization URL. | Optional  | token                                        |
+| `token_field_name`      | Field name containing the token. | Optional  | access_token                                 |
+| `early_expiry`          | Number of seconds before actual token expiry where token will be considered as expired. Used to ensure token will not expire between the time of retrieval and the time the request reaches the actual server. Set it to 0 to deactivate this feature and use the same token until actual expiry. | Optional  | 30.0                                         |
+| `nonce`                 | Refer to [OpenID ID Token specifications][3] for more details. | Optional  | Newly generated Universal Unique Identifier. |
+| `redirect_uri_endpoint` | Custom endpoint that will be used as redirect_uri the following way: http://localhost:<redirect_uri_port>/<redirect_uri_endpoint>. | Optional  | ''                                           |
+| `redirect_uri_port`     | The port on which the server listening for the OAuth 2 token will be started. | Optional  | 5000                                         |
+| `timeout`               | Maximum amount of seconds to wait for a token to be received once requested. | Optional  | 60                                           |
+| `success_display_time`  | In case a token is successfully received, this is the maximum amount of milliseconds the success page will be displayed in your browser. | Optional  | 1                                            |
+| `failure_display_time`  | In case received token is not valid, this is the maximum amount of milliseconds the failure page will be displayed in your browser. | Optional  | 5000                                         |
+| `header_name`           | Name of the header field used to send token. | Optional  | Authorization                                |
+| `header_value`          | Format used to send the token value. "{token}" must be present as it will be replaced by the actual token. | Optional  | Bearer {token}                               |
+| `client`                | `httpx.Client` instance that will be used to request the token. Use it to provide a custom proxying rule for instance. | Optional  |                                              |
+
+Any other parameter will be put as query parameter in the authorization URL.
 
 ### Authorization Code Flow with Proof Key for Code Exchange
 

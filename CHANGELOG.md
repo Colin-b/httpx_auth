@@ -6,6 +6,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.16.0] - 2023-04-25
+### Changed
+- Requires [`httpx`](https://www.python-httpx.org)==0.24.\*
+
+### Fixed
+- Handle `text/html; charset=utf-8` content-type in token responses. Thanks to [`Marcelo Trylesinski`](https://github.com/Kludex).
+
+### Added
+- `httpx_auth.WakaTimeAuthorizationCode` handling access to the [WakaTime API](https://wakatime.com/developers).
+
+### Removed
+- Python 3.7 is no longer supported.
+
 ## [0.15.0] - 2022-06-01
 ### Changed
 - Requires [`httpx`](https://www.python-httpx.org)==0.23.\*
@@ -157,7 +170,8 @@ Note that a few changes were made:
 ### Added
 - Placeholder for port of requests_auth to httpx
 
-[Unreleased]: https://github.com/Colin-b/httpx_auth/compare/v0.15.0...HEAD
+[Unreleased]: https://github.com/Colin-b/httpx_auth/compare/v0.16.0...HEAD
+[0.16.0]: https://github.com/Colin-b/httpx_auth/compare/v0.15.0...v0.16.0
 [0.15.0]: https://github.com/Colin-b/httpx_auth/compare/v0.14.1...v0.15.0
 [0.14.1]: https://github.com/Colin-b/httpx_auth/compare/v0.14.0...v0.14.1
 [0.14.0]: https://github.com/Colin-b/httpx_auth/compare/v0.13.0...v0.14.0

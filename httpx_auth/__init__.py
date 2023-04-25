@@ -15,6 +15,7 @@ from httpx_auth.authentication import (
     OAuth2ClientCredentials,
     OktaClientCredentials,
     OAuth2ResourceOwnerPasswordCredentials,
+    WakaTimeAuthorizationCode,
 )
 from httpx_auth.oauth2_tokens import JsonTokenFileCache
 from httpx_auth.aws import AWS4Auth
@@ -46,6 +47,7 @@ __all__ = [
     "OAuth2ClientCredentials",
     "OktaClientCredentials",
     "OAuth2ResourceOwnerPasswordCredentials",
+    "WakaTimeAuthorizationCode",
     "JsonTokenFileCache",
     "AWS4Auth",
     "GrantNotProvided",
