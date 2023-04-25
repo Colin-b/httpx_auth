@@ -1067,7 +1067,13 @@ class WakaTimeAuthorizationCode(OAuth2AuthorizationCode):
     Describes a WakaTime (OAuth 2) "Access Token" authorization code flow requests authentication.
     """
 
-    def __init__(self, client_id: str, client_secret: str, scope: Union[str, Iterable[str]], **kwargs):
+    def __init__(
+        self,
+        client_id: str,
+        client_secret: str,
+        scope: Union[str, Iterable[str]],
+        **kwargs,
+    ):
         """
         :param client_id: WakaTime Application Identifier (formatted as an Universal Unique Identifier)
         :param client_secret: WakaTime Application Secret (formatted as waka_sec_ followed by an Universal Unique Identifier)
