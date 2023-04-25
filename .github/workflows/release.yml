@@ -28,8 +28,8 @@ jobs:
         pytest --cov=httpx_auth --cov-fail-under=100 --cov-report=term-missing
     - name: Create packages
       run: |
-        python -m pip install wheel
-        python setup.py sdist bdist_wheel
+        python -m pip install build
+        python -m build .
     - name: Publish packages
       run: |
         python -m pip install twine
