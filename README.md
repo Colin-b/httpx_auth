@@ -5,7 +5,7 @@
 <a href="https://github.com/Colin-b/httpx_auth/actions"><img alt="Build status" src="https://github.com/Colin-b/httpx_auth/workflows/Release/badge.svg"></a>
 <a href="https://github.com/Colin-b/httpx_auth/actions"><img alt="Coverage" src="https://img.shields.io/badge/coverage-100%25-brightgreen"></a>
 <a href="https://github.com/psf/black"><img alt="Code style: black" src="https://img.shields.io/badge/code%20style-black-000000.svg"></a>
-<a href="https://github.com/Colin-b/httpx_auth/actions"><img alt="Number of tests" src="https://img.shields.io/badge/tests-275 passed-blue"></a>
+<a href="https://github.com/Colin-b/httpx_auth/actions"><img alt="Number of tests" src="https://img.shields.io/badge/tests-305 passed-blue"></a>
 <a href="https://pypi.org/project/httpx-auth/"><img alt="Number of downloads" src="https://img.shields.io/pypi/dm/httpx_auth"></a>
 </p>
 
