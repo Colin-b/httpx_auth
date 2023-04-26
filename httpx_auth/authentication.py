@@ -149,6 +149,9 @@ class OAuth2ResourceOwnerPasswordCredentials(httpx.Auth, SupportMultiAuth):
         :param token_url: OAuth 2 token URL.
         :param username: Resource owner user name.
         :param password: Resource owner password.
+        :param client_auth: Client authentication if the client type is confidential
+        or the client was issued client credentials (or assigned other authentication requirements).
+        Can be a tuple or any httpx authentication class instance.
         :param timeout: Maximum amount of seconds to wait for a token to be received once requested.
         Wait for 1 minute by default.
         :param header_name: Name of the header field used to send token.
@@ -186,6 +189,7 @@ class OAuth2ResourceOwnerPasswordCredentials(httpx.Auth, SupportMultiAuth):
         # Time is expressed in seconds
         self.timeout = int(kwargs.pop("timeout", None) or 60)
         self.client = kwargs.pop("client", None)
+        self.client_auth = kwargs.pop("client_auth", None)
 
         # As described in https://tools.ietf.org/html/rfc6749#section-4.3.2
         self.data = {
@@ -228,7 +232,8 @@ class OAuth2ResourceOwnerPasswordCredentials(httpx.Auth, SupportMultiAuth):
         return (self.state, token, expires_in) if expires_in else (self.state, token)
 
     def _configure_client(self, client: httpx.Client):
-        client.auth = (self.username, self.password)
+        if self.client_auth:
+            client.auth = self.client_auth
         client.timeout = self.timeout
 
 
@@ -1219,6 +1224,64 @@ class OktaClientCredentials(OAuth2ClientCredentials):
             f"https://{instance}/oauth2/{authorization_server}/v1/token",
             client_id=client_id,
             client_secret=client_secret,
+            **kwargs,
+        )
+
+
+class OktaResourceOwnerPasswordCredentials(OAuth2ResourceOwnerPasswordCredentials):
+    """
+    Describes an Okta (OAuth 2) resource owner password credentials (also called password) flow requests authentication.
+    """
+
+    def __init__(
+        self,
+        instance: str,
+        username: str,
+        password: str,
+        client_id: str,
+        client_secret: str,
+        **kwargs,
+    ):
+        """
+        :param instance: Okta instance (like "testserver.okta-emea.com")
+        :param username: Resource owner user name.
+        :param password: Resource owner password.
+        :param client_id: Okta Application Identifier (formatted as an Universal Unique Identifier)
+        :param client_secret: Resource owner password.
+        :param authorization_server: Okta authorization server
+        default by default.
+        :param timeout: Maximum amount of seconds to wait for a token to be received once requested.
+        Wait for 1 minute by default.
+        :param header_name: Name of the header field used to send token.
+        Token will be sent in Authorization header field by default.
+        :param header_value: Format used to send the token value.
+        "{token}" must be present as it will be replaced by the actual token.
+        Token will be sent as "Bearer {token}" by default.
+        :param scope: Scope parameter sent to token URL as body. Can also be a list of scopes.
+        Request 'openid' by default.
+        :param token_field_name: Field name containing the token. access_token by default.
+        :param early_expiry: Number of seconds before actual token expiry where token will be considered as expired.
+        Default to 30 seconds to ensure token will not expire between the time of retrieval and the time the request
+        reaches the actual server. Set it to 0 to deactivate this feature and use the same token until actual expiry.
+        :param client: httpx.Client instance that will be used to request the token.
+        Use it to provide a custom proxying rule for instance.
+        :param kwargs: all additional authorization parameters that should be put as body parameters in the token URL.
+        """
+        if not instance:
+            raise Exception("Instance is mandatory.")
+        if not client_id:
+            raise Exception("Client ID is mandatory.")
+        if not client_secret:
+            raise Exception("Client secret is mandatory.")
+        authorization_server = kwargs.pop("authorization_server", None) or "default"
+        scopes = kwargs.pop("scope", "openid")
+        kwargs["scope"] = " ".join(scopes) if isinstance(scopes, list) else scopes
+        OAuth2ResourceOwnerPasswordCredentials.__init__(
+            self,
+            f"https://{instance}/oauth2/{authorization_server}/v1/token",
+            username=username,
+            password=password,
+            client_auth=(client_id, client_secret),
             **kwargs,
         )
 
