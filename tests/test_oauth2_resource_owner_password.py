@@ -96,6 +96,62 @@ def test_oauth2_password_credentials_flow_token_is_sent_in_authorization_header_
     )
 
 
+def test_oauth2_password_credentials_flow_does_not_authenticate_by_default(
+    token_cache, httpx_mock: HTTPXMock
+):
+    auth = httpx_auth.OAuth2ResourceOwnerPasswordCredentials(
+        "https://provide_access_token", username="test_user", password="test_pwd"
+    )
+    httpx_mock.add_response(
+        method="POST",
+        url="https://provide_access_token",
+        json={
+            "access_token": "2YotnFZFEjr1zCsicMWpAA",
+            "token_type": "example",
+            "expires_in": 3600,
+            "refresh_token": "tGzv3JOkF0XG5Qx2TlKWIA",
+            "example_parameter": "example_value",
+        },
+        match_content=b"grant_type=password&username=test_user&password=test_pwd",
+    )
+    assert (
+        get_header(httpx_mock, auth).get("Authorization")
+        == "Bearer 2YotnFZFEjr1zCsicMWpAA"
+    )
+    assert (
+        "Authorization"
+        not in httpx_mock.get_request(url="https://provide_access_token").headers
+    )
+
+
+def test_oauth2_password_credentials_flow_authentication(
+    token_cache, httpx_mock: HTTPXMock
+):
+    auth = httpx_auth.OAuth2ResourceOwnerPasswordCredentials(
+        "https://provide_access_token",
+        username="test_user",
+        password="test_pwd",
+        client_auth=("test_user2", "test_pwd2"),
+    )
+    httpx_mock.add_response(
+        method="POST",
+        url="https://provide_access_token",
+        json={
+            "access_token": "2YotnFZFEjr1zCsicMWpAA",
+            "token_type": "example",
+            "expires_in": 3600,
+            "refresh_token": "tGzv3JOkF0XG5Qx2TlKWIA",
+            "example_parameter": "example_value",
+        },
+        match_headers={"Authorization": "Basic dGVzdF91c2VyMjp0ZXN0X3B3ZDI="},
+        match_content=b"grant_type=password&username=test_user&password=test_pwd",
+    )
+    assert (
+        get_header(httpx_mock, auth).get("Authorization")
+        == "Bearer 2YotnFZFEjr1zCsicMWpAA"
+    )
+
+
 def test_oauth2_password_credentials_flow_token_is_expired_after_30_seconds_by_default(
     token_cache, httpx_mock: HTTPXMock
 ):

@@ -149,6 +149,9 @@ class OAuth2ResourceOwnerPasswordCredentials(httpx.Auth, SupportMultiAuth):
         :param token_url: OAuth 2 token URL.
         :param username: Resource owner user name.
         :param password: Resource owner password.
+        :param client_auth: Client authentication if the client type is confidential
+        or the client was issued client credentials (or assigned other authentication requirements).
+        Can be a tuple or any httpx authentication class instance.
         :param timeout: Maximum amount of seconds to wait for a token to be received once requested.
         Wait for 1 minute by default.
         :param header_name: Name of the header field used to send token.
@@ -186,6 +189,7 @@ class OAuth2ResourceOwnerPasswordCredentials(httpx.Auth, SupportMultiAuth):
         # Time is expressed in seconds
         self.timeout = int(kwargs.pop("timeout", None) or 60)
         self.client = kwargs.pop("client", None)
+        self.client_auth = kwargs.pop("client_auth", None)
 
         # As described in https://tools.ietf.org/html/rfc6749#section-4.3.2
         self.data = {
@@ -228,7 +232,8 @@ class OAuth2ResourceOwnerPasswordCredentials(httpx.Auth, SupportMultiAuth):
         return (self.state, token, expires_in) if expires_in else (self.state, token)
 
     def _configure_client(self, client: httpx.Client):
-        client.auth = (self.username, self.password)
+        if self.client_auth:
+            client.auth = self.client_auth
         client.timeout = self.timeout
 
 
