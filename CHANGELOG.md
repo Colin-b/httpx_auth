@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - `client_auth` as a parameter of `httpx_auth.OAuth2ResourceOwnerPasswordCredentials`. Allowing to provide any kind of optional authentication.
+- `httpx_auth.OktaResourceOwnerPasswordCredentials` providing Okta resource owner password credentials flow easy setup.
 
 ## [0.16.0] - 2023-04-25
 ### Changed

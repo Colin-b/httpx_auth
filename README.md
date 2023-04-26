@@ -282,7 +282,7 @@ Usual extra parameters are:
 | `client_secret`        | If client is not authenticated with the authorization server     |
 | `nonce`        | Refer to [OpenID ID Token specifications][3] for more details     |
 
-### Resource Owner Password Credentials flow 
+### Resource Owner Password Credentials flow
 
 Resource Owner Password Credentials Grant is implemented following [rfc6749](https://tools.ietf.org/html/rfc6749#section-4.3).
 
@@ -313,6 +313,48 @@ with httpx.Client() as client:
 | `client`             | `httpx.Client` instance that will be used to request the token. Use it to provide a custom proxying rule for instance.                                                                                                                                                                            | Optional  |  |
 
 Any other parameter will be put as body parameter in the token URL.
+
+#### Common providers
+
+Most of [OAuth2](https://oauth.net/2/) Resource Owner Password Credentials providers are supported.
+
+If the one you are looking for is not yet supported, feel free to [ask for its implementation](https://github.com/Colin-b/httpx_auth/issues/new).
+
+##### Okta (OAuth2 Resource Owner Password Credentials)
+
+[Okta Resource Owner Password Credentials](https://developer.okta.com/docs/guides/implement-grant-type/ropassword/main/) providing access tokens is supported.
+
+Use `httpx_auth.OktaResourceOwnerPasswordCredentials` to configure this kind of authentication.
+
+```python
+import httpx
+from httpx_auth import OktaResourceOwnerPasswordCredentials
+
+
+okta = OktaResourceOwnerPasswordCredentials(instance='testserver.okta-emea.com', username='user name', password='user password', client_id='54239d18-c68c-4c47-8bdd-ce71ea1d50cd', client_secret="0c5MB")
+with httpx.Client() as client:
+    client.get('https://www.example.com', auth=okta)
+```
+
+###### Parameters
+
+| Name                    | Description                | Mandatory | Default value |
+|:------------------------|:---------------------------|:----------|:--------------|
+| `instance`              | Okta instance (like "testserver.okta-emea.com"). | Mandatory |               |
+| `username`           | Resource owner user name.                                                                                                                                                                                                                                                                         | Mandatory |               |
+| `password`           | Resource owner password.                                                                                                                                                                                                                                                                          | Mandatory |               |
+| `client_id`             | Okta Application Identifier (formatted as an Universal Unique Identifier). | Mandatory |               |
+| `client_secret`        | Resource owner password.     | Mandatory |               |
+| `timeout`               | Maximum amount of seconds to wait for a token to be received once requested. | Optional | 60 |
+| `header_name`           | Name of the header field used to send token. | Optional | Authorization |
+| `header_value`          | Format used to send the token value. "{token}" must be present as it will be replaced by the actual token. | Optional | Bearer {token} |
+| `scope`                 | Scope parameter sent in query. Can also be a list of scopes. | Optional | openid |
+| `token_field_name`      | Field name containing the token. | Optional | access_token |
+| `early_expiry`          | Number of seconds before actual token expiry where token will be considered as expired. Used to ensure token will not expire between the time of retrieval and the time the request reaches the actual server. Set it to 0 to deactivate this feature and use the same token until actual expiry. | Optional  | 30.0  |
+| `client`                | `httpx.Client` instance that will be used to request the token. Use it to provide a custom proxying rule for instance. | Optional |  |
+
+Any other parameter will be put as body parameters in the token URL.        
+
 
 ### Client Credentials flow
 
