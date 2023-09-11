@@ -30,7 +30,7 @@ classifiers=[
     "Topic :: Software Development :: Build Tools",
 ]
 dependencies = [
-    "httpx==0.24.*",
+    "httpx==0.25.*",
 ]
 dynamic = ["version"]
 
@@ -45,7 +45,7 @@ testing = [
     # Used to generate test tokens
     "pyjwt==2.*",
     # Used to mock httpx
-    "pytest_httpx==0.22.*",
+    "pytest_httpx==0.25.*",
     # Used to check coverage
     "pytest-cov==4.*",
 ]
