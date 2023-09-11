@@ -10,6 +10,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Requires [`httpx`](https://www.python-httpx.org)==0.25.\*
 
+### Removed
+- Python 3.8 is no longer supported.
+
 ## [0.17.0] - 2023-04-26
 ### Changed
 - `httpx_auth.OAuth2ResourceOwnerPasswordCredentials` does not send basic authentication by default.
