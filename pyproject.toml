@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "httpx_auth"
 description = "Authentication for HTTPX"
 readme = "README.md"
-requires-python = ">=3.8"
+requires-python = ">=3.9"
 license = {file = "LICENSE"}
 authors = [
     {name = "Colin Bounouar", email = "colin.bounouar.dev@gmail.com" }
@@ -23,14 +23,13 @@ classifiers=[
     "Typing :: Typed",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Topic :: Software Development :: Build Tools",
 ]
 dependencies = [
-    "httpx==0.24.*",
+    "httpx==0.25.*",
 ]
 dynamic = ["version"]
 
@@ -45,7 +44,7 @@ testing = [
     # Used to generate test tokens
     "pyjwt==2.*",
     # Used to mock httpx
-    "pytest_httpx==0.22.*",
+    "pytest_httpx==0.25.*",
     # Used to check coverage
     "pytest-cov==4.*",
 ]
