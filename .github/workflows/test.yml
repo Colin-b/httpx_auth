@@ -7,8 +7,17 @@ jobs:
 
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
-        python-version: ['3.9', '3.10', '3.11']
+        python-version: ['3.8','3.9', '3.10', '3.11', '3.12']
+        httpx-version: ['0.25.0', '0.24.1', '0.23.3']
+        include:
+          - httpx-version: '0.25.0'
+            pytest-httpx-version: '0.26.0'
+          - httpx-version: '0.24.1'
+            pytest-httpx-version: '0.23.1'
+          - httpx-version: '0.23.3'
+            pytest-httpx-version: '0.21.3'
 
     steps:
     - uses: actions/checkout@v4
@@ -19,7 +28,7 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        python -m pip install .[testing]
+        python -m pip install httpx==${{ matrix.httpx-version }} pyjwt pytest_httpx==${{ matrix.pytest-httpx-version }} pytest-cov
     - name: Test with pytest
       run: |
         pytest --cov=httpx_auth --cov-fail-under=100 --cov-report=term-missing
