@@ -47,13 +47,13 @@ class AWS4Auth(httpx.Auth):
         self.service = service
 
         self.security_token = kwargs.get("security_token")
-        # TODO Check if we really need to be able to override this default ?
-        if self.security_token:
-            # TODO Avoid modifying shared variable
-            self.default_include_headers.append("x-amz-security-token")
-        self.include_headers = kwargs.get(
-            "include_headers", self.default_include_headers
-        )
+        if "include_headers" in kwargs:
+            self.include_headers = kwargs["include_headers"]
+        else:
+            # TODO Check if we really need to be able to override this default ?
+            self.include_headers = self.default_include_headers.copy()
+            if self.security_token:
+                self.include_headers.append("x-amz-security-token")
 
     def auth_flow(
         self, request: httpx.Request
