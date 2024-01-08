@@ -29,7 +29,7 @@ classifiers=[
     "Topic :: Software Development :: Build Tools",
 ]
 dependencies = [
-    "httpx==0.25.*",
+    "httpx==0.25.*, httpx==0.26.*",
 ]
 dynamic = ["version"]
 
