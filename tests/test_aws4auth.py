@@ -250,7 +250,7 @@ def test_aws_auth_path_percent_encode_non_s3(httpx_mock: HTTPXMock, mock_aws_dat
         service="iam",
     )
     httpx_mock.add_response(
-        url="https://authorized_only/test/%252a%252b%2525/~-_%5E&%20%25%25"
+        url="https://authorized_only/test/%2a%2b%25/~-_%5E&%20%25%25"
     )
 
     httpx.post("https://authorized_only/test/%2a%2b%25/~-_^& %%", auth=auth)
@@ -261,7 +261,7 @@ def test_aws_auth_path_percent_encode_non_s3(httpx_mock: HTTPXMock, mock_aws_dat
     )
     assert (
         headers["Authorization"]
-        == "AWS4-HMAC-SHA256 Credential=access_id/20181011/us-east-1/iam/aws4_request, SignedHeaders=host;x-amz-content-sha256;x-amz-date, Signature=289c2090b71ada48944fbf204e99cf305effeb54b87932215dc7b2b6a3203722"
+        == "AWS4-HMAC-SHA256 Credential=access_id/20181011/us-east-1/iam/aws4_request, SignedHeaders=host;x-amz-content-sha256;x-amz-date, Signature=7b3267f1b4bcb1f6731eb99aa9b3381225c18fc32e3ecb78fc4adceb746f92f3"
     )
     assert headers["x-amz-date"] == "20181011T150505Z"
 
@@ -274,7 +274,7 @@ def test_aws_auth_path_percent_encode_s3(httpx_mock: HTTPXMock, mock_aws_datetim
         service="s3",
     )
     httpx_mock.add_response(
-        url="https://authorized_only/test/%252a%252b%2525/~-_%5E&%20%25%25"
+        url="https://authorized_only/test/%2a%2b%25/~-_%5E&%20%25%25"
     )
 
     httpx.post("https://authorized_only/test/%2a%2b%25/~-_^& %%", auth=auth)
@@ -285,7 +285,7 @@ def test_aws_auth_path_percent_encode_s3(httpx_mock: HTTPXMock, mock_aws_datetim
     )
     assert (
         headers["Authorization"]
-        == "AWS4-HMAC-SHA256 Credential=access_id/20181011/us-east-1/s3/aws4_request, SignedHeaders=host;x-amz-content-sha256;x-amz-date, Signature=2fc7c2f27151e18348862bab0bbe90c4a9f29d7863a33e725d7b1ec96709fdd6"
+        == "AWS4-HMAC-SHA256 Credential=access_id/20181011/us-east-1/s3/aws4_request, SignedHeaders=host;x-amz-content-sha256;x-amz-date, Signature=dd3e44f87a05d1488fa5aca66702e8c53a0d0fa570564bc70941bc5c6d25016d"
     )
     assert headers["x-amz-date"] == "20181011T150505Z"
 

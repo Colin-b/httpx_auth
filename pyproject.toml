@@ -26,10 +26,11 @@ classifiers=[
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
     "Topic :: Software Development :: Build Tools",
 ]
 dependencies = [
-    "httpx==0.25.*, httpx==0.26.*",
+    "httpx==0.26.*",
 ]
 dynamic = ["version"]
 
@@ -44,7 +45,7 @@ testing = [
     # Used to generate test tokens
     "pyjwt==2.*",
     # Used to mock httpx
-    "pytest_httpx==0.25.*",
+    "pytest_httpx==0.28.*",
     # Used to check coverage
     "pytest-cov==4.*",
 ]
