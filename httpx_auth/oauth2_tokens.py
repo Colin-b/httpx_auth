@@ -26,15 +26,14 @@ def _decode_base64(base64_encoded_string: str) -> str:
 
 def _is_expired(expiry: float, early_expiry: float) -> bool:
     return (
-        datetime.datetime.utcfromtimestamp(expiry - early_expiry)
-        < datetime.datetime.utcnow()
+        datetime.datetime.fromtimestamp(expiry - early_expiry, datetime.timezone.utc)
+        < datetime.datetime.now(datetime.timezone.utc)
     )
 
 
 def _to_expiry(expires_in: Union[int, str]) -> float:
-    expiry = datetime.datetime.utcnow().replace(
-        tzinfo=datetime.timezone.utc
-    ) + datetime.timedelta(seconds=int(expires_in))
+    expiry = datetime.datetime.now(datetime.timezone.utc) \
+             + datetime.timedelta(seconds=int(expires_in))
     return expiry.timestamp()
 
 
@@ -88,7 +87,7 @@ class TokenMemoryCache:
             self.tokens[key] = token, expiry
             self._save_tokens()
             logger.debug(
-                f'Inserting token expiring on {datetime.datetime.utcfromtimestamp(expiry)} (UTC) with "{key}" key: {token}'
+                f'Inserting token expiring on {datetime.datetime.fromtimestamp(expiry, datetime.timezone.utc)} with "{key}" key: {token}'
             )
 
     def get_token(
@@ -122,7 +121,7 @@ class TokenMemoryCache:
                     del self.tokens[key]
                 else:
                     logger.debug(
-                        f"Using already received authentication, will expire on {datetime.datetime.utcfromtimestamp(expiry)} (UTC)."
+                        f"Using already received authentication, will expire on {datetime.datetime.fromtimestamp(expiry, datetime.timezone.utc)} (UTC)."
                     )
                     return bearer
 
@@ -144,7 +143,7 @@ class TokenMemoryCache:
                 if state in self.tokens:
                     bearer, expiry = self.tokens[state]
                     logger.debug(
-                        f"Using newly received authentication, expiring on {datetime.datetime.utcfromtimestamp(expiry)} (UTC)."
+                        f"Using newly received authentication, expiring on {datetime.datetime.fromtimestamp(expiry, datetime.timezone.utc)} (UTC)."
                     )
                     return bearer
 
