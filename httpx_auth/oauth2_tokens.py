@@ -87,7 +87,8 @@ class TokenMemoryCache:
             self.tokens[key] = token, expiry
             self._save_tokens()
             logger.debug(
-                f'Inserting token expiring on {datetime.datetime.fromtimestamp(expiry, datetime.timezone.utc)} with "{key}" key: {token}'
+                f'Inserting token expiring on'
+                f' {datetime.datetime.fromtimestamp(expiry, datetime.timezone.utc)} with "{key}" key: {token}'
             )
 
     def get_token(
@@ -121,7 +122,8 @@ class TokenMemoryCache:
                     del self.tokens[key]
                 else:
                     logger.debug(
-                        f"Using already received authentication, will expire on {datetime.datetime.fromtimestamp(expiry, datetime.timezone.utc)} (UTC)."
+                        f"Using already received authentication, will expire on"
+                        f" {datetime.datetime.fromtimestamp(expiry, datetime.timezone.utc)}."
                     )
                     return bearer
 
@@ -143,7 +145,8 @@ class TokenMemoryCache:
                 if state in self.tokens:
                     bearer, expiry = self.tokens[state]
                     logger.debug(
-                        f"Using newly received authentication, expiring on {datetime.datetime.fromtimestamp(expiry, datetime.timezone.utc)} (UTC)."
+                        f"Using newly received authentication, expiring on"
+                        f" {datetime.datetime.fromtimestamp(expiry, datetime.timezone.utc)}."
                     )
                     return bearer
 
