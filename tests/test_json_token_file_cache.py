@@ -15,11 +15,11 @@ def token_cache(request):
 
 
 def test_add_bearer_tokens(token_cache):
-    expiry_in_1_hour = datetime.datetime.utcnow() + datetime.timedelta(hours=1)
+    expiry_in_1_hour = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(hours=1)
     token1 = jwt.encode({"exp": expiry_in_1_hour}, "secret")
     token_cache._add_bearer_token("key1", token1)
 
-    expiry_in_2_hour = datetime.datetime.utcnow() + datetime.timedelta(hours=2)
+    expiry_in_2_hour = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(hours=2)
     token2 = jwt.encode({"exp": expiry_in_2_hour}, "secret")
     token_cache._add_bearer_token("key2", token2)
 
@@ -33,11 +33,11 @@ def test_add_bearer_tokens(token_cache):
 
 
 def test_save_bearer_tokens(token_cache, request):
-    expiry_in_1_hour = datetime.datetime.utcnow() + datetime.timedelta(hours=1)
+    expiry_in_1_hour = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(hours=1)
     token1 = jwt.encode({"exp": expiry_in_1_hour}, "secret")
     token_cache._add_bearer_token("key1", token1)
 
-    expiry_in_2_hour = datetime.datetime.utcnow() + datetime.timedelta(hours=2)
+    expiry_in_2_hour = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(hours=2)
     token2 = jwt.encode({"exp": expiry_in_2_hour}, "secret")
     token_cache._add_bearer_token("key2", token2)
 
@@ -52,7 +52,7 @@ def test_save_bearer_token_exception_handling(token_cache, request, monkeypatch)
 
     monkeypatch.setattr(httpx_auth.oauth2_tokens.json, "dump", failing_dump)
 
-    expiry_in_1_hour = datetime.datetime.utcnow() + datetime.timedelta(hours=1)
+    expiry_in_1_hour = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(hours=1)
     token1 = jwt.encode({"exp": expiry_in_1_hour}, "secret")
 
     # Assert that the exception is not thrown
@@ -70,7 +70,7 @@ def test_missing_token(token_cache):
 
 
 def test_missing_token_function(token_cache):
-    expiry_in_1_hour = datetime.datetime.utcnow() + datetime.timedelta(hours=1)
+    expiry_in_1_hour = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(hours=1)
     token = jwt.encode({"exp": expiry_in_1_hour}, "secret")
     retrieved_token = token_cache.get_token(
         "key1", on_missing_token=lambda: ("key1", token)

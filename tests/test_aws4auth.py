@@ -9,15 +9,20 @@ import httpx_auth
 
 @pytest.fixture
 def mock_aws_datetime(monkeypatch):
-    _date_time_for_tests = datetime.datetime(2018, 10, 11, 15, 5, 5, 663979)
+    _date_time_for_tests = datetime.datetime(2018, 10, 11, 15, 5, 5, 663979, tzinfo=datetime.timezone.utc)
 
     class DateTimeModuleMock:
         class DateTimeMock:
             @staticmethod
-            def utcnow():
+            def now(_):
                 return _date_time_for_tests
 
         datetime = DateTimeMock
+
+        class TimeZoneMock:
+            utc = datetime.timezone.utc
+
+        timezone = TimeZoneMock
 
     import httpx_auth.aws
 

@@ -859,7 +859,7 @@ import datetime
 from httpx_auth.testing import browser_mock, BrowserMock, create_token
 
 def test_something(browser_mock: BrowserMock):
-    token_expiry = datetime.datetime.utcnow() + datetime.timedelta(hours=1)
+    token_expiry = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(hours=1)
     token = create_token(token_expiry)
     tab = browser_mock.add_response(
         opened_url="http://url_opened_by_browser?state=1234",
