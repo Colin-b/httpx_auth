@@ -46,6 +46,8 @@ testing = [
     "pyjwt==2.*",
     # Used to mock httpx
     "pytest_httpx==0.28.*",
+    # Used to mock date and time
+    "time-machine==2.*",
     # Used to check coverage
     "pytest-cov==4.*",
 ]

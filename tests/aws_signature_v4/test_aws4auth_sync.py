@@ -1,37 +1,12 @@
-import datetime
-
-import pytest
+import time_machine
 from pytest_httpx import HTTPXMock
 import httpx
 
 import httpx_auth
 
 
-@pytest.fixture
-def mock_aws_datetime(monkeypatch):
-    _date_time_for_tests = datetime.datetime(
-        2018, 10, 11, 15, 5, 5, 663979, tzinfo=datetime.timezone.utc
-    )
-
-    class DateTimeModuleMock:
-        class DateTimeMock:
-            @staticmethod
-            def now(_):
-                return _date_time_for_tests
-
-        datetime = DateTimeMock
-
-        class TimeZoneMock:
-            utc = datetime.timezone.utc
-
-        timezone = TimeZoneMock
-
-    import httpx_auth.aws
-
-    monkeypatch.setattr(httpx_auth.aws, "datetime", DateTimeModuleMock)
-
-
-def test_aws_auth_without_content_in_request(httpx_mock: HTTPXMock, mock_aws_datetime):
+@time_machine.travel("2018-10-11T15:05:05.663979+00:00", tick=False)
+def test_aws_auth_without_content_in_request(httpx_mock: HTTPXMock):
     auth = httpx_auth.AWS4Auth(
         access_id="access_id",
         secret_key="wJalrXUtnFEMI/K7MDENG+bPxRfiCYEXAMPLEKEY",
@@ -53,7 +28,8 @@ def test_aws_auth_without_content_in_request(httpx_mock: HTTPXMock, mock_aws_dat
     assert headers["x-amz-date"] == "20181011T150505Z"
 
 
-def test_aws_auth_with_content_in_request(httpx_mock: HTTPXMock, mock_aws_datetime):
+@time_machine.travel("2018-10-11T15:05:05.663979+00:00", tick=False)
+def test_aws_auth_with_content_in_request(httpx_mock: HTTPXMock):
     auth = httpx_auth.AWS4Auth(
         access_id="access_id",
         secret_key="wJalrXUtnFEMI/K7MDENG+bPxRfiCYEXAMPLEKEY",
@@ -75,8 +51,9 @@ def test_aws_auth_with_content_in_request(httpx_mock: HTTPXMock, mock_aws_dateti
     assert headers["x-amz-date"] == "20181011T150505Z"
 
 
+@time_machine.travel("2018-10-11T15:05:05.663979+00:00", tick=False)
 def test_aws_auth_with_security_token_and_without_content_in_request(
-    httpx_mock: HTTPXMock, mock_aws_datetime
+    httpx_mock: HTTPXMock,
 ):
     auth = httpx_auth.AWS4Auth(
         access_id="access_id",
@@ -101,9 +78,8 @@ def test_aws_auth_with_security_token_and_without_content_in_request(
     assert headers["x-amz-security-token"] == "security_token"
 
 
-def test_aws_auth_with_security_token_and_content_in_request(
-    httpx_mock: HTTPXMock, mock_aws_datetime
-):
+@time_machine.travel("2018-10-11T15:05:05.663979+00:00", tick=False)
+def test_aws_auth_with_security_token_and_content_in_request(httpx_mock: HTTPXMock):
     auth = httpx_auth.AWS4Auth(
         access_id="access_id",
         secret_key="wJalrXUtnFEMI/K7MDENG+bPxRfiCYEXAMPLEKEY",
@@ -127,7 +103,8 @@ def test_aws_auth_with_security_token_and_content_in_request(
     assert headers["x-amz-security-token"] == "security_token"
 
 
-def test_aws_auth_override_x_amz_date_header(httpx_mock: HTTPXMock, mock_aws_datetime):
+@time_machine.travel("2018-10-11T15:05:05.663979+00:00", tick=False)
+def test_aws_auth_override_x_amz_date_header(httpx_mock: HTTPXMock):
     auth = httpx_auth.AWS4Auth(
         access_id="access_id",
         secret_key="wJalrXUtnFEMI/K7MDENG+bPxRfiCYEXAMPLEKEY",
@@ -151,7 +128,8 @@ def test_aws_auth_override_x_amz_date_header(httpx_mock: HTTPXMock, mock_aws_dat
     assert headers["x-amz-date"] == "20181011T150505Z"
 
 
-def test_aws_auth_root_path(httpx_mock: HTTPXMock, mock_aws_datetime):
+@time_machine.travel("2018-10-11T15:05:05.663979+00:00", tick=False)
+def test_aws_auth_root_path(httpx_mock: HTTPXMock):
     auth = httpx_auth.AWS4Auth(
         access_id="access_id",
         secret_key="wJalrXUtnFEMI/K7MDENG+bPxRfiCYEXAMPLEKEY",
@@ -173,7 +151,8 @@ def test_aws_auth_root_path(httpx_mock: HTTPXMock, mock_aws_datetime):
     assert headers["x-amz-date"] == "20181011T150505Z"
 
 
-def test_aws_auth_query_parameters(httpx_mock: HTTPXMock, mock_aws_datetime):
+@time_machine.travel("2018-10-11T15:05:05.663979+00:00", tick=False)
+def test_aws_auth_query_parameters(httpx_mock: HTTPXMock):
     auth = httpx_auth.AWS4Auth(
         access_id="access_id",
         secret_key="wJalrXUtnFEMI/K7MDENG+bPxRfiCYEXAMPLEKEY",
@@ -195,7 +174,8 @@ def test_aws_auth_query_parameters(httpx_mock: HTTPXMock, mock_aws_datetime):
     assert headers["x-amz-date"] == "20181011T150505Z"
 
 
-def test_aws_auth_path_normalize(httpx_mock: HTTPXMock, mock_aws_datetime):
+@time_machine.travel("2018-10-11T15:05:05.663979+00:00", tick=False)
+def test_aws_auth_path_normalize(httpx_mock: HTTPXMock):
     auth = httpx_auth.AWS4Auth(
         access_id="access_id",
         secret_key="wJalrXUtnFEMI/K7MDENG+bPxRfiCYEXAMPLEKEY",
@@ -217,7 +197,8 @@ def test_aws_auth_path_normalize(httpx_mock: HTTPXMock, mock_aws_datetime):
     assert headers["x-amz-date"] == "20181011T150505Z"
 
 
-def test_aws_auth_path_quoting(httpx_mock: HTTPXMock, mock_aws_datetime):
+@time_machine.travel("2018-10-11T15:05:05.663979+00:00", tick=False)
+def test_aws_auth_path_quoting(httpx_mock: HTTPXMock):
     auth = httpx_auth.AWS4Auth(
         access_id="access_id",
         secret_key="wJalrXUtnFEMI/K7MDENG+bPxRfiCYEXAMPLEKEY",
@@ -241,7 +222,8 @@ def test_aws_auth_path_quoting(httpx_mock: HTTPXMock, mock_aws_datetime):
     assert headers["x-amz-date"] == "20181011T150505Z"
 
 
-def test_aws_auth_path_percent_encode_non_s3(httpx_mock: HTTPXMock, mock_aws_datetime):
+@time_machine.travel("2018-10-11T15:05:05.663979+00:00", tick=False)
+def test_aws_auth_path_percent_encode_non_s3(httpx_mock: HTTPXMock):
     auth = httpx_auth.AWS4Auth(
         access_id="access_id",
         secret_key="wJalrXUtnFEMI/K7MDENG+bPxRfiCYEXAMPLEKEY",
@@ -265,7 +247,8 @@ def test_aws_auth_path_percent_encode_non_s3(httpx_mock: HTTPXMock, mock_aws_dat
     assert headers["x-amz-date"] == "20181011T150505Z"
 
 
-def test_aws_auth_path_percent_encode_s3(httpx_mock: HTTPXMock, mock_aws_datetime):
+@time_machine.travel("2018-10-11T15:05:05.663979+00:00", tick=False)
+def test_aws_auth_path_percent_encode_s3(httpx_mock: HTTPXMock):
     auth = httpx_auth.AWS4Auth(
         access_id="access_id",
         secret_key="wJalrXUtnFEMI/K7MDENG+bPxRfiCYEXAMPLEKEY",
@@ -289,7 +272,8 @@ def test_aws_auth_path_percent_encode_s3(httpx_mock: HTTPXMock, mock_aws_datetim
     assert headers["x-amz-date"] == "20181011T150505Z"
 
 
-def test_aws_auth_without_path(httpx_mock: HTTPXMock, mock_aws_datetime):
+@time_machine.travel("2018-10-11T15:05:05.663979+00:00", tick=False)
+def test_aws_auth_without_path(httpx_mock: HTTPXMock):
     auth = httpx_auth.AWS4Auth(
         access_id="access_id",
         secret_key="wJalrXUtnFEMI/K7MDENG+bPxRfiCYEXAMPLEKEY",
