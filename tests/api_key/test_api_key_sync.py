@@ -11,7 +11,7 @@ def test_header_api_key_is_sent_in_x_api_key_by_default(httpx_mock: HTTPXMock):
     httpx_mock.add_response(
         url="https://authorized_only",
         method="GET",
-        match_headers={"X-API-KEY": "my_provided_api_key"},
+        match_headers={"X-API-Key": "my_provided_api_key"},
     )
     with httpx.Client() as client:
         client.get("https://authorized_only", auth=auth)
