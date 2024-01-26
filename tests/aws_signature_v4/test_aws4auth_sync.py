@@ -13,19 +13,18 @@ def test_aws_auth_without_content_in_request(httpx_mock: HTTPXMock):
         region="us-east-1",
         service="iam",
     )
-    httpx_mock.add_response(url="https://authorized_only")
 
-    httpx.post("https://authorized_only", auth=auth)
-    headers = httpx_mock.get_request().headers
-    assert (
-        headers["x-amz-content-sha256"]
-        == "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    httpx_mock.add_response(
+        url="https://authorized_only",
+        method="POST",
+        match_headers={
+            "x-amz-content-sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "Authorization": "AWS4-HMAC-SHA256 Credential=access_id/20181011/us-east-1/iam/aws4_request, SignedHeaders=host;x-amz-content-sha256;x-amz-date, Signature=ce708380ee69b1a9558b9b0dddd4d15f35a2a5e5ea3534b541247f1a746626db",
+            "x-amz-date": "20181011T150505Z",
+        },
     )
-    assert (
-        headers["Authorization"]
-        == "AWS4-HMAC-SHA256 Credential=access_id/20181011/us-east-1/iam/aws4_request, SignedHeaders=host;x-amz-content-sha256;x-amz-date, Signature=ce708380ee69b1a9558b9b0dddd4d15f35a2a5e5ea3534b541247f1a746626db"
-    )
-    assert headers["x-amz-date"] == "20181011T150505Z"
+    with httpx.Client() as client:
+        client.post("https://authorized_only", auth=auth)
 
 
 @time_machine.travel("2018-10-11T15:05:05.663979+00:00", tick=False)
@@ -36,19 +35,19 @@ def test_aws_auth_with_content_in_request(httpx_mock: HTTPXMock):
         region="us-east-1",
         service="iam",
     )
-    httpx_mock.add_response(url="https://authorized_only")
 
-    httpx.post("https://authorized_only", json=[{"key": "value"}], auth=auth)
-    headers = httpx_mock.get_request().headers
-    assert (
-        headers["x-amz-content-sha256"]
-        == "fb65c1441d6743274738fe3b3042a73167ba1fb2d34679d8dd16433473758f97"
+    httpx_mock.add_response(
+        url="https://authorized_only",
+        method="POST",
+        match_json=[{"key": "value"}],
+        match_headers={
+            "x-amz-content-sha256": "fb65c1441d6743274738fe3b3042a73167ba1fb2d34679d8dd16433473758f97",
+            "Authorization": "AWS4-HMAC-SHA256 Credential=access_id/20181011/us-east-1/iam/aws4_request, SignedHeaders=content-type;host;x-amz-content-sha256;x-amz-date, Signature=5f4f832a19fc834d4f34047289ad67d96da25bd414a70f02ce6b85aef9ab8068",
+            "x-amz-date": "20181011T150505Z",
+        },
     )
-    assert (
-        headers["Authorization"]
-        == "AWS4-HMAC-SHA256 Credential=access_id/20181011/us-east-1/iam/aws4_request, SignedHeaders=content-type;host;x-amz-content-sha256;x-amz-date, Signature=5f4f832a19fc834d4f34047289ad67d96da25bd414a70f02ce6b85aef9ab8068"
-    )
-    assert headers["x-amz-date"] == "20181011T150505Z"
+    with httpx.Client() as client:
+        client.post("https://authorized_only", json=[{"key": "value"}], auth=auth)
 
 
 @time_machine.travel("2018-10-11T15:05:05.663979+00:00", tick=False)
@@ -62,20 +61,19 @@ def test_aws_auth_with_security_token_and_without_content_in_request(
         service="iam",
         security_token="security_token",
     )
-    httpx_mock.add_response(url="https://authorized_only")
 
-    httpx.post("https://authorized_only", auth=auth)
-    headers = httpx_mock.get_request().headers
-    assert (
-        headers["x-amz-content-sha256"]
-        == "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    httpx_mock.add_response(
+        url="https://authorized_only",
+        method="POST",
+        match_headers={
+            "x-amz-content-sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "Authorization": "AWS4-HMAC-SHA256 Credential=access_id/20181011/us-east-1/iam/aws4_request, SignedHeaders=host;x-amz-content-sha256;x-amz-date;x-amz-security-token, Signature=2ae27ce5e8dcc005736c97ff857e4f44401fc3a33d8358b1d67c079f0f5a8b3e",
+            "x-amz-date": "20181011T150505Z",
+            "x-amz-security-token": "security_token",
+        },
     )
-    assert (
-        headers["Authorization"]
-        == "AWS4-HMAC-SHA256 Credential=access_id/20181011/us-east-1/iam/aws4_request, SignedHeaders=host;x-amz-content-sha256;x-amz-date;x-amz-security-token, Signature=2ae27ce5e8dcc005736c97ff857e4f44401fc3a33d8358b1d67c079f0f5a8b3e"
-    )
-    assert headers["x-amz-date"] == "20181011T150505Z"
-    assert headers["x-amz-security-token"] == "security_token"
+    with httpx.Client() as client:
+        client.post("https://authorized_only", auth=auth)
 
 
 @time_machine.travel("2018-10-11T15:05:05.663979+00:00", tick=False)
