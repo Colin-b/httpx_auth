@@ -348,7 +348,9 @@ def test_oauth2_implicit_and_api_key_authentication_can_be_combined(
     token_cache, httpx_mock: HTTPXMock, browser_mock: BrowserMock
 ):
     implicit_auth = httpx_auth.OAuth2Implicit("https://provide_token")
-    expiry_in_1_hour = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(hours=1)
+    expiry_in_1_hour = datetime.datetime.now(
+        datetime.timezone.utc
+    ) + datetime.timedelta(hours=1)
     token = create_token(expiry_in_1_hour)
     tab = browser_mock.add_response(
         opened_url="https://provide_token?response_type=token&state=bee505cb6ceb14b9f6ac3573cd700b3b3e965004078d7bb57c7b92df01e448c992a7a46b4804164fc998ea166ece3f3d5849ca2405c4a548f43b915b0677231c&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F",
@@ -368,7 +370,9 @@ def test_oauth2_implicit_and_multiple_authentication_can_be_combined(
     token_cache, httpx_mock: HTTPXMock, browser_mock: BrowserMock
 ):
     implicit_auth = httpx_auth.OAuth2Implicit("https://provide_token")
-    expiry_in_1_hour = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(hours=1)
+    expiry_in_1_hour = datetime.datetime.now(
+        datetime.timezone.utc
+    ) + datetime.timedelta(hours=1)
     token = create_token(expiry_in_1_hour)
     tab = browser_mock.add_response(
         opened_url="https://provide_token?response_type=token&state=bee505cb6ceb14b9f6ac3573cd700b3b3e965004078d7bb57c7b92df01e448c992a7a46b4804164fc998ea166ece3f3d5849ca2405c4a548f43b915b0677231c&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F",
