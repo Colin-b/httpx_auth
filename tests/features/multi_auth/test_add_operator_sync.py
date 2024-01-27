@@ -11,9 +11,17 @@ from tests.auth_helper import get_header
 def test_basic_and_api_key_authentication_can_be_combined(httpx_mock: HTTPXMock):
     basic_auth = httpx_auth.Basic("test_user", "test_pwd")
     api_key_auth = httpx_auth.HeaderApiKey("my_provided_api_key")
-    header = get_header(httpx_mock, basic_auth + api_key_auth)
-    assert header.get("Authorization") == "Basic dGVzdF91c2VyOnRlc3RfcHdk"
-    assert header.get("X-Api-Key") == "my_provided_api_key"
+
+    httpx_mock.add_response(
+        url="https://authorized_only",
+        method="GET",
+        match_headers={
+            "Authorization": "Basic dGVzdF91c2VyOnRlc3RfcHdk",
+            "X-API-Key": "my_provided_api_key",
+        },
+    )
+    with httpx.Client() as client:
+        client.get("https://authorized_only", auth=basic_auth + api_key_auth)
 
 
 def test_header_api_key_and_multiple_authentication_can_be_combined(
@@ -26,10 +34,21 @@ def test_header_api_key_and_multiple_authentication_can_be_combined(
     api_key_auth3 = httpx_auth.HeaderApiKey(
         "my_provided_api_key3", header_name="X-Api-Key3"
     )
-    header = get_header(httpx_mock, api_key_auth + (api_key_auth2 + api_key_auth3))
-    assert header.get("X-Api-Key") == "my_provided_api_key"
-    assert header.get("X-Api-Key2") == "my_provided_api_key2"
-    assert header.get("X-Api-Key3") == "my_provided_api_key3"
+
+    httpx_mock.add_response(
+        url="https://authorized_only",
+        method="GET",
+        match_headers={
+            "X-API-Key": "my_provided_api_key",
+            "X-Api-Key2": "my_provided_api_key2",
+            "X-Api-Key3": "my_provided_api_key3",
+        },
+    )
+    with httpx.Client() as client:
+        client.get(
+            "https://authorized_only",
+            auth=api_key_auth + (api_key_auth2 + api_key_auth3),
+        )
 
 
 def test_multiple_auth_and_header_api_key_can_be_combined(
@@ -42,10 +61,21 @@ def test_multiple_auth_and_header_api_key_can_be_combined(
     api_key_auth3 = httpx_auth.HeaderApiKey(
         "my_provided_api_key3", header_name="X-Api-Key3"
     )
-    header = get_header(httpx_mock, (api_key_auth + api_key_auth2) + api_key_auth3)
-    assert header.get("X-Api-Key") == "my_provided_api_key"
-    assert header.get("X-Api-Key2") == "my_provided_api_key2"
-    assert header.get("X-Api-Key3") == "my_provided_api_key3"
+
+    httpx_mock.add_response(
+        url="https://authorized_only",
+        method="GET",
+        match_headers={
+            "X-API-Key": "my_provided_api_key",
+            "X-Api-Key2": "my_provided_api_key2",
+            "X-Api-Key3": "my_provided_api_key3",
+        },
+    )
+    with httpx.Client() as client:
+        client.get(
+            "https://authorized_only",
+            auth=(api_key_auth + api_key_auth2) + api_key_auth3,
+        )
 
 
 def test_multiple_auth_and_multiple_auth_can_be_combined(
@@ -61,13 +91,22 @@ def test_multiple_auth_and_multiple_auth_can_be_combined(
     api_key_auth4 = httpx_auth.HeaderApiKey(
         "my_provided_api_key4", header_name="X-Api-Key4"
     )
-    header = get_header(
-        httpx_mock, (api_key_auth + api_key_auth2) + (api_key_auth3 + api_key_auth4)
+
+    httpx_mock.add_response(
+        url="https://authorized_only",
+        method="GET",
+        match_headers={
+            "X-API-Key": "my_provided_api_key",
+            "X-Api-Key2": "my_provided_api_key2",
+            "X-Api-Key3": "my_provided_api_key3",
+            "X-Api-Key4": "my_provided_api_key4",
+        },
     )
-    assert header.get("X-Api-Key") == "my_provided_api_key"
-    assert header.get("X-Api-Key2") == "my_provided_api_key2"
-    assert header.get("X-Api-Key3") == "my_provided_api_key3"
-    assert header.get("X-Api-Key4") == "my_provided_api_key4"
+    with httpx.Client() as client:
+        client.get(
+            "https://authorized_only",
+            auth=(api_key_auth + api_key_auth2) + (api_key_auth3 + api_key_auth4),
+        )
 
 
 def test_basic_and_multiple_authentication_can_be_combined(
