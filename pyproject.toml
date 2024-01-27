@@ -57,3 +57,8 @@ exclude = ["tests*"]
 
 [tool.setuptools.dynamic]
 version = {attr = "httpx_auth.version.__version__"}
+
+[tool.pytest.ini_options]
+filterwarnings = [
+    "error",
+]
