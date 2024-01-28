@@ -14,7 +14,7 @@ authors = [
 maintainers = [
     {name = "Colin Bounouar", email = "colin.bounouar.dev@gmail.com" }
 ]
-keywords = ["authentication", "oauth2", "aws", "okta", "aad"]
+keywords = ["authentication", "oauth2", "aws", "okta", "aad", "entra"]
 classifiers=[
     "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Developers",
