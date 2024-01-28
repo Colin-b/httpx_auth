@@ -5,7 +5,6 @@ import httpx
 
 import httpx_auth
 from httpx_auth.testing import BrowserMock, create_token, token_cache, browser_mock
-from tests.auth_helper import get_header
 
 
 def test_basic_and_api_key_authentication_can_be_combined(httpx_mock: HTTPXMock):
@@ -42,8 +41,8 @@ def test_header_api_key_and_multiple_authentication_can_be_combined(
         method="GET",
         match_headers={
             "X-API-Key": "my_provided_api_key",
-            "X-API-Key2": "my_provided_api_key2",
-            "X-API-Key3": "my_provided_api_key3",
+            "X-Api-Key2": "my_provided_api_key2",
+            "X-Api-Key3": "my_provided_api_key3",
         },
     )
     with httpx.Client() as client:
@@ -67,8 +66,8 @@ def test_multiple_auth_and_header_api_key_can_be_combined(
         method="GET",
         match_headers={
             "X-API-Key": "my_provided_api_key",
-            "X-API-Key2": "my_provided_api_key2",
-            "X-API-Key3": "my_provided_api_key3",
+            "X-Api-Key2": "my_provided_api_key2",
+            "X-Api-Key3": "my_provided_api_key3",
         },
     )
     with httpx.Client() as client:
@@ -90,13 +89,18 @@ def test_multiple_auth_and_multiple_auth_can_be_combined(
     )
     auth = (api_key_auth & api_key_auth2) & (api_key_auth3 & api_key_auth4)
 
-    header = get_header(
-        httpx_mock, auth
+    httpx_mock.add_response(
+        url="https://authorized_only",
+        method="GET",
+        match_headers={
+            "X-API-Key": "my_provided_api_key",
+            "X-Api-Key2": "my_provided_api_key2",
+            "X-Api-Key3": "my_provided_api_key3",
+            "X-Api-Key4": "my_provided_api_key4",
+        },
     )
-    assert header.get("X-Api-Key") == "my_provided_api_key"
-    assert header.get("X-Api-Key2") == "my_provided_api_key2"
-    assert header.get("X-Api-Key3") == "my_provided_api_key3"
-    assert header.get("X-Api-Key4") == "my_provided_api_key4"
+    with httpx.Client() as client:
+        client.get("https://authorized_only", auth=auth)
 
 
 def test_basic_and_multiple_authentication_can_be_combined(
@@ -111,10 +115,17 @@ def test_basic_and_multiple_authentication_can_be_combined(
     )
     auth = basic_auth & (api_key_auth2 & api_key_auth3)
 
-    header = get_header(httpx_mock, auth)
-    assert header.get("Authorization") == "Basic dGVzdF91c2VyOnRlc3RfcHdk"
-    assert header.get("X-Api-Key2") == "my_provided_api_key2"
-    assert header.get("X-Api-Key3") == "my_provided_api_key3"
+    httpx_mock.add_response(
+        url="https://authorized_only",
+        method="GET",
+        match_headers={
+            "Authorization": "Basic dGVzdF91c2VyOnRlc3RfcHdk",
+            "X-Api-Key2": "my_provided_api_key2",
+            "X-Api-Key3": "my_provided_api_key3",
+        },
+    )
+    with httpx.Client() as client:
+        client.get("https://authorized_only", auth=auth)
 
 
 def test_query_api_key_and_multiple_authentication_can_be_combined(
@@ -129,15 +140,15 @@ def test_query_api_key_and_multiple_authentication_can_be_combined(
     )
     auth = api_key_auth & (api_key_auth2 & api_key_auth3)
 
-    # Mock a dummy response
     httpx_mock.add_response(
         url="https://authorized_only?api_key=my_provided_api_key&api_key2=my_provided_api_key2",
-        headers={"X-Api-Key3": "my_provided_api_key3"},
+        method="GET",
+        match_headers={
+            "X-Api-Key3": "my_provided_api_key3",
+        },
     )
-    # Send a request to this dummy URL with authentication
-    httpx.get(
-        "https://authorized_only", auth=auth
-    )
+    with httpx.Client() as client:
+        client.get("https://authorized_only", auth=auth)
 
 
 def test_oauth2_resource_owner_password_and_api_key_authentication_can_be_combined(
@@ -161,9 +172,16 @@ def test_oauth2_resource_owner_password_and_api_key_authentication_can_be_combin
         },
     )
 
-    header = get_header(httpx_mock, auth)
-    assert header.get("Authorization") == "Bearer 2YotnFZFEjr1zCsicMWpAA"
-    assert header.get("X-Api-Key") == "my_provided_api_key"
+    httpx_mock.add_response(
+        url="https://authorized_only",
+        method="GET",
+        match_headers={
+            "Authorization": "Bearer 2YotnFZFEjr1zCsicMWpAA",
+            "X-API-Key": "my_provided_api_key",
+        },
+    )
+    with httpx.Client() as client:
+        client.get("https://authorized_only", auth=auth)
 
 
 def test_oauth2_resource_owner_password_and_multiple_authentication_can_be_combined(
@@ -190,12 +208,17 @@ def test_oauth2_resource_owner_password_and_multiple_authentication_can_be_combi
         },
     )
 
-    header = get_header(
-        httpx_mock, auth
+    httpx_mock.add_response(
+        url="https://authorized_only",
+        method="GET",
+        match_headers={
+            "Authorization": "Bearer 2YotnFZFEjr1zCsicMWpAA",
+            "X-API-Key": "my_provided_api_key",
+            "X-Api-Key2": "my_provided_api_key2",
+        },
     )
-    assert header.get("Authorization") == "Bearer 2YotnFZFEjr1zCsicMWpAA"
-    assert header.get("X-Api-Key") == "my_provided_api_key"
-    assert header.get("X-Api-Key2") == "my_provided_api_key2"
+    with httpx.Client() as client:
+        client.get("https://authorized_only", auth=auth)
 
 
 def test_oauth2_client_credential_and_api_key_authentication_can_be_combined(
@@ -219,9 +242,16 @@ def test_oauth2_client_credential_and_api_key_authentication_can_be_combined(
         },
     )
 
-    header = get_header(httpx_mock, auth)
-    assert header.get("Authorization") == "Bearer 2YotnFZFEjr1zCsicMWpAA"
-    assert header.get("X-Api-Key") == "my_provided_api_key"
+    httpx_mock.add_response(
+        url="https://authorized_only",
+        method="GET",
+        match_headers={
+            "Authorization": "Bearer 2YotnFZFEjr1zCsicMWpAA",
+            "X-API-Key": "my_provided_api_key",
+        },
+    )
+    with httpx.Client() as client:
+        client.get("https://authorized_only", auth=auth)
 
 
 def test_oauth2_client_credential_and_multiple_authentication_can_be_combined(
@@ -248,12 +278,17 @@ def test_oauth2_client_credential_and_multiple_authentication_can_be_combined(
         },
     )
 
-    header = get_header(
-        httpx_mock, auth
+    httpx_mock.add_response(
+        url="https://authorized_only",
+        method="GET",
+        match_headers={
+            "Authorization": "Bearer 2YotnFZFEjr1zCsicMWpAA",
+            "X-API-Key": "my_provided_api_key",
+            "X-Api-Key2": "my_provided_api_key2",
+        },
     )
-    assert header.get("Authorization") == "Bearer 2YotnFZFEjr1zCsicMWpAA"
-    assert header.get("X-Api-Key") == "my_provided_api_key"
-    assert header.get("X-Api-Key2") == "my_provided_api_key2"
+    with httpx.Client() as client:
+        client.get("https://authorized_only", auth=auth)
 
 
 def test_oauth2_authorization_code_and_api_key_authentication_can_be_combined(
@@ -282,9 +317,16 @@ def test_oauth2_authorization_code_and_api_key_authentication_can_be_combined(
         },
     )
 
-    header = get_header(httpx_mock, auth)
-    assert header.get("Authorization") == "Bearer 2YotnFZFEjr1zCsicMWpAA"
-    assert header.get("X-Api-Key") == "my_provided_api_key"
+    httpx_mock.add_response(
+        url="https://authorized_only",
+        method="GET",
+        match_headers={
+            "Authorization": "Bearer 2YotnFZFEjr1zCsicMWpAA",
+            "X-API-Key": "my_provided_api_key",
+        },
+    )
+    with httpx.Client() as client:
+        client.get("https://authorized_only", auth=auth)
 
     tab.assert_success(
         "You are now authenticated on ce9c755b41b5e3c5b64c70598715d5de271023a53f39a67a70215d265d11d2bfb6ef6e9c701701e998e69cbdbf2cee29fd51d2a950aa05f59a20cf4a646099d5. You may close this tab."
@@ -320,12 +362,17 @@ def test_oauth2_authorization_code_and_multiple_authentication_can_be_combined(
         },
     )
 
-    header = get_header(
-        httpx_mock, auth
+    httpx_mock.add_response(
+        url="https://authorized_only",
+        method="GET",
+        match_headers={
+            "Authorization": "Bearer 2YotnFZFEjr1zCsicMWpAA",
+            "X-API-Key": "my_provided_api_key",
+            "X-Api-Key2": "my_provided_api_key2",
+        },
     )
-    assert header.get("Authorization") == "Bearer 2YotnFZFEjr1zCsicMWpAA"
-    assert header.get("X-Api-Key") == "my_provided_api_key"
-    assert header.get("X-Api-Key2") == "my_provided_api_key2"
+    with httpx.Client() as client:
+        client.get("https://authorized_only", auth=auth)
 
     tab.assert_success(
         "You are now authenticated on ce9c755b41b5e3c5b64c70598715d5de271023a53f39a67a70215d265d11d2bfb6ef6e9c701701e998e69cbdbf2cee29fd51d2a950aa05f59a20cf4a646099d5. You may close this tab."
@@ -359,9 +406,16 @@ def test_oauth2_pkce_and_api_key_authentication_can_be_combined(
         },
     )
 
-    header = get_header(httpx_mock, auth)
-    assert header.get("Authorization") == "Bearer 2YotnFZFEjr1zCsicMWpAA"
-    assert header.get("X-Api-Key") == "my_provided_api_key"
+    httpx_mock.add_response(
+        url="https://authorized_only",
+        method="GET",
+        match_headers={
+            "Authorization": "Bearer 2YotnFZFEjr1zCsicMWpAA",
+            "X-API-Key": "my_provided_api_key",
+        },
+    )
+    with httpx.Client() as client:
+        client.get("https://authorized_only", auth=auth)
 
     tab.assert_success(
         "You are now authenticated on ce9c755b41b5e3c5b64c70598715d5de271023a53f39a67a70215d265d11d2bfb6ef6e9c701701e998e69cbdbf2cee29fd51d2a950aa05f59a20cf4a646099d5. You may close this tab."
@@ -398,10 +452,17 @@ def test_oauth2_pkce_and_multiple_authentication_can_be_combined(
         },
     )
 
-    header = get_header(httpx_mock, auth)
-    assert header.get("Authorization") == "Bearer 2YotnFZFEjr1zCsicMWpAA"
-    assert header.get("X-Api-Key") == "my_provided_api_key"
-    assert header.get("X-Api-Key2") == "my_provided_api_key2"
+    httpx_mock.add_response(
+        url="https://authorized_only",
+        method="GET",
+        match_headers={
+            "Authorization": "Bearer 2YotnFZFEjr1zCsicMWpAA",
+            "X-API-Key": "my_provided_api_key",
+            "X-Api-Key2": "my_provided_api_key2",
+        },
+    )
+    with httpx.Client() as client:
+        client.get("https://authorized_only", auth=auth)
 
     tab.assert_success(
         "You are now authenticated on ce9c755b41b5e3c5b64c70598715d5de271023a53f39a67a70215d265d11d2bfb6ef6e9c701701e998e69cbdbf2cee29fd51d2a950aa05f59a20cf4a646099d5. You may close this tab."
@@ -425,9 +486,16 @@ def test_oauth2_implicit_and_api_key_authentication_can_be_combined(
         data=f"access_token={token}&state=bee505cb6ceb14b9f6ac3573cd700b3b3e965004078d7bb57c7b92df01e448c992a7a46b4804164fc998ea166ece3f3d5849ca2405c4a548f43b915b0677231c",
     )
 
-    header = get_header(httpx_mock, auth)
-    assert header.get("Authorization") == f"Bearer {token}"
-    assert header.get("X-Api-Key") == "my_provided_api_key"
+    httpx_mock.add_response(
+        url="https://authorized_only",
+        method="GET",
+        match_headers={
+            "Authorization": f"Bearer {token}",
+            "X-API-Key": "my_provided_api_key",
+        },
+    )
+    with httpx.Client() as client:
+        client.get("https://authorized_only", auth=auth)
 
     tab.assert_success(
         "You are now authenticated on bee505cb6ceb14b9f6ac3573cd700b3b3e965004078d7bb57c7b92df01e448c992a7a46b4804164fc998ea166ece3f3d5849ca2405c4a548f43b915b0677231c. You may close this tab."
@@ -454,10 +522,17 @@ def test_oauth2_implicit_and_multiple_authentication_can_be_combined(
         data=f"access_token={token}&state=bee505cb6ceb14b9f6ac3573cd700b3b3e965004078d7bb57c7b92df01e448c992a7a46b4804164fc998ea166ece3f3d5849ca2405c4a548f43b915b0677231c",
     )
 
-    header = get_header(httpx_mock, auth)
-    assert header.get("Authorization") == f"Bearer {token}"
-    assert header.get("X-Api-Key") == "my_provided_api_key"
-    assert header.get("X-Api-Key2") == "my_provided_api_key2"
+    httpx_mock.add_response(
+        url="https://authorized_only",
+        method="GET",
+        match_headers={
+            "Authorization": f"Bearer {token}",
+            "X-API-Key": "my_provided_api_key",
+            "X-Api-Key2": "my_provided_api_key2",
+        },
+    )
+    with httpx.Client() as client:
+        client.get("https://authorized_only", auth=auth)
 
     tab.assert_success(
         "You are now authenticated on bee505cb6ceb14b9f6ac3573cd700b3b3e965004078d7bb57c7b92df01e448c992a7a46b4804164fc998ea166ece3f3d5849ca2405c4a548f43b915b0677231c. You may close this tab."

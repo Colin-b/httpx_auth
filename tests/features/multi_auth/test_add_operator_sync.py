@@ -177,7 +177,7 @@ def test_oauth2_resource_owner_password_and_api_key_authentication_can_be_combin
         method="GET",
         match_headers={
             "Authorization": "Bearer 2YotnFZFEjr1zCsicMWpAA",
-            "X-Api-Key": "my_provided_api_key",
+            "X-API-Key": "my_provided_api_key",
         },
     )
     with httpx.Client() as client:
@@ -213,7 +213,7 @@ def test_oauth2_resource_owner_password_and_multiple_authentication_can_be_combi
         method="GET",
         match_headers={
             "Authorization": "Bearer 2YotnFZFEjr1zCsicMWpAA",
-            "X-Api-Key": "my_provided_api_key",
+            "X-API-Key": "my_provided_api_key",
             "X-Api-Key2": "my_provided_api_key2",
         },
     )
@@ -247,7 +247,7 @@ def test_oauth2_client_credential_and_api_key_authentication_can_be_combined(
         method="GET",
         match_headers={
             "Authorization": "Bearer 2YotnFZFEjr1zCsicMWpAA",
-            "X-Api-Key": "my_provided_api_key",
+            "X-API-Key": "my_provided_api_key",
         },
     )
     with httpx.Client() as client:
@@ -283,7 +283,7 @@ def test_oauth2_client_credential_and_multiple_authentication_can_be_combined(
         method="GET",
         match_headers={
             "Authorization": "Bearer 2YotnFZFEjr1zCsicMWpAA",
-            "X-Api-Key": "my_provided_api_key",
+            "X-API-Key": "my_provided_api_key",
             "X-Api-Key2": "my_provided_api_key2",
         },
     )
@@ -322,7 +322,7 @@ def test_oauth2_authorization_code_and_api_key_authentication_can_be_combined(
         method="GET",
         match_headers={
             "Authorization": "Bearer 2YotnFZFEjr1zCsicMWpAA",
-            "X-Api-Key": "my_provided_api_key",
+            "X-API-Key": "my_provided_api_key",
         },
     )
     with httpx.Client() as client:
@@ -367,7 +367,7 @@ def test_oauth2_authorization_code_and_multiple_authentication_can_be_combined(
         method="GET",
         match_headers={
             "Authorization": "Bearer 2YotnFZFEjr1zCsicMWpAA",
-            "X-Api-Key": "my_provided_api_key",
+            "X-API-Key": "my_provided_api_key",
             "X-Api-Key2": "my_provided_api_key2",
         },
     )
@@ -411,7 +411,7 @@ def test_oauth2_pkce_and_api_key_authentication_can_be_combined(
         method="GET",
         match_headers={
             "Authorization": "Bearer 2YotnFZFEjr1zCsicMWpAA",
-            "X-Api-Key": "my_provided_api_key",
+            "X-API-Key": "my_provided_api_key",
         },
     )
     with httpx.Client() as client:
@@ -457,7 +457,7 @@ def test_oauth2_pkce_and_multiple_authentication_can_be_combined(
         method="GET",
         match_headers={
             "Authorization": "Bearer 2YotnFZFEjr1zCsicMWpAA",
-            "X-Api-Key": "my_provided_api_key",
+            "X-API-Key": "my_provided_api_key",
             "X-Api-Key2": "my_provided_api_key2",
         },
     )
@@ -491,7 +491,7 @@ def test_oauth2_implicit_and_api_key_authentication_can_be_combined(
         method="GET",
         match_headers={
             "Authorization": f"Bearer {token}",
-            "X-Api-Key": "my_provided_api_key",
+            "X-API-Key": "my_provided_api_key",
         },
     )
     with httpx.Client() as client:
@@ -527,7 +527,7 @@ def test_oauth2_implicit_and_multiple_authentication_can_be_combined(
         method="GET",
         match_headers={
             "Authorization": f"Bearer {token}",
-            "X-Api-Key": "my_provided_api_key",
+            "X-API-Key": "my_provided_api_key",
             "X-Api-Key2": "my_provided_api_key2",
         },
     )
