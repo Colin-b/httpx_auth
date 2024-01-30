@@ -3,6 +3,7 @@ import logging
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from urllib.parse import parse_qs, urlparse
 from socket import socket
+from typing import Optional
 
 import httpx
 
@@ -91,26 +92,16 @@ class OAuth2ResponseHandler(BaseHTTPRequestHandler):
         logger.debug("HTML content sent to client.")
 
     def success_page(self, text: str) -> str:
-        return f"""<body onload="window.open('', '_self', ''); window.setTimeout(close, {self.server.grant_details.reception_success_display_time})" style="
-        color: #4F8A10;
-        background-color: #DFF2BF;
-        font-size: xx-large;
-        display: flex;
-        align-items: center;
-        justify-content: center;">
-            <div style="border: 1px solid;">{text}</div>
-        </body>"""
+        return self.server.grant_details.success_page_template.format(
+            display_time=self.server.grant_details.reception_success_display_time,
+            text=text,
+        )
 
     def error_page(self, text: str) -> str:
-        return f"""<body onload="window.open('', '_self', ''); window.setTimeout(close, {self.server.grant_details.reception_failure_display_time})" style="
-        color: #D8000C;
-        background-color: #FFBABA;
-        font-size: xx-large;
-        display: flex;
-        align-items: center;
-        justify-content: center;">
-            <div style="border: 1px solid;">{text}</div>
-        </body>"""
+        return self.server.grant_details.failure_page_template.format(
+            display_time=self.server.grant_details.reception_failure_display_time,
+            text=text,
+        )
 
     def fragment_redirect_page(self) -> str:
         """Return a page with JS that calls back the server on the url
@@ -137,6 +128,27 @@ class OAuth2ResponseHandler(BaseHTTPRequestHandler):
 
 
 class GrantDetails:
+    DEFAULT_SUCCESS_TEMPLATE = """
+        <body onload="window.open('', '_self', ''); window.setTimeout(close, {display_time})"
+         style="color: #4F8A10;
+                background-color: #DFF2BF;
+                font-size: xx-large;
+                display: flex;
+                align-items: center;
+                justify-content: center;">
+            <div style="border: 1px solid; padding: 8px;">{text}</div>
+        </body>"""
+    DEFAULT_FAILURE_TEMPLATE = """
+        <body onload="window.open('', '_self', ''); window.setTimeout(close, {display_time})"
+         style="color: #D8000C;
+                background-color: #FFBABA;
+                font-size: xx-large;
+                display: flex;
+                align-items: center;
+                justify-content: center;">
+            <div style="border: 1px solid; padding: 8px;">{text}</div>
+        </body>"""
+
     def __init__(
         self,
         url: str,
@@ -145,10 +157,18 @@ class GrantDetails:
         reception_success_display_time: int,
         reception_failure_display_time: int,
         redirect_uri_port: int,
+        reception_success_template: Optional[str] = None,
+        reception_failure_template: Optional[str] = None,
     ):
         self.url = url
         self.name = name
         self.reception_timeout = reception_timeout
+        self.success_page_template = (
+            reception_success_template or GrantDetails.DEFAULT_SUCCESS_TEMPLATE
+        )
+        self.failure_page_template = (
+            reception_failure_template or GrantDetails.DEFAULT_FAILURE_TEMPLATE
+        )
         self.reception_success_display_time = reception_success_display_time
         self.reception_failure_display_time = reception_failure_display_time
         self.redirect_uri_port = redirect_uri_port
