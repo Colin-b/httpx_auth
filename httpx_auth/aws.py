@@ -2,6 +2,7 @@
 Provides code for AWSAuth ported to httpx from Sam Washington's requests-aws4auth
 https://github.com/sam-washington/requests-aws4auth
 """
+
 import hmac
 import hashlib
 import posixpath
