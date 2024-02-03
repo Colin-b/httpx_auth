@@ -1,11 +1,13 @@
 import httpx
+import pytest
 from pytest_httpx import HTTPXMock
 
 import httpx_auth
 from httpx_auth.testing import token_cache_mock, token_mock
 
 
-def test_token_mock(token_cache_mock, httpx_mock: HTTPXMock):
+@pytest.mark.asyncio
+async def test_token_mock(token_cache_mock, httpx_mock: HTTPXMock):
     auth = httpx_auth.OAuth2Implicit("https://provide_token")
 
     httpx_mock.add_response(
@@ -16,5 +18,5 @@ def test_token_mock(token_cache_mock, httpx_mock: HTTPXMock):
         },
     )
 
-    with httpx.Client() as client:
-        client.get("https://authorized_only", auth=auth)
+    async with httpx.AsyncClient() as client:
+        await client.get("https://authorized_only", auth=auth)

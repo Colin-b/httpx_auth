@@ -11,7 +11,8 @@ def token_mock() -> str:
     return "2YotnFZFEjr1zCsicMWpAA"
 
 
-def test_oauth2_authorization_code_flow(token_cache_mock, httpx_mock: HTTPXMock):
+@pytest.mark.asyncio
+async def test_oauth2_authorization_code_flow(token_cache_mock, httpx_mock: HTTPXMock):
     auth = httpx_auth.OAuth2AuthorizationCode(
         "https://provide_code", "https://provide_access_token"
     )
@@ -23,12 +24,12 @@ def test_oauth2_authorization_code_flow(token_cache_mock, httpx_mock: HTTPXMock)
             "Authorization": "Bearer 2YotnFZFEjr1zCsicMWpAA",
         },
     )
+    async with httpx.AsyncClient() as client:
+        await client.get("https://authorized_only", auth=auth)
 
-    with httpx.Client() as client:
-        client.get("https://authorized_only", auth=auth)
 
-
-def test_okta_authorization_code_flow(token_cache_mock, httpx_mock: HTTPXMock):
+@pytest.mark.asyncio
+async def test_okta_authorization_code_flow(token_cache_mock, httpx_mock: HTTPXMock):
     auth = httpx_auth.OktaAuthorizationCode(
         "testserver.okta-emea.com", "54239d18-c68c-4c47-8bdd-ce71ea1d50cd"
     )
@@ -41,11 +42,14 @@ def test_okta_authorization_code_flow(token_cache_mock, httpx_mock: HTTPXMock):
         },
     )
 
-    with httpx.Client() as client:
-        client.get("https://authorized_only", auth=auth)
+    async with httpx.AsyncClient() as client:
+        await client.get("https://authorized_only", auth=auth)
 
 
-def test_oauth2_authorization_code_pkce_flow(token_cache_mock, httpx_mock: HTTPXMock):
+@pytest.mark.asyncio
+async def test_oauth2_authorization_code_pkce_flow(
+    token_cache_mock, httpx_mock: HTTPXMock
+):
     auth = httpx_auth.OAuth2AuthorizationCodePKCE(
         "https://provide_code", "https://provide_access_token"
     )
@@ -58,11 +62,14 @@ def test_oauth2_authorization_code_pkce_flow(token_cache_mock, httpx_mock: HTTPX
         },
     )
 
-    with httpx.Client() as client:
-        client.get("https://authorized_only", auth=auth)
+    async with httpx.AsyncClient() as client:
+        await client.get("https://authorized_only", auth=auth)
 
 
-def test_okta_authorization_code_pkce_flow(token_cache_mock, httpx_mock: HTTPXMock):
+@pytest.mark.asyncio
+async def test_okta_authorization_code_pkce_flow(
+    token_cache_mock, httpx_mock: HTTPXMock
+):
     auth = httpx_auth.OktaAuthorizationCodePKCE(
         "testserver.okta-emea.com", "54239d18-c68c-4c47-8bdd-ce71ea1d50cd"
     )
@@ -75,5 +82,5 @@ def test_okta_authorization_code_pkce_flow(token_cache_mock, httpx_mock: HTTPXMo
         },
     )
 
-    with httpx.Client() as client:
-        client.get("https://authorized_only", auth=auth)
+    async with httpx.AsyncClient() as client:
+        await client.get("https://authorized_only", auth=auth)
