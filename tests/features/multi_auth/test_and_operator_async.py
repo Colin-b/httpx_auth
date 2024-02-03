@@ -1,5 +1,6 @@
 import datetime
 
+import pytest
 from pytest_httpx import HTTPXMock
 import httpx
 
@@ -7,7 +8,8 @@ import httpx_auth
 from httpx_auth.testing import BrowserMock, create_token, token_cache, browser_mock
 
 
-def test_basic_and_api_key_authentication_can_be_combined(httpx_mock: HTTPXMock):
+@pytest.mark.asyncio
+async def test_basic_and_api_key_authentication_can_be_combined(httpx_mock: HTTPXMock):
     basic_auth = httpx_auth.Basic("test_user", "test_pwd")
     api_key_auth = httpx_auth.HeaderApiKey("my_provided_api_key")
     auth = basic_auth & api_key_auth
@@ -21,11 +23,12 @@ def test_basic_and_api_key_authentication_can_be_combined(httpx_mock: HTTPXMock)
         },
     )
 
-    with httpx.Client() as client:
-        client.get("https://authorized_only", auth=auth)
+    async with httpx.AsyncClient() as client:
+        await client.get("https://authorized_only", auth=auth)
 
 
-def test_header_api_key_and_multiple_authentication_can_be_combined(
+@pytest.mark.asyncio
+async def test_header_api_key_and_multiple_authentication_can_be_combined(
     token_cache, httpx_mock: HTTPXMock
 ):
     api_key_auth = httpx_auth.HeaderApiKey("my_provided_api_key")
@@ -47,11 +50,12 @@ def test_header_api_key_and_multiple_authentication_can_be_combined(
         },
     )
 
-    with httpx.Client() as client:
-        client.get("https://authorized_only", auth=auth)
+    async with httpx.AsyncClient() as client:
+        await client.get("https://authorized_only", auth=auth)
 
 
-def test_multiple_auth_and_header_api_key_can_be_combined(
+@pytest.mark.asyncio
+async def test_multiple_auth_and_header_api_key_can_be_combined(
     token_cache, httpx_mock: HTTPXMock
 ):
     api_key_auth = httpx_auth.HeaderApiKey("my_provided_api_key")
@@ -73,11 +77,12 @@ def test_multiple_auth_and_header_api_key_can_be_combined(
         },
     )
 
-    with httpx.Client() as client:
-        client.get("https://authorized_only", auth=auth)
+    async with httpx.AsyncClient() as client:
+        await client.get("https://authorized_only", auth=auth)
 
 
-def test_multiple_auth_and_multiple_auth_can_be_combined(
+@pytest.mark.asyncio
+async def test_multiple_auth_and_multiple_auth_can_be_combined(
     token_cache, httpx_mock: HTTPXMock
 ):
     api_key_auth = httpx_auth.HeaderApiKey("my_provided_api_key")
@@ -103,11 +108,12 @@ def test_multiple_auth_and_multiple_auth_can_be_combined(
         },
     )
 
-    with httpx.Client() as client:
-        client.get("https://authorized_only", auth=auth)
+    async with httpx.AsyncClient() as client:
+        await client.get("https://authorized_only", auth=auth)
 
 
-def test_basic_and_multiple_authentication_can_be_combined(
+@pytest.mark.asyncio
+async def test_basic_and_multiple_authentication_can_be_combined(
     token_cache, httpx_mock: HTTPXMock
 ):
     basic_auth = httpx_auth.Basic("test_user", "test_pwd")
@@ -129,11 +135,12 @@ def test_basic_and_multiple_authentication_can_be_combined(
         },
     )
 
-    with httpx.Client() as client:
-        client.get("https://authorized_only", auth=auth)
+    async with httpx.AsyncClient() as client:
+        await client.get("https://authorized_only", auth=auth)
 
 
-def test_query_api_key_and_multiple_authentication_can_be_combined(
+@pytest.mark.asyncio
+async def test_query_api_key_and_multiple_authentication_can_be_combined(
     token_cache, httpx_mock: HTTPXMock
 ):
     api_key_auth = httpx_auth.QueryApiKey("my_provided_api_key")
@@ -153,11 +160,12 @@ def test_query_api_key_and_multiple_authentication_can_be_combined(
         },
     )
 
-    with httpx.Client() as client:
-        client.get("https://authorized_only", auth=auth)
+    async with httpx.AsyncClient() as client:
+        await client.get("https://authorized_only", auth=auth)
 
 
-def test_oauth2_resource_owner_password_and_api_key_authentication_can_be_combined(
+@pytest.mark.asyncio
+async def test_oauth2_resource_owner_password_and_api_key_authentication_can_be_combined(
     token_cache, httpx_mock: HTTPXMock
 ):
     resource_owner_password_auth = httpx_auth.OAuth2ResourceOwnerPasswordCredentials(
@@ -187,11 +195,12 @@ def test_oauth2_resource_owner_password_and_api_key_authentication_can_be_combin
         },
     )
 
-    with httpx.Client() as client:
-        client.get("https://authorized_only", auth=auth)
+    async with httpx.AsyncClient() as client:
+        await client.get("https://authorized_only", auth=auth)
 
 
-def test_oauth2_resource_owner_password_and_multiple_authentication_can_be_combined(
+@pytest.mark.asyncio
+async def test_oauth2_resource_owner_password_and_multiple_authentication_can_be_combined(
     token_cache, httpx_mock: HTTPXMock
 ):
     resource_owner_password_auth = httpx_auth.OAuth2ResourceOwnerPasswordCredentials(
@@ -225,11 +234,12 @@ def test_oauth2_resource_owner_password_and_multiple_authentication_can_be_combi
         },
     )
 
-    with httpx.Client() as client:
-        client.get("https://authorized_only", auth=auth)
+    async with httpx.AsyncClient() as client:
+        await client.get("https://authorized_only", auth=auth)
 
 
-def test_oauth2_client_credential_and_api_key_authentication_can_be_combined(
+@pytest.mark.asyncio
+async def test_oauth2_client_credential_and_api_key_authentication_can_be_combined(
     token_cache, httpx_mock: HTTPXMock
 ):
     resource_owner_password_auth = httpx_auth.OAuth2ClientCredentials(
@@ -259,11 +269,12 @@ def test_oauth2_client_credential_and_api_key_authentication_can_be_combined(
         },
     )
 
-    with httpx.Client() as client:
-        client.get("https://authorized_only", auth=auth)
+    async with httpx.AsyncClient() as client:
+        await client.get("https://authorized_only", auth=auth)
 
 
-def test_oauth2_client_credential_and_multiple_authentication_can_be_combined(
+@pytest.mark.asyncio
+async def test_oauth2_client_credential_and_multiple_authentication_can_be_combined(
     token_cache, httpx_mock: HTTPXMock
 ):
     resource_owner_password_auth = httpx_auth.OAuth2ClientCredentials(
@@ -297,11 +308,12 @@ def test_oauth2_client_credential_and_multiple_authentication_can_be_combined(
         },
     )
 
-    with httpx.Client() as client:
-        client.get("https://authorized_only", auth=auth)
+    async with httpx.AsyncClient() as client:
+        await client.get("https://authorized_only", auth=auth)
 
 
-def test_oauth2_authorization_code_and_api_key_authentication_can_be_combined(
+@pytest.mark.asyncio
+async def test_oauth2_authorization_code_and_api_key_authentication_can_be_combined(
     token_cache, httpx_mock: HTTPXMock, browser_mock: BrowserMock
 ):
     authorization_code_auth = httpx_auth.OAuth2AuthorizationCode(
@@ -336,15 +348,16 @@ def test_oauth2_authorization_code_and_api_key_authentication_can_be_combined(
         },
     )
 
-    with httpx.Client() as client:
-        client.get("https://authorized_only", auth=auth)
+    async with httpx.AsyncClient() as client:
+        await client.get("https://authorized_only", auth=auth)
 
     tab.assert_success(
         "You are now authenticated on ce9c755b41b5e3c5b64c70598715d5de271023a53f39a67a70215d265d11d2bfb6ef6e9c701701e998e69cbdbf2cee29fd51d2a950aa05f59a20cf4a646099d5. You may close this tab."
     )
 
 
-def test_oauth2_authorization_code_and_multiple_authentication_can_be_combined(
+@pytest.mark.asyncio
+async def test_oauth2_authorization_code_and_multiple_authentication_can_be_combined(
     token_cache, httpx_mock: HTTPXMock, browser_mock: BrowserMock
 ):
     authorization_code_auth = httpx_auth.OAuth2AuthorizationCode(
@@ -383,15 +396,16 @@ def test_oauth2_authorization_code_and_multiple_authentication_can_be_combined(
         },
     )
 
-    with httpx.Client() as client:
-        client.get("https://authorized_only", auth=auth)
+    async with httpx.AsyncClient() as client:
+        await client.get("https://authorized_only", auth=auth)
 
     tab.assert_success(
         "You are now authenticated on ce9c755b41b5e3c5b64c70598715d5de271023a53f39a67a70215d265d11d2bfb6ef6e9c701701e998e69cbdbf2cee29fd51d2a950aa05f59a20cf4a646099d5. You may close this tab."
     )
 
 
-def test_oauth2_pkce_and_api_key_authentication_can_be_combined(
+@pytest.mark.asyncio
+async def test_oauth2_pkce_and_api_key_authentication_can_be_combined(
     token_cache, httpx_mock: HTTPXMock, browser_mock: BrowserMock, monkeypatch
 ):
     monkeypatch.setattr(httpx_auth.authentication.os, "urandom", lambda x: b"1" * 63)
@@ -427,15 +441,16 @@ def test_oauth2_pkce_and_api_key_authentication_can_be_combined(
         },
     )
 
-    with httpx.Client() as client:
-        client.get("https://authorized_only", auth=auth)
+    async with httpx.AsyncClient() as client:
+        await client.get("https://authorized_only", auth=auth)
 
     tab.assert_success(
         "You are now authenticated on ce9c755b41b5e3c5b64c70598715d5de271023a53f39a67a70215d265d11d2bfb6ef6e9c701701e998e69cbdbf2cee29fd51d2a950aa05f59a20cf4a646099d5. You may close this tab."
     )
 
 
-def test_oauth2_pkce_and_multiple_authentication_can_be_combined(
+@pytest.mark.asyncio
+async def test_oauth2_pkce_and_multiple_authentication_can_be_combined(
     token_cache, httpx_mock: HTTPXMock, browser_mock: BrowserMock, monkeypatch
 ):
     monkeypatch.setattr(httpx_auth.authentication.os, "urandom", lambda x: b"1" * 63)
@@ -475,15 +490,16 @@ def test_oauth2_pkce_and_multiple_authentication_can_be_combined(
         },
     )
 
-    with httpx.Client() as client:
-        client.get("https://authorized_only", auth=auth)
+    async with httpx.AsyncClient() as client:
+        await client.get("https://authorized_only", auth=auth)
 
     tab.assert_success(
         "You are now authenticated on ce9c755b41b5e3c5b64c70598715d5de271023a53f39a67a70215d265d11d2bfb6ef6e9c701701e998e69cbdbf2cee29fd51d2a950aa05f59a20cf4a646099d5. You may close this tab."
     )
 
 
-def test_oauth2_implicit_and_api_key_authentication_can_be_combined(
+@pytest.mark.asyncio
+async def test_oauth2_implicit_and_api_key_authentication_can_be_combined(
     token_cache, httpx_mock: HTTPXMock, browser_mock: BrowserMock
 ):
     implicit_auth = httpx_auth.OAuth2Implicit("https://provide_token")
@@ -509,15 +525,16 @@ def test_oauth2_implicit_and_api_key_authentication_can_be_combined(
         },
     )
 
-    with httpx.Client() as client:
-        client.get("https://authorized_only", auth=auth)
+    async with httpx.AsyncClient() as client:
+        await client.get("https://authorized_only", auth=auth)
 
     tab.assert_success(
         "You are now authenticated on bee505cb6ceb14b9f6ac3573cd700b3b3e965004078d7bb57c7b92df01e448c992a7a46b4804164fc998ea166ece3f3d5849ca2405c4a548f43b915b0677231c. You may close this tab."
     )
 
 
-def test_oauth2_implicit_and_multiple_authentication_can_be_combined(
+@pytest.mark.asyncio
+async def test_oauth2_implicit_and_multiple_authentication_can_be_combined(
     token_cache, httpx_mock: HTTPXMock, browser_mock: BrowserMock
 ):
     implicit_auth = httpx_auth.OAuth2Implicit("https://provide_token")
@@ -547,8 +564,8 @@ def test_oauth2_implicit_and_multiple_authentication_can_be_combined(
         },
     )
 
-    with httpx.Client() as client:
-        client.get("https://authorized_only", auth=auth)
+    async with httpx.AsyncClient() as client:
+        await client.get("https://authorized_only", auth=auth)
 
     tab.assert_success(
         "You are now authenticated on bee505cb6ceb14b9f6ac3573cd700b3b3e965004078d7bb57c7b92df01e448c992a7a46b4804164fc998ea166ece3f3d5849ca2405c4a548f43b915b0677231c. You may close this tab."

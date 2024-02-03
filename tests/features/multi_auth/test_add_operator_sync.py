@@ -20,6 +20,7 @@ def test_basic_and_api_key_authentication_can_be_combined(httpx_mock: HTTPXMock)
             "X-API-Key": "my_provided_api_key",
         },
     )
+
     with httpx.Client() as client:
         client.get("https://authorized_only", auth=auth)
 
@@ -45,6 +46,7 @@ def test_header_api_key_and_multiple_authentication_can_be_combined(
             "X-Api-Key3": "my_provided_api_key3",
         },
     )
+
     with httpx.Client() as client:
         client.get("https://authorized_only", auth=auth)
 
@@ -70,6 +72,7 @@ def test_multiple_auth_and_header_api_key_can_be_combined(
             "X-Api-Key3": "my_provided_api_key3",
         },
     )
+
     with httpx.Client() as client:
         client.get("https://authorized_only", auth=auth)
 
@@ -99,6 +102,7 @@ def test_multiple_auth_and_multiple_auth_can_be_combined(
             "X-Api-Key4": "my_provided_api_key4",
         },
     )
+
     with httpx.Client() as client:
         client.get("https://authorized_only", auth=auth)
 
@@ -124,6 +128,7 @@ def test_basic_and_multiple_authentication_can_be_combined(
             "X-Api-Key3": "my_provided_api_key3",
         },
     )
+
     with httpx.Client() as client:
         client.get("https://authorized_only", auth=auth)
 
@@ -147,6 +152,7 @@ def test_query_api_key_and_multiple_authentication_can_be_combined(
             "X-Api-Key3": "my_provided_api_key3",
         },
     )
+
     with httpx.Client() as client:
         client.get("https://authorized_only", auth=auth)
 
@@ -180,6 +186,7 @@ def test_oauth2_resource_owner_password_and_api_key_authentication_can_be_combin
             "X-API-Key": "my_provided_api_key",
         },
     )
+
     with httpx.Client() as client:
         client.get("https://authorized_only", auth=auth)
 
@@ -217,6 +224,7 @@ def test_oauth2_resource_owner_password_and_multiple_authentication_can_be_combi
             "X-Api-Key2": "my_provided_api_key2",
         },
     )
+
     with httpx.Client() as client:
         client.get("https://authorized_only", auth=auth)
 
@@ -250,6 +258,7 @@ def test_oauth2_client_credential_and_api_key_authentication_can_be_combined(
             "X-API-Key": "my_provided_api_key",
         },
     )
+
     with httpx.Client() as client:
         client.get("https://authorized_only", auth=auth)
 
@@ -287,6 +296,7 @@ def test_oauth2_client_credential_and_multiple_authentication_can_be_combined(
             "X-Api-Key2": "my_provided_api_key2",
         },
     )
+
     with httpx.Client() as client:
         client.get("https://authorized_only", auth=auth)
 
@@ -325,6 +335,7 @@ def test_oauth2_authorization_code_and_api_key_authentication_can_be_combined(
             "X-API-Key": "my_provided_api_key",
         },
     )
+
     with httpx.Client() as client:
         client.get("https://authorized_only", auth=auth)
 
@@ -371,6 +382,7 @@ def test_oauth2_authorization_code_and_multiple_authentication_can_be_combined(
             "X-Api-Key2": "my_provided_api_key2",
         },
     )
+
     with httpx.Client() as client:
         client.get("https://authorized_only", auth=auth)
 
@@ -414,6 +426,7 @@ def test_oauth2_pkce_and_api_key_authentication_can_be_combined(
             "X-API-Key": "my_provided_api_key",
         },
     )
+
     with httpx.Client() as client:
         client.get("https://authorized_only", auth=auth)
 
@@ -461,6 +474,7 @@ def test_oauth2_pkce_and_multiple_authentication_can_be_combined(
             "X-Api-Key2": "my_provided_api_key2",
         },
     )
+
     with httpx.Client() as client:
         client.get("https://authorized_only", auth=auth)
 
@@ -494,6 +508,7 @@ def test_oauth2_implicit_and_api_key_authentication_can_be_combined(
             "X-API-Key": "my_provided_api_key",
         },
     )
+
     with httpx.Client() as client:
         client.get("https://authorized_only", auth=auth)
 
@@ -531,6 +546,7 @@ def test_oauth2_implicit_and_multiple_authentication_can_be_combined(
             "X-Api-Key2": "my_provided_api_key2",
         },
     )
+
     with httpx.Client() as client:
         client.get("https://authorized_only", auth=auth)
 

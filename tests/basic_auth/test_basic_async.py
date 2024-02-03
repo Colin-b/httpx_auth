@@ -16,5 +16,6 @@ async def test_basic_authentication_send_authorization_header(httpx_mock: HTTPXM
             "Authorization": "Basic dGVzdF91c2VyOnRlc3RfcHdk",
         },
     )
+
     async with httpx.AsyncClient() as client:
         await client.get("https://authorized_only", auth=auth)

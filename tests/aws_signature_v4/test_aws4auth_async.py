@@ -25,6 +25,7 @@ async def test_aws_auth_without_content_in_request(httpx_mock: HTTPXMock):
             "x-amz-date": "20181011T150505Z",
         },
     )
+
     async with httpx.AsyncClient() as client:
         await client.post("https://authorized_only", auth=auth)
 
@@ -49,6 +50,7 @@ async def test_aws_auth_with_content_in_request(httpx_mock: HTTPXMock):
             "x-amz-date": "20181011T150505Z",
         },
     )
+
     async with httpx.AsyncClient() as client:
         await client.post("https://authorized_only", json=[{"key": "value"}], auth=auth)
 
@@ -76,6 +78,7 @@ async def test_aws_auth_with_security_token_and_without_content_in_request(
             "x-amz-security-token": "security_token",
         },
     )
+
     async with httpx.AsyncClient() as client:
         await client.post("https://authorized_only", auth=auth)
 
@@ -104,6 +107,7 @@ async def test_aws_auth_with_security_token_and_content_in_request(
             "x-amz-security-token": "security_token",
         },
     )
+
     async with httpx.AsyncClient() as client:
         await client.post("https://authorized_only", json=[{"key": "value"}], auth=auth)
 
@@ -127,6 +131,7 @@ async def test_aws_auth_override_x_amz_date_header(httpx_mock: HTTPXMock):
             "x-amz-date": "20181011T150505Z",
         },
     )
+
     async with httpx.AsyncClient() as client:
         await client.post(
             "https://authorized_only",
@@ -154,6 +159,7 @@ async def test_aws_auth_root_path(httpx_mock: HTTPXMock):
             "x-amz-date": "20181011T150505Z",
         },
     )
+
     async with httpx.AsyncClient() as client:
         await client.post("https://authorized_only/", auth=auth)
 
@@ -177,6 +183,7 @@ async def test_aws_auth_query_parameters(httpx_mock: HTTPXMock):
             "x-amz-date": "20181011T150505Z",
         },
     )
+
     async with httpx.AsyncClient() as client:
         await client.post("https://authorized_only?param1&param2=blah*", auth=auth)
 
@@ -200,6 +207,7 @@ async def test_aws_auth_path_normalize(httpx_mock: HTTPXMock):
             "x-amz-date": "20181011T150505Z",
         },
     )
+
     async with httpx.AsyncClient() as client:
         await client.post("https://authorized_only/./test/../stuff//more/", auth=auth)
 
@@ -223,6 +231,7 @@ async def test_aws_auth_path_quoting(httpx_mock: HTTPXMock):
             "x-amz-date": "20181011T150505Z",
         },
     )
+
     async with httpx.AsyncClient() as client:
         await client.post("https://authorized_only/test/hello-*.&^~+{}!$£_ ", auth=auth)
 
@@ -246,6 +255,7 @@ async def test_aws_auth_path_percent_encode_non_s3(httpx_mock: HTTPXMock):
             "x-amz-date": "20181011T150505Z",
         },
     )
+
     async with httpx.AsyncClient() as client:
         await client.post("https://authorized_only/test/%2a%2b%25/~-_^& %%", auth=auth)
 
@@ -269,6 +279,7 @@ async def test_aws_auth_path_percent_encode_s3(httpx_mock: HTTPXMock):
             "x-amz-date": "20181011T150505Z",
         },
     )
+
     async with httpx.AsyncClient() as client:
         await client.post("https://authorized_only/test/%2a%2b%25/~-_^& %%", auth=auth)
 
@@ -292,5 +303,6 @@ async def test_aws_auth_without_path(httpx_mock: HTTPXMock):
             "x-amz-date": "20181011T150505Z",
         },
     )
+
     async with httpx.AsyncClient() as client:
         await client.get("https://authorized_only", auth=auth)

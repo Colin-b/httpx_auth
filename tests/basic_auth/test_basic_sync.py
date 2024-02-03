@@ -14,5 +14,6 @@ def test_basic_authentication_send_authorization_header(httpx_mock: HTTPXMock):
             "Authorization": "Basic dGVzdF91c2VyOnRlc3RfcHdk",
         },
     )
+
     with httpx.Client() as client:
         client.get("https://authorized_only", auth=auth)
