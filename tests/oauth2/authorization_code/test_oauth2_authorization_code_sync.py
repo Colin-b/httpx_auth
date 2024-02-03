@@ -888,6 +888,7 @@ def test_nonce_is_sent_if_provided_in_authorization_url(
             "Authorization": "Bearer 2YotnFZFEjr1zCsicMWpAA",
         },
     )
+
     with httpx.Client() as client:
         client.get("https://authorized_only", auth=auth)
 
@@ -927,6 +928,7 @@ def test_response_type_can_be_provided_in_url(
             "Authorization": "Bearer 2YotnFZFEjr1zCsicMWpAA",
         },
     )
+
     with httpx.Client() as client:
         client.get("https://authorized_only", auth=auth)
 
