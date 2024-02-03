@@ -2,7 +2,6 @@ from pytest_httpx import HTTPXMock
 import httpx
 
 import httpx_auth
-from tests.auth_helper import get_header
 from httpx_auth.testing import token_cache
 
 
@@ -25,10 +24,16 @@ def test_okta_client_credentials_flow_uses_provided_client(
         },
         match_headers={"x-test": "Test value"},
     )
-    assert (
-        get_header(httpx_mock, auth).get("Authorization")
-        == "Bearer 2YotnFZFEjr1zCsicMWpAA"
+    httpx_mock.add_response(
+        url="https://authorized_only",
+        method="GET",
+        match_headers={
+            "Authorization": "Bearer 2YotnFZFEjr1zCsicMWpAA",
+        },
     )
+
+    with httpx.Client() as client:
+        client.get("https://authorized_only", auth=auth)
 
 
 def test_okta_client_credentials_flow_token_is_sent_in_authorization_header_by_default(
@@ -48,10 +53,16 @@ def test_okta_client_credentials_flow_token_is_sent_in_authorization_header_by_d
             "example_parameter": "example_value",
         },
     )
-    assert (
-        get_header(httpx_mock, auth).get("Authorization")
-        == "Bearer 2YotnFZFEjr1zCsicMWpAA"
+    httpx_mock.add_response(
+        url="https://authorized_only",
+        method="GET",
+        match_headers={
+            "Authorization": "Bearer 2YotnFZFEjr1zCsicMWpAA",
+        },
     )
+
+    with httpx.Client() as client:
+        client.get("https://authorized_only", auth=auth)
 
 
 def test_okta_client_credentials_flow_token_is_expired_after_30_seconds_by_default(
@@ -78,10 +89,16 @@ def test_okta_client_credentials_flow_token_is_expired_after_30_seconds_by_defau
             "example_parameter": "example_value",
         },
     )
-    assert (
-        get_header(httpx_mock, auth).get("Authorization")
-        == "Bearer 2YotnFZFEjr1zCsicMWpAA"
+    httpx_mock.add_response(
+        url="https://authorized_only",
+        method="GET",
+        match_headers={
+            "Authorization": "Bearer 2YotnFZFEjr1zCsicMWpAA",
+        },
     )
+
+    with httpx.Client() as client:
+        client.get("https://authorized_only", auth=auth)
 
 
 def test_okta_client_credentials_flow_token_custom_expiry(
@@ -96,10 +113,16 @@ def test_okta_client_credentials_flow_token_custom_expiry(
         token="2YotnFZFEjr1zCsicMWpAA",
         expiry=httpx_auth.oauth2_tokens._to_expiry(expires_in=29),
     )
-    assert (
-        get_header(httpx_mock, auth).get("Authorization")
-        == "Bearer 2YotnFZFEjr1zCsicMWpAA"
+    httpx_mock.add_response(
+        url="https://authorized_only",
+        method="GET",
+        match_headers={
+            "Authorization": "Bearer 2YotnFZFEjr1zCsicMWpAA",
+        },
     )
+
+    with httpx.Client() as client:
+        client.get("https://authorized_only", auth=auth)
 
 
 def test_expires_in_sent_as_str(token_cache, httpx_mock: HTTPXMock):
@@ -117,7 +140,13 @@ def test_expires_in_sent_as_str(token_cache, httpx_mock: HTTPXMock):
             "example_parameter": "example_value",
         },
     )
-    assert (
-        get_header(httpx_mock, auth).get("Authorization")
-        == "Bearer 2YotnFZFEjr1zCsicMWpAA"
+    httpx_mock.add_response(
+        url="https://authorized_only",
+        method="GET",
+        match_headers={
+            "Authorization": "Bearer 2YotnFZFEjr1zCsicMWpAA",
+        },
     )
+
+    with httpx.Client() as client:
+        client.get("https://authorized_only", auth=auth)
