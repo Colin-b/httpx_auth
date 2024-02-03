@@ -129,6 +129,8 @@ class OAuth2ResponseHandler(BaseHTTPRequestHandler):
 
 class GrantDetails:
     DEFAULT_SUCCESS_TEMPLATE = """
+        <!DOCTYPE html>
+        <html>
         <body onload="window.open('', '_self', ''); window.setTimeout(close, {display_time})"
          style="color: #4F8A10;
                 background-color: #DFF2BF;
@@ -137,8 +139,11 @@ class GrantDetails:
                 align-items: center;
                 justify-content: center;">
             <div style="border: 1px solid; padding: 8px;">{text}</div>
-        </body>"""
+        </body>
+        </html>"""
     DEFAULT_FAILURE_TEMPLATE = """
+        <!DOCTYPE html>
+        <html>
         <body onload="window.open('', '_self', ''); window.setTimeout(close, {display_time})"
          style="color: #D8000C;
                 background-color: #FFBABA;
@@ -147,7 +152,8 @@ class GrantDetails:
                 align-items: center;
                 justify-content: center;">
             <div style="border: 1px solid; padding: 8px;">{text}</div>
-        </body>"""
+        </body>
+        </html>"""
 
     def __init__(
         self,
