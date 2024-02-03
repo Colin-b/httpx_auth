@@ -405,7 +405,7 @@ def test_oauth2_implicit_flow_token_is_sent_in_requested_field(
         url="https://authorized_only",
         method="GET",
         match_headers={
-            "Authorization": f"Bearer {token}",
+            "Bearer": token,
         },
     )
 
