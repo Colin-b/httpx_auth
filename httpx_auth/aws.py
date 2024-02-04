@@ -98,10 +98,8 @@ class AWS4Auth(httpx.Auth):
     def _get_canonical_request(
         self, req: httpx.Request, canonical_headers: str, signed_headers: str
     ) -> str:
-        url_str = str(req.url)
-        url = urlparse(url_str)
-        canonical_uri = self._get_canonical_uri(url.path)
-        canonical_query_string = self._get_canonical_query_string(url_str)
+        canonical_uri = self._get_canonical_uri(req.url)
+        canonical_query_string = self._get_canonical_query_string(req.url)
         hashed_payload = req.headers["x-amz-content-sha256"]
         req_parts = [
             req.method.upper(),
@@ -152,13 +150,16 @@ class AWS4Auth(httpx.Auth):
         sig_items = ["AWS4-HMAC-SHA256", amz_date, scope, hsh.hexdigest()]
         return "\n".join(sig_items)
 
-    def _get_canonical_uri(self, path: str) -> str:
+    def _get_canonical_uri(self, url: httpx.URL) -> str:
         """
         Generate the canonical path as per AWS4 auth requirements.
         Not documented anywhere, determined from aws4_testsuite examples,
         problem reports and testing against the live services.
         path -- request path
         """
+        url_str = str(url)
+        url = urlparse(url_str)
+        path = url.path
         if len(path) == 0:
             path = "/"
         safe_chars = "/~"
@@ -174,12 +175,13 @@ class AWS4Auth(httpx.Auth):
         return quote(full_path, safe=safe_chars)
 
     @staticmethod
-    def _get_canonical_query_string(url_str: str) -> str:
+    def _get_canonical_query_string(url: httpx.URL) -> str:
         """
         Parse and format querystring as per AWS4 auth requirements.
         Perform percent quoting as needed.
         qs -- querystring
         """
+        url_str = str(url)
         # AWS handles "extreme" querystrings differently to urlparse
         # (see post-vanilla-query-nonunreserved test in aws_testsuite)
         split = url_str.split("?", 1)
