@@ -85,6 +85,57 @@ async def test_aws_auth_with_security_token_and_without_content_in_request(
 
 @time_machine.travel("2018-10-11T15:05:05.663979+00:00", tick=False)
 @pytest.mark.asyncio
+async def test_aws_auth_share_security_tokens_between_instances(
+    httpx_mock: HTTPXMock,
+):
+    httpx_auth.AWS4Auth(
+        access_id="access_id",
+        secret_key="wJalrXUtnFEMI/K7MDENG+bPxRfiCYEXAMPLEKEY",
+        region="us-east-1",
+        service="iam",
+        security_token="security_token1",
+    )
+    auth2 = httpx_auth.AWS4Auth(
+        access_id="access_id",
+        secret_key="wJalrXUtnFEMI/K7MDENG+bPxRfiCYEXAMPLEKEY",
+        region="us-east-1",
+        service="iam",
+        security_token="security_token",
+    )
+    assert auth2.include_headers == [
+        "host",
+        "content-type",
+        "date",
+        "x-amz-*",
+        "x-amz-security-token",
+        "x-amz-security-token",
+    ]
+    assert auth2.default_include_headers == [
+        "host",
+        "content-type",
+        "date",
+        "x-amz-*",
+        "x-amz-security-token",
+        "x-amz-security-token",
+    ]
+
+    httpx_mock.add_response(
+        url="https://authorized_only",
+        method="POST",
+        match_headers={
+            "x-amz-content-sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "Authorization": "AWS4-HMAC-SHA256 Credential=access_id/20181011/us-east-1/iam/aws4_request, SignedHeaders=host;x-amz-content-sha256;x-amz-date;x-amz-security-token, Signature=2ae27ce5e8dcc005736c97ff857e4f44401fc3a33d8358b1d67c079f0f5a8b3e",
+            "x-amz-date": "20181011T150505Z",
+            "x-amz-security-token": "security_token",
+        },
+    )
+
+    async with httpx.AsyncClient() as client:
+        await client.post("https://authorized_only", auth=auth2)
+
+
+@time_machine.travel("2018-10-11T15:05:05.663979+00:00", tick=False)
+@pytest.mark.asyncio
 async def test_aws_auth_with_security_token_and_content_in_request(
     httpx_mock: HTTPXMock,
 ):

@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Fixed
 - Remove deprecation warnings due to usage of `utcnow` and `utcfromtimestamp`. Thanks to [`Raphael Krupinski`](https://github.com/rafalkrupinski).
+- `httpx_auth.AWS4Auth.default_include_headers` value kept growing in size every time a new `httpx_auth.AWS4Auth` instance was created with `security_token` parameter provided. Thanks to [`Miikka Koskinen`](https://github.com/miikka).
 
 ## [0.19.0] - 2024-01-09
 ### Added
@@ -15,10 +16,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Requires [`httpx`](https://www.python-httpx.org)==0.26.\*
   - Note that this changes the signature sent via AWS auth for URLs containing %. Feel free to open an issue if this is one.
-
-### Fixed
-
-- Fix a memory leak in repeated AWS4Auth initializationa.
 
 ## [0.18.0] - 2023-09-11
 ### Changed
