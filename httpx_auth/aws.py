@@ -36,8 +36,8 @@ class AWS4Auth(httpx.Auth):
         http://docs.aws.amazon.com/general/latest/gr/rande.html
         e.g. elasticbeanstalk.
         :param security_token: Used for the x-amz-security-token header, for use with STS temporary credentials.
-        :param include_headers: List of headers to include in the canonical and signed headers.
-        ["host", "content-type", "date", "x-amz-*"] by default.
+        :param include_headers: Set of headers to include in the canonical and signed headers.
+        {"host", "content-type", "date", "x-amz-*"} by default.
         Note that if security_token is provided, x-amz-security-token is also included by default.
         Specific values:
         - "x-amz-*" matches any header starting with 'x-amz-' except for x-amz-client context.
@@ -53,11 +53,13 @@ class AWS4Auth(httpx.Auth):
 
         self.security_token = kwargs.get("security_token")
 
-        include_headers = ["host", "content-type", "date", "x-amz-*"]
+        include_headers = {"host", "content-type", "date", "x-amz-*"}
         if self.security_token:
-            include_headers.append("x-amz-security-token")
+            include_headers.add("x-amz-security-token")
 
-        self.include_headers = kwargs.get("include_headers", include_headers)
+        self.include_headers = {
+            header.lower() for header in kwargs.get("include_headers", include_headers)
+        }
 
     def auth_flow(
         self, request: httpx.Request
@@ -129,7 +131,6 @@ class AWS4Auth(httpx.Auth):
         Return the Canonical Headers and the Signed Headers strs as a tuple
         (canonical_headers, signed_headers).
         """
-        include = [x.lower() for x in self.include_headers]
         headers = req.headers.copy()
         # Aggregate for upper/lowercase header name collisions in header names,
         # AMZ requires values of colliding headers be concatenated into a
@@ -138,15 +139,11 @@ class AWS4Auth(httpx.Auth):
         # is here just in case you duck type with a regular dict
         included_headers = {}
         for header, header_value in headers.items():
-            if (
-                header in include
-                or "*" in include
-                or (
-                    "x-amz-*" in include
-                    and header.startswith("x-amz-")
-                    # x-amz-client-context break mobile analytics auth if included
-                    and not header == "x-amz-client-context"
-                )
+            if (header or "*") in self.include_headers or (
+                "x-amz-*" in self.include_headers
+                and header.startswith("x-amz-")
+                # x-amz-client-context break mobile analytics auth if included
+                and not header == "x-amz-client-context"
             ):
                 header_values = included_headers.setdefault(header, [])
                 header_values.append(_amz_norm_whitespace(header_value))
