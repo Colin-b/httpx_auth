@@ -98,14 +98,6 @@ class AWS4Auth(httpx.Auth):
     def _get_canonical_request(
         self, req: httpx.Request, canonical_headers: str, signed_headers: str
     ) -> str:
-        """
-        Create the AWS authentication Canonical Request string.
-        req            -- Should already include an x-amz-content-sha256 header
-        cano_headers   -- Canonical Headers section of Canonical Request, as
-                          returned by get_canonical_headers()
-        signed_headers -- Signed Headers, as returned by
-                          get_canonical_headers()
-        """
         url_str = str(req.url)
         url = urlparse(url_str)
         canonical_uri = self._get_canonical_uri(url.path)
