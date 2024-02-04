@@ -96,7 +96,7 @@ class AWS4Auth(httpx.Auth):
         yield request
 
     def _get_canonical_request(
-        self, req: httpx.Request, cano_headers: str, signed_headers: str
+        self, req: httpx.Request, canonical_headers: str, signed_headers: str
     ) -> str:
         """
         Create the AWS authentication Canonical Request string.
@@ -108,20 +108,20 @@ class AWS4Auth(httpx.Auth):
         """
         url_str = str(req.url)
         url = urlparse(url_str)
-        path = self._amz_cano_path(url.path)
+        canonical_uri = self._get_canonical_uri(url.path)
         # AWS handles "extreme" querystrings differently to urlparse
         # (see post-vanilla-query-nonunreserved test in aws_testsuite)
         split = url_str.split("?", 1)
         qs = split[1] if len(split) == 2 else ""
-        qs = self._amz_cano_querystring(qs)
-        payload_hash = req.headers["x-amz-content-sha256"]
+        canonical_query_string = self._get_canonical_query_string(qs)
+        hashed_payload = req.headers["x-amz-content-sha256"]
         req_parts = [
             req.method.upper(),
-            path,
-            qs,
-            cano_headers,
+            canonical_uri,
+            canonical_query_string,
+            canonical_headers,
             signed_headers,
-            payload_hash,
+            hashed_payload,
         ]
         return "\n".join(req_parts)
 
@@ -164,7 +164,7 @@ class AWS4Auth(httpx.Auth):
         sig_items = ["AWS4-HMAC-SHA256", amz_date, scope, hsh.hexdigest()]
         return "\n".join(sig_items)
 
-    def _amz_cano_path(self, path: str) -> str:
+    def _get_canonical_uri(self, path: str) -> str:
         """
         Generate the canonical path as per AWS4 auth requirements.
         Not documented anywhere, determined from aws4_testsuite examples,
@@ -186,7 +186,7 @@ class AWS4Auth(httpx.Auth):
         return quote(full_path, safe=safe_chars)
 
     @staticmethod
-    def _amz_cano_querystring(qs: str) -> str:
+    def _get_canonical_query_string(qs: str) -> str:
         """
         Parse and format querystring as per AWS4 auth requirements.
         Perform percent quoting as needed.
