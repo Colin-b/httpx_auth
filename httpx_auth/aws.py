@@ -98,18 +98,17 @@ class AWS4Auth(httpx.Auth):
     def _get_canonical_request(
         self, req: httpx.Request, canonical_headers: str, signed_headers: str
     ) -> str:
-        canonical_uri = self._get_canonical_uri(req.url)
-        canonical_query_string = self._get_canonical_query_string(req.url)
-        hashed_payload = req.headers["x-amz-content-sha256"]
-        req_parts = [
-            req.method.upper(),
-            canonical_uri,
-            canonical_query_string,
-            canonical_headers,
-            signed_headers,
-            hashed_payload,
-        ]
-        return "\n".join(req_parts)
+        return "\n".join(
+            [
+                req.method.upper(),
+                self._get_canonical_uri(req.url),
+                self._get_canonical_query_string(req.url),
+                canonical_headers,
+                signed_headers,
+                # Hashed payload
+                req.headers["x-amz-content-sha256"],
+            ]
+        )
 
     def _get_canonical_headers(self, req: httpx.Request) -> Tuple[str, str]:
         """
