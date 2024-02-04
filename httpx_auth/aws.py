@@ -138,7 +138,6 @@ class AWS4Auth(httpx.Auth):
         # is here just in case you duck type with a regular dict
         included_headers = {}
         for header, header_value in headers.items():
-            header = header.strip()
             if (
                 header in include
                 or "*" in include
