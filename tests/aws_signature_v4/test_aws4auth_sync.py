@@ -103,15 +103,6 @@ def test_aws_auth_share_security_tokens_between_instances(
         "date",
         "x-amz-*",
         "x-amz-security-token",
-        "x-amz-security-token",
-    ]
-    assert auth2.default_include_headers == [
-        "host",
-        "content-type",
-        "date",
-        "x-amz-*",
-        "x-amz-security-token",
-        "x-amz-security-token",
     ]
 
     httpx_mock.add_response(

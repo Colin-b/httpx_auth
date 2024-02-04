@@ -22,8 +22,6 @@ class AWS4Auth(httpx.Auth):
 
     requires_request_body = True
 
-    default_include_headers = ["host", "content-type", "date", "x-amz-*"]
-
     def __init__(
         self, access_id: str, secret_key: str, region: str, service: str, **kwargs
     ):
@@ -39,10 +37,10 @@ class AWS4Auth(httpx.Auth):
         e.g. elasticbeanstalk.
         :param security_token: Used for the x-amz-security-token header, for use with STS temporary credentials.
         :param include_headers: List of headers to include in the canonical and signed headers.
-        It's primarily included to allow testing against specific examples from Amazon.
         ["host", "content-type", "date", "x-amz-*"] by default.
+        Note that if security_token is provided, x-amz-security-token is also included by default.
         Specific values:
-        - "x-amz-*" matches any header starting with 'x-amz-' except for x-amz-client context, which appears to break mobile analytics auth if included.
+        - "x-amz-*" matches any header starting with 'x-amz-' except for x-amz-client context.
         - "*" will include every provided header.
         """
         self.secret_key = secret_key
@@ -55,13 +53,11 @@ class AWS4Auth(httpx.Auth):
 
         self.security_token = kwargs.get("security_token")
 
-        # TODO Check if we really need to be able to override this default ?
+        include_headers = ["host", "content-type", "date", "x-amz-*"]
         if self.security_token:
-            # TODO Avoid modifying shared variable
-            self.default_include_headers.append("x-amz-security-token")
-        self.include_headers = kwargs.get(
-            "include_headers", self.default_include_headers
-        )
+            include_headers.append("x-amz-security-token")
+
+        self.include_headers = kwargs.get("include_headers", include_headers)
 
     def auth_flow(
         self, request: httpx.Request
@@ -84,9 +80,7 @@ class AWS4Auth(httpx.Auth):
         if self.security_token:
             request.headers["x-amz-security-token"] = self.security_token
 
-        cano_headers, signed_headers = self._get_canonical_headers(
-            request, self.include_headers
-        )
+        cano_headers, signed_headers = self._get_canonical_headers(request)
         cano_req = self._get_canonical_request(request, cano_headers, signed_headers)
         sig_string = self._get_sig_string(request, cano_req, scope)
         sig_string = sig_string.encode("utf-8")
@@ -129,25 +123,13 @@ class AWS4Auth(httpx.Auth):
         ]
         return "\n".join(req_parts)
 
-    @classmethod
-    def _get_canonical_headers(
-        cls, req: httpx.Request, include: List[str]
-    ) -> Tuple[str, str]:
+    def _get_canonical_headers(self, req: httpx.Request) -> Tuple[str, str]:
         """
         Generate the Canonical Headers section of the Canonical Request.
         Return the Canonical Headers and the Signed Headers strs as a tuple
         (canonical_headers, signed_headers).
-
-        :param include: List of headers to include in the canonical and signed
-        headers. It's primarily included to allow testing against
-        specific examples from Amazon. If omitted or None it
-        includes host, content-type and any header starting 'x-amz-'
-        except for x-amz-client context, which appears to break
-        mobile analytics auth if included. Except for the
-        x-amz-client-context exclusion these defaults are per the
-        AWS documentation.
         """
-        include = [x.lower() for x in include]
+        include = [x.lower() for x in self.include_headers]
         headers = req.headers.copy()
         # Aggregate for upper/lowercase header name collisions in header names,
         # AMZ requires values of colliding headers be concatenated into a
@@ -157,13 +139,14 @@ class AWS4Auth(httpx.Auth):
         included_headers = {}
         for header, header_value in headers.items():
             header = header.strip().lower()
-            header_value = cls._amz_norm_whitespace(header_value).strip()
+            header_value = _amz_norm_whitespace(header_value)
             if (
                 header in include
                 or "*" in include
                 or (
                     "x-amz-*" in include
                     and header.startswith("x-amz-")
+                    # x-amz-client-context break mobile analytics auth if included
                     and not header == "x-amz-client-context"
                 )
             ):
@@ -242,14 +225,6 @@ class AWS4Auth(httpx.Auth):
         qs = "&".join(sorted(qs_strings))
         return qs
 
-    @staticmethod
-    def _amz_norm_whitespace(text: str) -> str:
-        """
-        Replace runs of whitespace with a single space.
-        Ignore text enclosed in quotes.
-        """
-        return " ".join(shlex.split(text, posix=False))
-
 
 def generate_key(secret_key: str, region: str, service: str, date: str) -> bytes:
     init_key = f"AWS4{secret_key}".encode("utf-8")
@@ -261,3 +236,11 @@ def generate_key(secret_key: str, region: str, service: str, date: str) -> bytes
 
 def sign_sha256(signing_key: bytes, message: str) -> bytes:
     return hmac.new(signing_key, message.encode("utf-8"), hashlib.sha256).digest()
+
+
+def _amz_norm_whitespace(text: str) -> str:
+    """
+    Replace runs of whitespace with a single space.
+    Ignore text enclosed in quotes.
+    """
+    return " ".join(shlex.split(text, posix=False)).strip()
