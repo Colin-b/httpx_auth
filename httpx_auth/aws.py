@@ -131,11 +131,6 @@ class AWS4Auth(httpx.Auth):
         Return the Canonical Headers and the Signed Headers strs as a tuple
         (canonical_headers, signed_headers).
         """
-        # Aggregate for upper/lowercase header name collisions in header names,
-        # AMZ requires values of colliding headers be concatenated into a
-        # single header with lowercase name.  Although this is not possible with
-        # Requests, since it uses a case-insensitive dict to hold headers, this
-        # is here just in case you duck type with a regular dict
         included_headers = {}
         for header, header_value in req.headers.items():
             if (header or "*") in self.include_headers or (
@@ -144,17 +139,13 @@ class AWS4Auth(httpx.Auth):
                 # x-amz-client-context break mobile analytics auth if included
                 and not header == "x-amz-client-context"
             ):
-                header_values = included_headers.setdefault(header, [])
-                header_values.append(_amz_norm_whitespace(header_value))
+                included_headers[header] = _amz_norm_whitespace(header_value)
 
         canonical_headers = ""
         signed_headers = []
         for header in sorted(included_headers):
             signed_headers.append(header)
-
-            header_values = included_headers[header]
-            header_values = ",".join(sorted(header_values))
-            canonical_headers += f"{header}:{header_values}\n"
+            canonical_headers += f"{header}:{included_headers[header]}\n"
 
         signed_headers = ";".join(signed_headers)
 

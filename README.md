@@ -683,7 +683,9 @@ with httpx.Client() as client:
 Note that the following changes were made compared to `requests-aws4auth`:
   - Each request now has its own signing key and `x-amz-date`. Meaning **you can use the same auth instance for more than one request**.
   - `session_token` was renamed into `security_token` for consistency with the underlying name at Amazon.
-  - `include_hdrs` parameter was renamed into `include_headers` and provided values will not be stripped, [WYSIWYG](https://en.wikipedia.org/wiki/WYSIWYG).
+  - `include_hdrs` parameter was renamed into `include_headers`. When using this parameter:
+    - Provided values will not be stripped, [WYSIWYG](https://en.wikipedia.org/wiki/WYSIWYG).
+    - If multiple values are provided for a same header, the computation will be based on the value order you provided and value separated by `, `. Instead of ordered values separated by comma for `requests-aws4auth`.
   - `amz_date` attribute has been removed.
   - It is not possible to provide a `date`. It will default to now.
   - It is not possible to provide an `AWSSigningKey` instance, use explicit parameters instead.
