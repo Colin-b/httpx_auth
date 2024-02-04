@@ -2,6 +2,7 @@
 Provides code for AWSAuth ported to httpx from Sam Washington's requests-aws4auth
 https://github.com/sam-washington/requests-aws4auth
 """
+
 import hmac
 import hashlib
 import posixpath
@@ -61,7 +62,7 @@ class AWS4Auth(httpx.Auth):
         """
         Add x-amz-date, x-amz-content-sha256 and Authorization headers to the request.
         """
-        date = datetime.datetime.utcnow()
+        date = datetime.datetime.now(datetime.timezone.utc)
         scope = f"{date.strftime('%Y%m%d')}/{self.region}/{self.service}/aws4_request"
         signing_key = generate_key(
             self.secret_key, self.region, self.service, date.strftime("%Y%m%d")

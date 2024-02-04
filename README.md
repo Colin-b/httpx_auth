@@ -18,7 +18,7 @@ Provides authentication classes to be used with [`httpx`][1] [authentication par
 <p align="center">
     <a href="https://oauth.net/2/"><img alt="OAuth2" src="https://oauth.net/images/oauth-2-sm.png"></a>
     <a href="https://www.okta.com"><img alt="Okta" src="https://www.okta.com/sites/all/themes/Okta/images/logos/developer/Dev_Logo-03_Large.png" height="120"></a>
-    <a href="https://azure.microsoft.com/en-us/services/active-directory/"><img alt="Azure Active Directory (AD)" src="https://azurecomcdn.azureedge.net/cvt-cda59ccd0aa5ced6ff5a2052417cf596b92980921e88e667127eaca2232a31ab/images/shared/services/pricing-glyph-lock.svg" height="120"></a>
+    <a href="https://www.microsoft.com/en-us/security/business/identity-access/microsoft-entra-id"><img alt="Microsoft Entra ID, formerly Azure Active Directory (AD)" src="https://azurecomcdn.azureedge.net/cvt-cda59ccd0aa5ced6ff5a2052417cf596b92980921e88e667127eaca2232a31ab/images/shared/services/pricing-glyph-lock.svg" height="120"></a>
 </p>
 <p align="center">Some of the supported authentication</p>
 
@@ -34,8 +34,8 @@ Provides authentication classes to be used with [`httpx`][1] [authentication par
   - [Client Credentials Flow](#client-credentials-flow)
     - [Okta](#okta-oauth2-client-credentials)
   - [Implicit Flow](#implicit-flow)
-    - [Azure AD (Access Token)](#microsoft---azure-active-directory-oauth2-access-token)
-    - [Azure AD (ID token)](#microsoft---azure-active-directory-openid-connect-id-token)
+    - [Microsoft Entra (Access Token)](#microsoft---azure-active-directory-oauth2-access-token)
+    - [Microsoft Entra (ID token)](#microsoft---azure-active-directory-openid-connect-id-token)
     - [Okta (Access Token)](#okta-oauth2-implicit-access-token)
     - [Okta (ID token)](#okta-openid-connect-implicit-id-token)
   - [Managing token cache](#managing-token-cache)
@@ -859,7 +859,7 @@ import datetime
 from httpx_auth.testing import browser_mock, BrowserMock, create_token
 
 def test_something(browser_mock: BrowserMock):
-    token_expiry = datetime.datetime.utcnow() + datetime.timedelta(hours=1)
+    token_expiry = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(hours=1)
     token = create_token(token_expiry)
     tab = browser_mock.add_response(
         opened_url="http://url_opened_by_browser?state=1234",
