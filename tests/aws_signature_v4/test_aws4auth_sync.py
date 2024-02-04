@@ -151,6 +151,36 @@ def test_aws_auth_includes_custom_x_amz_headers(
 
 
 @time_machine.travel("2018-10-11T15:05:05.663979+00:00", tick=False)
+def test_aws_auth_excludes_x_amz_client_context_header(
+    httpx_mock: HTTPXMock,
+):
+    auth = httpx_auth.AWS4Auth(
+        access_id="access_id",
+        secret_key="wJalrXUtnFEMI/K7MDENG+bPxRfiCYEXAMPLEKEY",
+        region="us-east-1",
+        service="iam",
+    )
+
+    httpx_mock.add_response(
+        url="https://authorized_only",
+        method="POST",
+        match_headers={
+            "x-amz-content-sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "Authorization": "AWS4-HMAC-SHA256 Credential=access_id/20181011/us-east-1/iam/aws4_request, SignedHeaders=host;x-amz-content-sha256;x-amz-date, Signature=ce708380ee69b1a9558b9b0dddd4d15f35a2a5e5ea3534b541247f1a746626db",
+            "x-amz-date": "20181011T150505Z",
+            "x-amz-Client-Context": "Custom",
+        },
+    )
+
+    with httpx.Client() as client:
+        client.post(
+            "https://authorized_only",
+            headers={"x-amz-Client-Context": "Custom"},
+            auth=auth,
+        )
+
+
+@time_machine.travel("2018-10-11T15:05:05.663979+00:00", tick=False)
 def test_aws_auth_with_security_token_and_content_in_request(httpx_mock: HTTPXMock):
     auth = httpx_auth.AWS4Auth(
         access_id="access_id",
