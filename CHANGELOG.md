@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Fixed
 - Remove deprecation warnings due to usage of `utcnow` and `utcfromtimestamp`. Thanks to [`Raphael Krupinski`](https://github.com/rafalkrupinski).
+- `httpx_auth.AWS4Auth.default_include_headers` value kept growing in size every time a new `httpx_auth.AWS4Auth` instance was created with `security_token` parameter provided. Thanks to [`Miikka Koskinen`](https://github.com/miikka).
+
+### Changed
+- `httpx_auth.AWS4Auth.default_include_headers` is not available anymore, use `httpx_auth.AWS4Auth` `include_headers` parameter instead to change the list of included headers if the default does not fit your need ().
+- `httpx_auth.AWS4Auth` `include_headers` values will not be stripped anymore, meaning that you can now include headers prefixed and/or suffixed with blank spaces.
 
 ## [0.19.0] - 2024-01-09
 ### Added
@@ -114,7 +119,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - `get_token` cache method now requires `on_missing_token` function args to be provided as kwargs instead of args.
-- `get_token` cache method now requires `on_missing_token` parameter to be provided as a non positional argument.
+- `get_token` cache method now requires `on_missing_token` parameter to be provided as a non-positional argument.
 - `get_token` cache method now expose `early_expiry` parameter, defaulting to 30 seconds.
 
 ### Fixed
@@ -166,13 +171,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Still under development, subject to breaking changes without notice: `AWS4Auth` authentication class for AWS. Ported from [`requests-aws4auth`](https://github.com/sam-washington/requests-aws4auth) by [`Michael E. Martinka`](https://github.com/martinka).
 Note that a few changes were made:
-  - deprecated `amz_date` attribute has been removed.
-  - it is not possible to provide an `AWSSigningKey` instance, use explicit parameters instead.
-  - it is not possible to provide a `date`. It will default to now.
-  - it is not possible to provide `raise_invalid_date` parameter anymore as the date will always be valid.
+  - Deprecated `amz_date` attribute has been removed.
+  - It is not possible to provide an `AWSSigningKey` instance, use explicit parameters instead.
+  - It is not possible to provide a `date`. It will default to now.
+  - It is not possible to provide `raise_invalid_date` parameter anymore as the date will always be valid.
   - `include_hdrs` parameter was renamed into `include_headers`
   - `host` is not considered as a specific Amazon service anymore (no test specific code).
-  - Each request now has it's own signing key and x-amz-date. Meaning you can use the same auth instance for more than one request.
+  - Each request now has its own signing key and `x-amz-date`. Meaning you can use the same auth instance for more than one request.
   - `session_token` was renamed into `security_token` for consistency with the underlying name at Amazon.
 
 ## [0.3.0] - 2020-05-26

@@ -667,7 +667,7 @@ OAuth2.token_cache = JsonTokenFileCache('path/to/my_token_cache.json')
 
 ## AWS Signature v4
 
-Amazon Web Service Signature version 4 is implemented following [Amazon S3 documentation](https://docs.aws.amazon.com/AmazonS3/latest/API/sigv4-auth-using-authorization-header.html) and [request-aws4auth](https://github.com/sam-washington/requests-aws4auth).
+Amazon Web Service Signature version 4 is implemented following [Amazon S3 documentation](https://docs.aws.amazon.com/AmazonS3/latest/API/sigv4-auth-using-authorization-header.html) and [request-aws4auth 1.0.1](https://github.com/sam-washington/requests-aws4auth) (with some changes, see below).
 
 Use `httpx_auth.AWS4Auth` to configure this kind of authentication.
 
@@ -680,15 +680,28 @@ with httpx.Client() as client:
     client.get('http://s3-eu-west-1.amazonaws.com', auth=aws)
 ```
 
+Note that the following changes were made compared to `requests-aws4auth`:
+  - Each request now has its own signing key and `x-amz-date`. Meaning **you can use the same auth instance for more than one request**.
+  - `session_token` was renamed into `security_token` for consistency with the underlying name at Amazon.
+  - `include_hdrs` parameter was renamed into `include_headers`. When using this parameter:
+    - Provided values will not be stripped, [WYSIWYG](https://en.wikipedia.org/wiki/WYSIWYG).
+    - If multiple values are provided for a same header, the computation will be based on the value order you provided and value separated by `, `. Instead of ordered values separated by comma for `requests-aws4auth`.
+  - `amz_date` attribute has been removed.
+  - It is not possible to provide a `date`. It will default to now.
+  - It is not possible to provide an `AWSSigningKey` instance, use explicit parameters instead.
+  - It is not possible to provide `raise_invalid_date` parameter anymore as the date will always be valid.
+  - `host` is not considered as a specific Amazon service anymore (no test specific code).
+
 ### Parameters
 
-| Name             | Description                | Mandatory | Default value |
-|:-----------------|:---------------------------|:----------|:--------------|
-| `access_id`      | AWS access ID. | Mandatory | |
-| `secret_key`     | AWS secret access key. | Mandatory | |
-| `region`         | The region you are connecting to, as per [this list](http://docs.aws.amazon.com/general/latest/gr/rande.html#s3_region). For services which do not require a region (e.g. IAM), use us-east-1. | Mandatory | |
-| `service`        | The name of the service you are connecting to, as per [this list](http://docs.aws.amazon.com/general/latest/gr/rande.html). e.g. elasticbeanstalk. | Mandatory | |
-| `security_token` | Used for the `x-amz-security-token` header, for use with STS temporary credentials. | Optional | |
+| Name               | Description                                                                                                                                                                                                                | Mandatory  | Default value                                                                                                                    |
+|:-------------------|:---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|:-----------|:---------------------------------------------------------------------------------------------------------------------------------|
+| `access_id`        | AWS access ID.                                                                                                                                                                                                             | Mandatory  |                                                                                                                                  |
+| `secret_key`       | AWS secret access key.                                                                                                                                                                                                     | Mandatory  |                                                                                                                                  |
+| `region`           | The region you are connecting to, as per [this list](http://docs.aws.amazon.com/general/latest/gr/rande.html#s3_region). For services which do not require a region (e.g. IAM), use us-east-1.                             | Mandatory  |                                                                                                                                  |
+| `service`          | The name of the service you are connecting to, as per [this list](http://docs.aws.amazon.com/general/latest/gr/rande.html). e.g. elasticbeanstalk.                                                                         | Mandatory  |                                                                                                                                  |
+| `security_token`   | Used for the `x-amz-security-token` header, for use with STS temporary credentials.                                                                                                                                        | Optional   |                                                                                                                                  |
+| `include_headers`  | Set of headers to include in the canonical and signed headers. Specific values are `x-amz-*` that matches any header starting with `x-amz-` (except for `x-amz-client-context`) and `*` that include every provided header. | Optional   | {"host", "content-type", "date", "x-amz-*"} if `security_token` is provided, `x-amz-security-token` is also included by default. |
 
 ## API key in header
 
