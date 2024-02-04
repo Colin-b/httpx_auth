@@ -139,7 +139,6 @@ class AWS4Auth(httpx.Auth):
         included_headers = {}
         for header, header_value in headers.items():
             header = header.strip()
-            header_value = _amz_norm_whitespace(header_value)
             if (
                 header in include
                 or "*" in include
@@ -151,7 +150,7 @@ class AWS4Auth(httpx.Auth):
                 )
             ):
                 header_values = included_headers.setdefault(header, [])
-                header_values.append(header_value)
+                header_values.append(_amz_norm_whitespace(header_value))
 
         canonical_headers = ""
         signed_headers = []
