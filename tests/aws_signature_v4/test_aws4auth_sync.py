@@ -382,17 +382,17 @@ def test_aws_auth_query_parameters(httpx_mock: HTTPXMock):
     )
 
     httpx_mock.add_response(
-        url="https://authorized_only?param1&param2=blah*",
+        url="https://authorized_only?id-type=second&id=first*",
         method="POST",
         match_headers={
             "x-amz-content-sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-            "Authorization": "AWS4-HMAC-SHA256 Credential=access_id/20181011/us-east-1/iam/aws4_request, SignedHeaders=host;x-amz-content-sha256;x-amz-date, Signature=f2b8a73e388dc04586b5bcc208c6e50d92f04a1296e561229cd88811ad2494e9",
+            "Authorization": "AWS4-HMAC-SHA256 Credential=access_id/20181011/us-east-1/iam/aws4_request, SignedHeaders=host;x-amz-content-sha256;x-amz-date, Signature=c0e325df7074639a846d402f3813f0ac9418fe6d8304a997310b4c4cb22cb6bb",
             "x-amz-date": "20181011T150505Z",
         },
     )
 
     with httpx.Client() as client:
-        client.post("https://authorized_only?param1&param2=blah*", auth=auth)
+        client.post("https://authorized_only?id-type=second&id=first*", auth=auth)
 
 
 @time_machine.travel("2018-10-11T15:05:05.663979+00:00", tick=False)
