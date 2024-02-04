@@ -109,11 +109,7 @@ class AWS4Auth(httpx.Auth):
         url_str = str(req.url)
         url = urlparse(url_str)
         canonical_uri = self._get_canonical_uri(url.path)
-        # AWS handles "extreme" querystrings differently to urlparse
-        # (see post-vanilla-query-nonunreserved test in aws_testsuite)
-        split = url_str.split("?", 1)
-        qs = split[1] if len(split) == 2 else ""
-        canonical_query_string = self._get_canonical_query_string(qs)
+        canonical_query_string = self._get_canonical_query_string(url_str)
         hashed_payload = req.headers["x-amz-content-sha256"]
         req_parts = [
             req.method.upper(),
@@ -186,12 +182,16 @@ class AWS4Auth(httpx.Auth):
         return quote(full_path, safe=safe_chars)
 
     @staticmethod
-    def _get_canonical_query_string(qs: str) -> str:
+    def _get_canonical_query_string(url_str: str) -> str:
         """
         Parse and format querystring as per AWS4 auth requirements.
         Perform percent quoting as needed.
         qs -- querystring
         """
+        # AWS handles "extreme" querystrings differently to urlparse
+        # (see post-vanilla-query-nonunreserved test in aws_testsuite)
+        split = url_str.split("?", 1)
+        qs = split[1] if len(split) == 2 else ""
         safe_qs_amz_chars = "&=+"
         safe_qs_unresvd = "-_.~"
         qs = unquote(qs)
