@@ -131,14 +131,13 @@ class AWS4Auth(httpx.Auth):
         Return the Canonical Headers and the Signed Headers strs as a tuple
         (canonical_headers, signed_headers).
         """
-        headers = req.headers.copy()
         # Aggregate for upper/lowercase header name collisions in header names,
         # AMZ requires values of colliding headers be concatenated into a
         # single header with lowercase name.  Although this is not possible with
         # Requests, since it uses a case-insensitive dict to hold headers, this
         # is here just in case you duck type with a regular dict
         included_headers = {}
-        for header, header_value in headers.items():
+        for header, header_value in req.headers.items():
             if (header or "*") in self.include_headers or (
                 "x-amz-*" in self.include_headers
                 and header.startswith("x-amz-")
