@@ -38,6 +38,12 @@ class AWS4Auth(httpx.Auth):
         http://docs.aws.amazon.com/general/latest/gr/rande.html
         e.g. elasticbeanstalk.
         :param security_token: Used for the x-amz-security-token header, for use with STS temporary credentials.
+        :param include_headers: List of headers to include in the canonical and signed headers.
+        It's primarily included to allow testing against specific examples from Amazon.
+        ["host", "content-type", "date", "x-amz-*"] by default.
+        Specific values:
+        - "x-amz-*" matches any header starting with 'x-amz-' except for x-amz-client context, which appears to break mobile analytics auth if included.
+        - "*" will include every provided header.
         """
         self.secret_key = secret_key
         if not self.secret_key:
@@ -148,31 +154,34 @@ class AWS4Auth(httpx.Auth):
         # single header with lowercase name.  Although this is not possible with
         # Requests, since it uses a case-insensitive dict to hold headers, this
         # is here just in case you duck type with a regular dict
-        cano_headers_dict = {}
-        for hdr, val in headers.items():
-            hdr = hdr.strip().lower()
-            val = cls._amz_norm_whitespace(val).strip()
+        included_headers = {}
+        for header, header_value in headers.items():
+            header = header.strip().lower()
+            header_value = cls._amz_norm_whitespace(header_value).strip()
             if (
-                hdr in include
+                header in include
                 or "*" in include
                 or (
                     "x-amz-*" in include
-                    and hdr.startswith("x-amz-")
-                    and not hdr == "x-amz-client-context"
+                    and header.startswith("x-amz-")
+                    and not header == "x-amz-client-context"
                 )
             ):
-                vals = cano_headers_dict.setdefault(hdr, [])
-                vals.append(val)
-        # Flatten cano_headers dict to string and generate signed_headers
-        cano_headers = ""
-        signed_headers_list = []
-        for hdr in sorted(cano_headers_dict):
-            vals = cano_headers_dict[hdr]
-            val = ",".join(sorted(vals))
-            cano_headers += f"{hdr}:{val}\n"
-            signed_headers_list.append(hdr)
-        signed_headers = ";".join(signed_headers_list)
-        return cano_headers, signed_headers
+                header_values = included_headers.setdefault(header, [])
+                header_values.append(header_value)
+
+        canonical_headers = ""
+        signed_headers = []
+        for header in sorted(included_headers):
+            signed_headers.append(header)
+
+            header_values = included_headers[header]
+            header_values = ",".join(sorted(header_values))
+            canonical_headers += f"{header}:{header_values}\n"
+
+        signed_headers = ";".join(signed_headers)
+
+        return canonical_headers, signed_headers
 
     @staticmethod
     def _get_sig_string(req: httpx.Request, cano_req: str, scope: str) -> str:
@@ -185,10 +194,9 @@ class AWS4Auth(httpx.Auth):
         amz_date = req.headers["x-amz-date"]
         hsh = hashlib.sha256(cano_req.encode())
         sig_items = ["AWS4-HMAC-SHA256", amz_date, scope, hsh.hexdigest()]
-        sig_string = "\n".join(sig_items)
-        return sig_string
+        return "\n".join(sig_items)
 
-    def _amz_cano_path(self, path) -> str:
+    def _amz_cano_path(self, path: str) -> str:
         """
         Generate the canonical path as per AWS4 auth requirements.
         Not documented anywhere, determined from aws4_testsuite examples,
