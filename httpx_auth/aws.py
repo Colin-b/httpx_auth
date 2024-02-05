@@ -171,6 +171,7 @@ class AWS4Auth(httpx.Auth):
         split = url_str.split("?", 1)
         qs = split[1] if len(split) == 2 else ""
         qs = unquote(qs)
+        # TODO Identify why this is needed
         qs = qs.split(" ")[0]
         qs = quote(qs, safe="&=+")
 

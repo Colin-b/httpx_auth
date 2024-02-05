@@ -1,3 +1,5 @@
+from urllib.parse import quote
+
 import pytest
 import time_machine
 from pytest_httpx import HTTPXMock
@@ -398,17 +400,86 @@ async def test_aws_auth_query_parameters(httpx_mock: HTTPXMock):
     )
 
     httpx_mock.add_response(
-        url="https://authorized_only?id-type=second&id=first*",
+        url="https://authorized_only?id-type=second&id=first*&id_type=third",
         method="POST",
         match_headers={
             "x-amz-content-sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-            "Authorization": "AWS4-HMAC-SHA256 Credential=access_id/20181011/us-east-1/iam/aws4_request, SignedHeaders=host;x-amz-content-sha256;x-amz-date, Signature=c0e325df7074639a846d402f3813f0ac9418fe6d8304a997310b4c4cb22cb6bb",
+            "Authorization": "AWS4-HMAC-SHA256 Credential=access_id/20181011/us-east-1/iam/aws4_request, SignedHeaders=host;x-amz-content-sha256;x-amz-date, Signature=c5197a8352816ebdfb1ecc3077d6b69265ab2568142eff0d5294563a5fa69c96",
             "x-amz-date": "20181011T150505Z",
         },
     )
 
     async with httpx.AsyncClient() as client:
-        await client.post("https://authorized_only?id-type=second&id=first*", auth=auth)
+        await client.post(
+            "https://authorized_only?id-type=second&id=first*&id_type=third", auth=auth
+        )
+
+
+@time_machine.travel("2018-10-11T15:05:05.663979+00:00", tick=False)
+@pytest.mark.asyncio
+async def test_aws_auth_query_parameters_with_multiple_values(httpx_mock: HTTPXMock):
+    auth = httpx_auth.AWS4Auth(
+        access_id="access_id",
+        secret_key="wJalrXUtnFEMI/K7MDENG+bPxRfiCYEXAMPLEKEY",
+        region="us-east-1",
+        service="iam",
+    )
+
+    httpx_mock.add_response(
+        url="https://authorized_only?foo=1&bar=2&bar=3&bar=1",
+        method="POST",
+        match_headers={
+            "x-amz-content-sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "Authorization": "AWS4-HMAC-SHA256 Credential=access_id/20181011/us-east-1/iam/aws4_request, SignedHeaders=host;x-amz-content-sha256;x-amz-date, Signature=02ca672d31c4eb22997eecdd064e3f99665018068676fdc1c91422023047ae02",
+            "x-amz-date": "20181011T150505Z",
+        },
+    )
+
+    async with httpx.AsyncClient() as client:
+        await client.post("https://authorized_only?foo=1&bar=2&bar=3&bar=1", auth=auth)
+
+
+@pytest.mark.parametrize(
+    "decoded_value, signature",
+    [
+        ["a&b", "cdf339d384d03577c7bd080971a9ba83038ba99c90d55886cccef4428a2c0633"],
+        ["a=b", "e4e0fb580cb9b304f6fb5f7e9294156fb1b17f0d23a79e6ccfa86ec8120a5c7e"],
+        ["a+b", "6eef487def6c062806b89437027e12f641f35e1dfda5cc7ae49da777ad5f0fb4"],
+        ["a b", "581b79b3531e6cc21acc0bbd41422bae25de78c601eae88bd5287f96ec62f00e"],
+        [
+            "/?a=b&c=d",
+            "4f1de21047c249b81a4065a3cb4b17d97047d8f86c6a830e0bee32fb2a714d9e",
+        ],
+    ],
+)
+@time_machine.travel("2018-10-11T15:05:05.663979+00:00", tick=False)
+@pytest.mark.asyncio
+async def test_aws_auth_query_parameters_encoded_values(
+    httpx_mock: HTTPXMock, decoded_value: str, signature: str
+):
+    auth = httpx_auth.AWS4Auth(
+        access_id="access_id",
+        secret_key="wJalrXUtnFEMI/K7MDENG+bPxRfiCYEXAMPLEKEY",
+        region="us-east-1",
+        service="iam",
+    )
+
+    httpx_mock.add_response(
+        url=f"https://authorized_only?foo={quote(decoded_value)}&bar=1",
+        method="POST",
+        match_headers={
+            "x-amz-content-sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "Authorization": f"AWS4-HMAC-SHA256 Credential=access_id/20181011/us-east-1/iam/aws4_request, SignedHeaders=host;x-amz-content-sha256;x-amz-date, Signature={signature}",
+            "x-amz-date": "20181011T150505Z",
+        },
+    )
+
+    async with httpx.AsyncClient() as client:
+        await client.post(
+            "https://authorized_only",
+            params={"foo": decoded_value, "bar": 1},
+            auth=auth,
+        )
 
 
 @time_machine.travel("2018-10-11T15:05:05.663979+00:00", tick=False)
