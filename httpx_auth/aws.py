@@ -202,4 +202,6 @@ def _amz_norm_whitespace(text: str) -> str:
     Replace runs of whitespace with a single space.
     Ignore text enclosed in quotes.
     """
-    return " ".join(shlex.split(text, posix=False)).strip()
+    if re.search(r"\s", text):
+        return " ".join(shlex.split(text, posix=False)).strip()
+    return text

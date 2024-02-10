@@ -1,3 +1,4 @@
+import time
 from urllib.parse import quote
 
 import pytest
@@ -297,6 +298,92 @@ def test_aws_auth_header_with_multiple_values(
             ),
             auth=auth,
         )
+
+
+@time_machine.travel("2018-10-11T15:05:05.663979+00:00", tick=False)
+def test_aws_auth_header_performances_with_spaces_in_value(
+    httpx_mock: HTTPXMock,
+):
+    auth = httpx_auth.AWS4Auth(
+        access_id="access_id",
+        secret_key="wJalrXUtnFEMI/K7MDENG+bPxRfiCYEXAMPLEKEY",
+        region="us-east-1",
+        service="iam",
+        include_headers=[
+            "Host",
+            "content-type",
+            "date",
+            "custom_with_spaces",
+            "x-amz-*",
+        ],
+    )
+
+    header_value = "test with  spaces" * 100_000
+
+    httpx_mock.add_response(
+        url="https://authorized_only",
+        method="GET",
+        match_headers={
+            "x-amz-content-sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "Authorization": "AWS4-HMAC-SHA256 Credential=access_id/20181011/us-east-1/iam/aws4_request, SignedHeaders=custom_with_spaces;host;x-amz-content-sha256;x-amz-date, Signature=77d54dbb83fdcd5d7086c47c67e489ba4c66f69a1493d215ca417cdec71c5a95",
+            "x-amz-date": "20181011T150505Z",
+            "custom_with_spaces": header_value,
+        },
+    )
+
+    with httpx.Client() as client:
+        start = time.perf_counter_ns()
+        client.get(
+            "https://authorized_only",
+            headers={"custom_with_spaces": header_value},
+            auth=auth,
+        )
+        end = time.perf_counter_ns()
+
+    assert end - start < 3_000_000_000
+
+
+@time_machine.travel("2018-10-11T15:05:05.663979+00:00", tick=False)
+def test_aws_auth_header_performances_without_spaces_in_value(
+    httpx_mock: HTTPXMock,
+):
+    auth = httpx_auth.AWS4Auth(
+        access_id="access_id",
+        secret_key="wJalrXUtnFEMI/K7MDENG+bPxRfiCYEXAMPLEKEY",
+        region="us-east-1",
+        service="iam",
+        include_headers=[
+            "Host",
+            "content-type",
+            "date",
+            "custom_without_spaces",
+            "x-amz-*",
+        ],
+    )
+
+    header_value = "testwithoutspaces" * 100_000
+
+    httpx_mock.add_response(
+        url="https://authorized_only",
+        method="GET",
+        match_headers={
+            "x-amz-content-sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "Authorization": "AWS4-HMAC-SHA256 Credential=access_id/20181011/us-east-1/iam/aws4_request, SignedHeaders=custom_without_spaces;host;x-amz-content-sha256;x-amz-date, Signature=bd17043b2133cd88f271ddc8248b59f31ed45cf73122dd68f931d4e87ecfca3d",
+            "x-amz-date": "20181011T150505Z",
+            "custom_without_spaces": header_value,
+        },
+    )
+
+    with httpx.Client() as client:
+        start = time.perf_counter_ns()
+        client.get(
+            "https://authorized_only",
+            headers={"custom_without_spaces": header_value},
+            auth=auth,
+        )
+        end = time.perf_counter_ns()
+
+    assert end - start < 10_000_000
 
 
 @pytest.mark.parametrize(
