@@ -166,12 +166,10 @@ class AWS4Auth(httpx.Auth):
         Perform percent quoting as needed.
         """
         url_str = str(url)
-        # AWS handles "extreme" querystrings differently to urlparse
-        # (see post-vanilla-query-nonunreserved test in aws_testsuite)
+        # TODO Now that we have test_aws_auth_query_reserved to ensure non regression on this, check if this is still required
         split = url_str.split("?", 1)
         qs = split[1] if len(split) == 2 else ""
         qs = unquote(qs)
-        # TODO Identify why this is needed
         qs = qs.split(" ")[0]
         qs = quote(qs, safe="&=+")
 

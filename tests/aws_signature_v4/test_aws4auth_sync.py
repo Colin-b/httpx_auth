@@ -557,6 +557,32 @@ def test_aws_auth_query_parameters_encoded_values(
 
 
 @time_machine.travel("2018-10-11T15:05:05.663979+00:00", tick=False)
+def test_aws_auth_query_reserved(httpx_mock: HTTPXMock):
+    auth = httpx_auth.AWS4Auth(
+        access_id="access_id",
+        secret_key="wJalrXUtnFEMI/K7MDENG+bPxRfiCYEXAMPLEKEY",
+        region="us-east-1",
+        service="iam",
+    )
+
+    httpx_mock.add_response(
+        url=f"https://authorized_only/?@#$%25%5E&+=/,?%3E%3C%60%22;:%5C%7C][%7B%7D%20=@#$%25%5E&+=/,?%3E%3C%60%22;:%5C%7C][%7B%7D",
+        method="POST",
+        match_headers={
+            "x-amz-content-sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "Authorization": f"AWS4-HMAC-SHA256 Credential=access_id/20181011/us-east-1/iam/aws4_request, SignedHeaders=host;x-amz-content-sha256;x-amz-date, Signature=29d511750e5da2b049d42f55eee199f85ba375ab7412b801f806e1555a313d6e",
+            "x-amz-date": "20181011T150505Z",
+        },
+    )
+
+    with httpx.Client() as client:
+        client.post(
+            r'https://authorized_only/?@#$%^&+=/,?><`";:\|][{} =@#$%^&+=/,?><`";:\|][{}',
+            auth=auth,
+        )
+
+
+@time_machine.travel("2018-10-11T15:05:05.663979+00:00", tick=False)
 def test_aws_auth_query_parameters_with_semicolon(httpx_mock: HTTPXMock):
     auth = httpx_auth.AWS4Auth(
         access_id="access_id",
