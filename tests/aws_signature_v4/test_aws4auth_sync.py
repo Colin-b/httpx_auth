@@ -307,6 +307,14 @@ def test_aws_auth_header_with_multiple_values(
             ' "a   b   c"',
             "ca5f0f38268e71cdbd382c4e184f99af166ec5d2c1344685ac5d880fb378b00c",
         ],
+        [
+            '"a   b   c"',
+            "ca5f0f38268e71cdbd382c4e184f99af166ec5d2c1344685ac5d880fb378b00c",
+        ],
+        [
+            "a   b   c",
+            "ad623f1e18e2a73631ffc68a62ef65bbcc1e5e9ea4024cff6b04520c20f2a0fe",
+        ],
         ["\nab", "dc636830e9ddc773637666d39db9171d590263cfe1414478382082d4c39aa05b"],
     ],
 )
