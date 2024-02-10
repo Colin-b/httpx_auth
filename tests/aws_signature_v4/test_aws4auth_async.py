@@ -492,18 +492,19 @@ async def test_aws_auth_query_parameters(httpx_mock: HTTPXMock):
     )
 
     httpx_mock.add_response(
-        url="https://authorized_only?id-type=second&id=first*&id_type=third",
+        url="https://authorized_only?id-type=third&id=second*&id=first&id_type=fourth",
         method="POST",
         match_headers={
             "x-amz-content-sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-            "Authorization": "AWS4-HMAC-SHA256 Credential=access_id/20181011/us-east-1/iam/aws4_request, SignedHeaders=host;x-amz-content-sha256;x-amz-date, Signature=c5197a8352816ebdfb1ecc3077d6b69265ab2568142eff0d5294563a5fa69c96",
+            "Authorization": "AWS4-HMAC-SHA256 Credential=access_id/20181011/us-east-1/iam/aws4_request, SignedHeaders=host;x-amz-content-sha256;x-amz-date, Signature=dae483807ca8ff8365ac53cfaed8bdaf13984c66c0077567aba5533254ac8ae6",
             "x-amz-date": "20181011T150505Z",
         },
     )
 
     async with httpx.AsyncClient() as client:
         await client.post(
-            "https://authorized_only?id-type=second&id=first*&id_type=third", auth=auth
+            "https://authorized_only?id-type=third&id=second*&id=first&id_type=fourth",
+            auth=auth,
         )
 
 
