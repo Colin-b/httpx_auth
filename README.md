@@ -19,6 +19,7 @@ Provides authentication classes to be used with [`httpx`][1] [authentication par
     <a href="https://oauth.net/2/"><img alt="OAuth2" src="https://oauth.net/images/oauth-2-sm.png"></a>
     <a href="https://www.okta.com"><img alt="Okta" src="https://www.okta.com/sites/all/themes/Okta/images/logos/developer/Dev_Logo-03_Large.png" height="120"></a>
     <a href="https://www.microsoft.com/en-us/security/business/identity-access/microsoft-entra-id"><img alt="Microsoft Entra ID, formerly Azure Active Directory (AD)" src="https://azurecomcdn.azureedge.net/cvt-cda59ccd0aa5ced6ff5a2052417cf596b92980921e88e667127eaca2232a31ab/images/shared/services/pricing-glyph-lock.svg" height="120"></a>
+    <a href="https://docs.aws.amazon.com/AmazonS3/latest/API/sig-v4-authenticating-requests.html"><img alt="AWS Signature Version 4" src="https://upload.wikimedia.org/wikipedia/commons/9/93/Amazon_Web_Services_Logo.svg" height="120"></a>
 </p>
 <p align="center">Some of the supported authentication</p>
 
