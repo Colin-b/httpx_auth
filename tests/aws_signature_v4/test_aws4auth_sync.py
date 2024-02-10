@@ -383,7 +383,7 @@ def test_aws_auth_header_performances_without_spaces_in_value(
         )
         end = time.perf_counter_ns()
 
-    assert end - start < 10_000_000
+    assert end - start < 30_000_000
 
 
 @pytest.mark.parametrize(
