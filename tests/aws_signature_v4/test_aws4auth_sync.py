@@ -302,20 +302,20 @@ def test_aws_auth_header_with_multiple_values(
 @pytest.mark.parametrize(
     "decoded_value, signature",
     [
-        [" a", "35804f4d56aedf734366356325de0978ddbc270e1874d877fb35ce7337196729"],
+        [" a", "92c77bd0e66ae6f12fa41491ebcb524127b2df9677fd7ccf9ffff698021e0b28"],
         [
             ' "a   b   c"',
-            "ca5f0f38268e71cdbd382c4e184f99af166ec5d2c1344685ac5d880fb378b00c",
+            "38fbdeb88fa3785191adc95113bcf665b4151cc2d2379e6a086bee9066f65a38",
         ],
         [
             '"a   b   c"',
-            "ca5f0f38268e71cdbd382c4e184f99af166ec5d2c1344685ac5d880fb378b00c",
+            "38fbdeb88fa3785191adc95113bcf665b4151cc2d2379e6a086bee9066f65a38",
         ],
         [
             "a   b   c",
-            "ad623f1e18e2a73631ffc68a62ef65bbcc1e5e9ea4024cff6b04520c20f2a0fe",
+            "7b6aea4a2378417c631c5621ddc99a94591022c775cfbb9dbf5c360492e238ef",
         ],
-        ["\nab", "dc636830e9ddc773637666d39db9171d590263cfe1414478382082d4c39aa05b"],
+        ["\nab", "3072938eb28cff19726cc2a27d5e570f916887a639b26475b390dd0edacf6496"],
     ],
 )
 @time_machine.travel("2018-10-11T15:05:05.663979+00:00", tick=False)
@@ -340,8 +340,9 @@ def test_aws_auth_headers_encoded_values(
         url="https://authorized_only",
         method="POST",
         match_headers={
-            "x-amz-content-sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-            "Authorization": f"AWS4-HMAC-SHA256 Credential=access_id/20181011/us-east-1/iam/aws4_request, SignedHeaders=host;my-header1;x-amz-content-sha256;x-amz-date, Signature={signature}",
+            "Content-Type": "application/x-www-form-urlencoded",
+            "x-amz-content-sha256": "a046bedaa571a3f49a4b24f7be550e21936278c76da670737dc2c9bcaa3be9a0",
+            "Authorization": f"AWS4-HMAC-SHA256 Credential=access_id/20181011/us-east-1/iam/aws4_request, SignedHeaders=content-type;host;my-header1;x-amz-content-sha256;x-amz-date, Signature={signature}",
             "x-amz-date": "20181011T150505Z",
             "My-Header1": decoded_value,
         },
@@ -352,6 +353,7 @@ def test_aws_auth_headers_encoded_values(
             "https://authorized_only",
             headers={"My-Header1": decoded_value},
             auth=auth,
+            data={"field": "value"},
         )
 
 
