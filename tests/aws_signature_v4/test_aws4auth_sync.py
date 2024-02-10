@@ -556,6 +556,32 @@ def test_aws_auth_query_parameters_encoded_values(
 
 
 @time_machine.travel("2018-10-11T15:05:05.663979+00:00", tick=False)
+def test_aws_auth_query_parameters_with_semicolon(httpx_mock: HTTPXMock):
+    auth = httpx_auth.AWS4Auth(
+        access_id="access_id",
+        secret_key="wJalrXUtnFEMI/K7MDENG+bPxRfiCYEXAMPLEKEY",
+        region="us-east-1",
+        service="iam",
+    )
+
+    httpx_mock.add_response(
+        url=f"https://authorized_only?foo=value;bar=1",
+        method="GET",
+        match_headers={
+            "x-amz-content-sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "Authorization": f"AWS4-HMAC-SHA256 Credential=access_id/20181011/us-east-1/iam/aws4_request, SignedHeaders=host;x-amz-content-sha256;x-amz-date, Signature=d8d77276658fbe9b7715811c0d55d34b545789cacfb8735fad8946d20ff74f37",
+            "x-amz-date": "20181011T150505Z",
+        },
+    )
+
+    with httpx.Client() as client:
+        client.get(
+            "https://authorized_only?foo=value;bar=1",
+            auth=auth,
+        )
+
+
+@time_machine.travel("2018-10-11T15:05:05.663979+00:00", tick=False)
 def test_aws_auth_path_normalize(httpx_mock: HTTPXMock):
     auth = httpx_auth.AWS4Auth(
         access_id="access_id",
