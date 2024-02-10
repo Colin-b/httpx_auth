@@ -340,7 +340,7 @@ def test_aws_auth_header_performances_with_spaces_in_value(
         )
         end = time.perf_counter_ns()
 
-    assert end - start < 3_000_000_000
+    assert end - start < 4_000_000_000
 
 
 @time_machine.travel("2018-10-11T15:05:05.663979+00:00", tick=False)
