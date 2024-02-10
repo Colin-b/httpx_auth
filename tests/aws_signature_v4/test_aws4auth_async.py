@@ -477,7 +477,7 @@ async def test_aws_auth_host_header_with_port(httpx_mock: HTTPXMock):
         method="GET",
         match_headers={
             "x-amz-content-sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-            "Authorization": f"AWS4-HMAC-SHA256 Credential=access_id/20181011/us-east-1/iam/aws4_request, SignedHeaders=host;x-amz-content-sha256;x-amz-date, Signature=6c4d64151fab428de4853175fe4dcef1a0c5e247741cc1095553627cc0234857",
+            "Authorization": "AWS4-HMAC-SHA256 Credential=access_id/20181011/us-east-1/iam/aws4_request, SignedHeaders=host;x-amz-content-sha256;x-amz-date, Signature=6c4d64151fab428de4853175fe4dcef1a0c5e247741cc1095553627cc0234857",
             "x-amz-date": "20181011T150505Z",
         },
     )
@@ -675,11 +675,11 @@ async def test_aws_auth_query_reserved(httpx_mock: HTTPXMock):
     )
 
     httpx_mock.add_response(
-        url=f"https://authorized_only/?@#$%25%5E&+=/,?%3E%3C%60%22;:%5C%7C][%7B%7D%20=@#$%25%5E&+=/,?%3E%3C%60%22;:%5C%7C][%7B%7D",
+        url="https://authorized_only/?@#$%25%5E&+=/,?%3E%3C%60%22;:%5C%7C][%7B%7D%20=@#$%25%5E&+=/,?%3E%3C%60%22;:%5C%7C][%7B%7D",
         method="POST",
         match_headers={
             "x-amz-content-sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-            "Authorization": f"AWS4-HMAC-SHA256 Credential=access_id/20181011/us-east-1/iam/aws4_request, SignedHeaders=host;x-amz-content-sha256;x-amz-date, Signature=29d511750e5da2b049d42f55eee199f85ba375ab7412b801f806e1555a313d6e",
+            "Authorization": "AWS4-HMAC-SHA256 Credential=access_id/20181011/us-east-1/iam/aws4_request, SignedHeaders=host;x-amz-content-sha256;x-amz-date, Signature=29d511750e5da2b049d42f55eee199f85ba375ab7412b801f806e1555a313d6e",
             "x-amz-date": "20181011T150505Z",
         },
     )
@@ -702,11 +702,11 @@ async def test_aws_auth_query_parameters_with_semicolon(httpx_mock: HTTPXMock):
     )
 
     httpx_mock.add_response(
-        url=f"https://authorized_only?foo=value;bar=1",
+        url="https://authorized_only?foo=value;bar=1",
         method="GET",
         match_headers={
             "x-amz-content-sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-            "Authorization": f"AWS4-HMAC-SHA256 Credential=access_id/20181011/us-east-1/iam/aws4_request, SignedHeaders=host;x-amz-content-sha256;x-amz-date, Signature=d8d77276658fbe9b7715811c0d55d34b545789cacfb8735fad8946d20ff74f37",
+            "Authorization": "AWS4-HMAC-SHA256 Credential=access_id/20181011/us-east-1/iam/aws4_request, SignedHeaders=host;x-amz-content-sha256;x-amz-date, Signature=d8d77276658fbe9b7715811c0d55d34b545789cacfb8735fad8946d20ff74f37",
             "x-amz-date": "20181011T150505Z",
         },
     )
