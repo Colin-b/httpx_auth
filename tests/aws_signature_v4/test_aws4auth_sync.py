@@ -299,6 +299,54 @@ def test_aws_auth_header_with_multiple_values(
         )
 
 
+@pytest.mark.parametrize(
+    "decoded_value, signature",
+    [
+        [" a", "35804f4d56aedf734366356325de0978ddbc270e1874d877fb35ce7337196729"],
+        [
+            ' "a   b   c"',
+            "ca5f0f38268e71cdbd382c4e184f99af166ec5d2c1344685ac5d880fb378b00c",
+        ],
+        ["\nab", "dc636830e9ddc773637666d39db9171d590263cfe1414478382082d4c39aa05b"],
+    ],
+)
+@time_machine.travel("2018-10-11T15:05:05.663979+00:00", tick=False)
+def test_aws_auth_headers_encoded_values(
+    httpx_mock: HTTPXMock, decoded_value: str, signature: str
+):
+    auth = httpx_auth.AWS4Auth(
+        access_id="access_id",
+        secret_key="wJalrXUtnFEMI/K7MDENG+bPxRfiCYEXAMPLEKEY",
+        region="us-east-1",
+        service="iam",
+        include_headers=[
+            "Host",
+            "content-type",
+            "date",
+            "My-Header1",
+            "x-amz-*",
+        ],
+    )
+
+    httpx_mock.add_response(
+        url="https://authorized_only",
+        method="POST",
+        match_headers={
+            "x-amz-content-sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "Authorization": f"AWS4-HMAC-SHA256 Credential=access_id/20181011/us-east-1/iam/aws4_request, SignedHeaders=host;my-header1;x-amz-content-sha256;x-amz-date, Signature={signature}",
+            "x-amz-date": "20181011T150505Z",
+            "My-Header1": decoded_value,
+        },
+    )
+
+    with httpx.Client() as client:
+        client.post(
+            "https://authorized_only",
+            headers={"My-Header1": decoded_value},
+            auth=auth,
+        )
+
+
 @time_machine.travel("2018-10-11T15:05:05.663979+00:00", tick=False)
 def test_aws_auth_with_security_token_and_content_in_request(httpx_mock: HTTPXMock):
     auth = httpx_auth.AWS4Auth(
