@@ -1,3 +1,6 @@
+import time
+from urllib.parse import quote
+
 import pytest
 import time_machine
 from pytest_httpx import HTTPXMock
@@ -308,6 +311,186 @@ async def test_aws_auth_header_with_multiple_values(
 
 @time_machine.travel("2018-10-11T15:05:05.663979+00:00", tick=False)
 @pytest.mark.asyncio
+async def test_aws_auth_header_performances_with_spaces_in_value(
+    httpx_mock: HTTPXMock,
+):
+    auth = httpx_auth.AWS4Auth(
+        access_id="access_id",
+        secret_key="wJalrXUtnFEMI/K7MDENG+bPxRfiCYEXAMPLEKEY",
+        region="us-east-1",
+        service="iam",
+        include_headers=[
+            "Host",
+            "content-type",
+            "date",
+            "custom_with_spaces",
+            "x-amz-*",
+        ],
+    )
+
+    header_value = "test with  spaces" * 100_000
+
+    httpx_mock.add_response(
+        url="https://authorized_only",
+        method="GET",
+        match_headers={
+            "x-amz-content-sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "Authorization": "AWS4-HMAC-SHA256 Credential=access_id/20181011/us-east-1/iam/aws4_request, SignedHeaders=custom_with_spaces;host;x-amz-content-sha256;x-amz-date, Signature=77d54dbb83fdcd5d7086c47c67e489ba4c66f69a1493d215ca417cdec71c5a95",
+            "x-amz-date": "20181011T150505Z",
+            "custom_with_spaces": header_value,
+        },
+    )
+
+    async with httpx.AsyncClient() as client:
+        start = time.perf_counter_ns()
+        await client.get(
+            "https://authorized_only",
+            headers={"custom_with_spaces": header_value},
+            auth=auth,
+        )
+        end = time.perf_counter_ns()
+
+    assert end - start < 5_000_000_000
+
+
+@time_machine.travel("2018-10-11T15:05:05.663979+00:00", tick=False)
+@pytest.mark.asyncio
+async def test_aws_auth_header_performances_without_spaces_in_value(
+    httpx_mock: HTTPXMock,
+):
+    auth = httpx_auth.AWS4Auth(
+        access_id="access_id",
+        secret_key="wJalrXUtnFEMI/K7MDENG+bPxRfiCYEXAMPLEKEY",
+        region="us-east-1",
+        service="iam",
+        include_headers=[
+            "Host",
+            "content-type",
+            "date",
+            "custom_without_spaces",
+            "x-amz-*",
+        ],
+    )
+
+    header_value = "testwithoutspaces" * 100_000
+
+    httpx_mock.add_response(
+        url="https://authorized_only",
+        method="GET",
+        match_headers={
+            "x-amz-content-sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "Authorization": "AWS4-HMAC-SHA256 Credential=access_id/20181011/us-east-1/iam/aws4_request, SignedHeaders=custom_without_spaces;host;x-amz-content-sha256;x-amz-date, Signature=bd17043b2133cd88f271ddc8248b59f31ed45cf73122dd68f931d4e87ecfca3d",
+            "x-amz-date": "20181011T150505Z",
+            "custom_without_spaces": header_value,
+        },
+    )
+
+    async with httpx.AsyncClient() as client:
+        start = time.perf_counter_ns()
+        await client.get(
+            "https://authorized_only",
+            headers={"custom_without_spaces": header_value},
+            auth=auth,
+        )
+        end = time.perf_counter_ns()
+
+    assert end - start < 30_000_000
+
+
+@pytest.mark.parametrize(
+    "decoded_value, signature",
+    [
+        [" a", "92c77bd0e66ae6f12fa41491ebcb524127b2df9677fd7ccf9ffff698021e0b28"],
+        [
+            ' "a   b   c"',
+            "38fbdeb88fa3785191adc95113bcf665b4151cc2d2379e6a086bee9066f65a38",
+        ],
+        [
+            '"a   b   c"',
+            "38fbdeb88fa3785191adc95113bcf665b4151cc2d2379e6a086bee9066f65a38",
+        ],
+        [
+            "a   b   c",
+            "7b6aea4a2378417c631c5621ddc99a94591022c775cfbb9dbf5c360492e238ef",
+        ],
+        ["\nab", "3072938eb28cff19726cc2a27d5e570f916887a639b26475b390dd0edacf6496"],
+    ],
+)
+@time_machine.travel("2018-10-11T15:05:05.663979+00:00", tick=False)
+@pytest.mark.asyncio
+async def test_aws_auth_headers_encoded_values(
+    httpx_mock: HTTPXMock, decoded_value: str, signature: str
+):
+    auth = httpx_auth.AWS4Auth(
+        access_id="access_id",
+        secret_key="wJalrXUtnFEMI/K7MDENG+bPxRfiCYEXAMPLEKEY",
+        region="us-east-1",
+        service="iam",
+        include_headers=[
+            "Host",
+            "content-type",
+            "date",
+            "My-Header1",
+            "x-amz-*",
+        ],
+    )
+
+    httpx_mock.add_response(
+        url="https://authorized_only",
+        method="POST",
+        match_headers={
+            "Content-Type": "application/x-www-form-urlencoded",
+            "x-amz-content-sha256": "a046bedaa571a3f49a4b24f7be550e21936278c76da670737dc2c9bcaa3be9a0",
+            "Authorization": f"AWS4-HMAC-SHA256 Credential=access_id/20181011/us-east-1/iam/aws4_request, SignedHeaders=content-type;host;my-header1;x-amz-content-sha256;x-amz-date, Signature={signature}",
+            "x-amz-date": "20181011T150505Z",
+            "My-Header1": decoded_value,
+        },
+    )
+
+    async with httpx.AsyncClient() as client:
+        await client.post(
+            "https://authorized_only",
+            headers={"My-Header1": decoded_value},
+            auth=auth,
+            data={"field": "value"},
+        )
+
+
+@time_machine.travel("2018-10-11T15:05:05.663979+00:00", tick=False)
+@pytest.mark.asyncio
+async def test_aws_auth_host_header_with_port(httpx_mock: HTTPXMock):
+    auth = httpx_auth.AWS4Auth(
+        access_id="access_id",
+        secret_key="wJalrXUtnFEMI/K7MDENG+bPxRfiCYEXAMPLEKEY",
+        region="us-east-1",
+        service="iam",
+        include_headers=[
+            "Host",
+            "content-type",
+            "date",
+            "x-amz-*",
+        ],
+    )
+
+    httpx_mock.add_response(
+        url="https://authorized_only:8443",
+        method="GET",
+        match_headers={
+            "x-amz-content-sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "Authorization": "AWS4-HMAC-SHA256 Credential=access_id/20181011/us-east-1/iam/aws4_request, SignedHeaders=host;x-amz-content-sha256;x-amz-date, Signature=6c4d64151fab428de4853175fe4dcef1a0c5e247741cc1095553627cc0234857",
+            "x-amz-date": "20181011T150505Z",
+        },
+    )
+
+    async with httpx.AsyncClient() as client:
+        await client.get(
+            "https://authorized_only:8443",
+            auth=auth,
+        )
+
+
+@time_machine.travel("2018-10-11T15:05:05.663979+00:00", tick=False)
+@pytest.mark.asyncio
 async def test_aws_auth_with_security_token_and_content_in_request(
     httpx_mock: HTTPXMock,
 ):
@@ -398,17 +581,141 @@ async def test_aws_auth_query_parameters(httpx_mock: HTTPXMock):
     )
 
     httpx_mock.add_response(
-        url="https://authorized_only?param1&param2=blah*",
+        url="https://authorized_only?id-type=third&id=second*&id=first&id_type=fourth",
         method="POST",
         match_headers={
             "x-amz-content-sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-            "Authorization": "AWS4-HMAC-SHA256 Credential=access_id/20181011/us-east-1/iam/aws4_request, SignedHeaders=host;x-amz-content-sha256;x-amz-date, Signature=f2b8a73e388dc04586b5bcc208c6e50d92f04a1296e561229cd88811ad2494e9",
+            "Authorization": "AWS4-HMAC-SHA256 Credential=access_id/20181011/us-east-1/iam/aws4_request, SignedHeaders=host;x-amz-content-sha256;x-amz-date, Signature=dae483807ca8ff8365ac53cfaed8bdaf13984c66c0077567aba5533254ac8ae6",
             "x-amz-date": "20181011T150505Z",
         },
     )
 
     async with httpx.AsyncClient() as client:
-        await client.post("https://authorized_only?param1&param2=blah*", auth=auth)
+        await client.post(
+            "https://authorized_only?id-type=third&id=second*&id=first&id_type=fourth",
+            auth=auth,
+        )
+
+
+@time_machine.travel("2018-10-11T15:05:05.663979+00:00", tick=False)
+@pytest.mark.asyncio
+async def test_aws_auth_query_parameters_with_multiple_values(httpx_mock: HTTPXMock):
+    auth = httpx_auth.AWS4Auth(
+        access_id="access_id",
+        secret_key="wJalrXUtnFEMI/K7MDENG+bPxRfiCYEXAMPLEKEY",
+        region="us-east-1",
+        service="iam",
+    )
+
+    httpx_mock.add_response(
+        url="https://authorized_only?foo=1&bar=2&bar=3&bar=1",
+        method="POST",
+        match_headers={
+            "x-amz-content-sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "Authorization": "AWS4-HMAC-SHA256 Credential=access_id/20181011/us-east-1/iam/aws4_request, SignedHeaders=host;x-amz-content-sha256;x-amz-date, Signature=02ca672d31c4eb22997eecdd064e3f99665018068676fdc1c91422023047ae02",
+            "x-amz-date": "20181011T150505Z",
+        },
+    )
+
+    async with httpx.AsyncClient() as client:
+        await client.post("https://authorized_only?foo=1&bar=2&bar=3&bar=1", auth=auth)
+
+
+@pytest.mark.parametrize(
+    "decoded_value, signature",
+    [
+        ["a&b", "cdf339d384d03577c7bd080971a9ba83038ba99c90d55886cccef4428a2c0633"],
+        ["a=b", "e4e0fb580cb9b304f6fb5f7e9294156fb1b17f0d23a79e6ccfa86ec8120a5c7e"],
+        ["a+b", "6eef487def6c062806b89437027e12f641f35e1dfda5cc7ae49da777ad5f0fb4"],
+        ["a b", "581b79b3531e6cc21acc0bbd41422bae25de78c601eae88bd5287f96ec62f00e"],
+        [
+            "/?a=b&c=d",
+            "4f1de21047c249b81a4065a3cb4b17d97047d8f86c6a830e0bee32fb2a714d9e",
+        ],
+    ],
+)
+@time_machine.travel("2018-10-11T15:05:05.663979+00:00", tick=False)
+@pytest.mark.asyncio
+async def test_aws_auth_query_parameters_encoded_values(
+    httpx_mock: HTTPXMock, decoded_value: str, signature: str
+):
+    auth = httpx_auth.AWS4Auth(
+        access_id="access_id",
+        secret_key="wJalrXUtnFEMI/K7MDENG+bPxRfiCYEXAMPLEKEY",
+        region="us-east-1",
+        service="iam",
+    )
+
+    httpx_mock.add_response(
+        url=f"https://authorized_only?foo={quote(decoded_value)}&bar=1",
+        method="POST",
+        match_headers={
+            "x-amz-content-sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "Authorization": f"AWS4-HMAC-SHA256 Credential=access_id/20181011/us-east-1/iam/aws4_request, SignedHeaders=host;x-amz-content-sha256;x-amz-date, Signature={signature}",
+            "x-amz-date": "20181011T150505Z",
+        },
+    )
+
+    async with httpx.AsyncClient() as client:
+        await client.post(
+            "https://authorized_only",
+            params={"foo": decoded_value, "bar": 1},
+            auth=auth,
+        )
+
+
+@time_machine.travel("2018-10-11T15:05:05.663979+00:00", tick=False)
+@pytest.mark.asyncio
+async def test_aws_auth_query_reserved(httpx_mock: HTTPXMock):
+    auth = httpx_auth.AWS4Auth(
+        access_id="access_id",
+        secret_key="wJalrXUtnFEMI/K7MDENG+bPxRfiCYEXAMPLEKEY",
+        region="us-east-1",
+        service="iam",
+    )
+
+    httpx_mock.add_response(
+        url="https://authorized_only/?@#$%25%5E&+=/,?%3E%3C%60%22;:%5C%7C][%7B%7D%20=@#$%25%5E&+=/,?%3E%3C%60%22;:%5C%7C][%7B%7D",
+        method="POST",
+        match_headers={
+            "x-amz-content-sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "Authorization": "AWS4-HMAC-SHA256 Credential=access_id/20181011/us-east-1/iam/aws4_request, SignedHeaders=host;x-amz-content-sha256;x-amz-date, Signature=29d511750e5da2b049d42f55eee199f85ba375ab7412b801f806e1555a313d6e",
+            "x-amz-date": "20181011T150505Z",
+        },
+    )
+
+    async with httpx.AsyncClient() as client:
+        await client.post(
+            r'https://authorized_only/?@#$%^&+=/,?><`";:\|][{} =@#$%^&+=/,?><`";:\|][{}',
+            auth=auth,
+        )
+
+
+@time_machine.travel("2018-10-11T15:05:05.663979+00:00", tick=False)
+@pytest.mark.asyncio
+async def test_aws_auth_query_parameters_with_semicolon(httpx_mock: HTTPXMock):
+    auth = httpx_auth.AWS4Auth(
+        access_id="access_id",
+        secret_key="wJalrXUtnFEMI/K7MDENG+bPxRfiCYEXAMPLEKEY",
+        region="us-east-1",
+        service="iam",
+    )
+
+    httpx_mock.add_response(
+        url="https://authorized_only?foo=value;bar=1",
+        method="GET",
+        match_headers={
+            "x-amz-content-sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "Authorization": "AWS4-HMAC-SHA256 Credential=access_id/20181011/us-east-1/iam/aws4_request, SignedHeaders=host;x-amz-content-sha256;x-amz-date, Signature=d8d77276658fbe9b7715811c0d55d34b545789cacfb8735fad8946d20ff74f37",
+            "x-amz-date": "20181011T150505Z",
+        },
+    )
+
+    async with httpx.AsyncClient() as client:
+        await client.get(
+            "https://authorized_only?foo=value;bar=1",
+            auth=auth,
+        )
 
 
 @time_machine.travel("2018-10-11T15:05:05.663979+00:00", tick=False)
