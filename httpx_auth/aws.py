@@ -3,15 +3,15 @@ Provides code for AWSAuth ported to httpx from Sam Washington's requests-aws4aut
 https://github.com/sam-washington/requests-aws4auth
 """
 
-import hmac
+import datetime
 import hashlib
-import posixpath
+import hmac
 import re
 import shlex
-import datetime
 from collections import defaultdict
-from urllib.parse import urlparse, quote, unquote
+from posixpath import normpath
 from typing import Generator, Tuple
+from urllib.parse import quote
 
 import httpx
 
@@ -100,7 +100,7 @@ class AWS4Auth(httpx.Auth):
         return "\n".join(
             [
                 req.method.upper(),
-                self._canonical_uri(req.url),
+                self._canonical_uri(req.url, is_s3=self.service.lower() == "s3"),
                 self._canonical_query_string(req.url),
                 canonical_headers,
                 signed_headers,
@@ -140,26 +140,50 @@ class AWS4Auth(httpx.Auth):
             ["AWS4-HMAC-SHA256", req.headers["x-amz-date"], scope, hsh.hexdigest()]
         )
 
-    def _canonical_uri(self, url: httpx.URL) -> str:
+    @staticmethod
+    def _canonical_uri(url: httpx.URL, is_s3: bool) -> str:
         """
-        Not documented anywhere, determined from aws4_testsuite examples,
-        problem reports and testing against the live services.
+        CanonicalURI is the URI-encoded version of the absolute path component of the URI
+        — everything starting with the "/" that follows the domain name and
+        up to the end of the string
+        or to the question mark character ('?') if you have query string parameters.
+
+        The URI in the following example, /examplebucket/myphoto.jpg, is the absolute path, and you don't encode the "/" in the absolute path:
+
+        http://s3.amazonaws.com/examplebucket/myphoto.jpg
+        >>> AWS4Auth._canonical_uri(httpx.URL("http://s3.amazonaws.com/examplebucket/myphoto.jpg"), is_s3=False)
+        '/examplebucket/myphoto.jpg'
+
+        Note
+        You do not normalize URI paths for requests to Amazon S3.
+        For example, you may have a bucket with an object named "my-object//example//photo.user".
+        Normalizing the path changes the object name in the request to "my-object/example/photo.user".
+        This is an incorrect path for that object.
+        >>> AWS4Auth._canonical_uri(httpx.URL("http://s3.amazonaws.com/my-object//example//photo.user"), is_s3=False)
+        '/my-object/example/photo.user'
+        >>> AWS4Auth._canonical_uri(httpx.URL("http://s3.amazonaws.com/my-object//example//photo.user"), is_s3=True)
+        '/my-object//example//photo.user'
+
+        Some limitation that should be covered but not documented by AWS:
+        - Trailing / should be kept
+        >>> AWS4Auth._canonical_uri(httpx.URL("http://s3.amazonaws.com/resource/"), is_s3=False)
+        '/resource/'
+
+        - Starting with // should be normalized
+        >>> AWS4Auth._canonical_uri(httpx.URL("http://s3.amazonaws.com//resource/"), is_s3=False)
+        '/resource/'
         """
-        url_str = str(url)
-        url = urlparse(url_str)
-        path = url.path
-        if len(path) == 0:
-            path = "/"
-        fixed_path = posixpath.normpath(path)
-        # Prevent multi /
-        fixed_path = re.sub("/+", "/", fixed_path)
-        if path.endswith("/") and not fixed_path.endswith("/"):
-            fixed_path += "/"
-        full_path = fixed_path
-        # S3 seems to require unquoting first.
-        if self.service == "s3":
-            full_path = unquote(full_path)
-        return quote(full_path, safe="/~")
+        resource = url.path
+        if not is_s3:
+            # Convert to absolute path until python provides a clean RFC implementation of path-absolute
+            absolute_path = normpath(resource)
+            if absolute_path.startswith("//"):
+                absolute_path = resource[1:]
+            if resource.endswith("/") and not absolute_path.endswith("/"):
+                absolute_path += "/"
+            resource = absolute_path
+
+        return uri_encode(resource, is_key=True)
 
     @staticmethod
     def _canonical_query_string(url: httpx.URL) -> str:

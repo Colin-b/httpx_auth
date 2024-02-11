@@ -800,7 +800,7 @@ async def test_aws_auth_path_quoting(httpx_mock: HTTPXMock):
         method="POST",
         match_headers={
             "x-amz-content-sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-            "Authorization": "AWS4-HMAC-SHA256 Credential=access_id/20181011/us-east-1/iam/aws4_request, SignedHeaders=host;x-amz-content-sha256;x-amz-date, Signature=f3c8efd9b81b952035a73ea93d3a79380e13370bcaa6089e4275319bde17a400",
+            "Authorization": "AWS4-HMAC-SHA256 Credential=access_id/20181011/us-east-1/iam/aws4_request, SignedHeaders=host;x-amz-content-sha256;x-amz-date, Signature=04a5225313f4ffc8a8f4a974ad9c8d29a02df6ce0dabda1898ba1cccf2a3fb56",
             "x-amz-date": "20181011T150505Z",
         },
     )
@@ -824,7 +824,7 @@ async def test_aws_auth_path_percent_encode_non_s3(httpx_mock: HTTPXMock):
         method="POST",
         match_headers={
             "x-amz-content-sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-            "Authorization": "AWS4-HMAC-SHA256 Credential=access_id/20181011/us-east-1/iam/aws4_request, SignedHeaders=host;x-amz-content-sha256;x-amz-date, Signature=7b3267f1b4bcb1f6731eb99aa9b3381225c18fc32e3ecb78fc4adceb746f92f3",
+            "Authorization": "AWS4-HMAC-SHA256 Credential=access_id/20181011/us-east-1/iam/aws4_request, SignedHeaders=host;x-amz-content-sha256;x-amz-date, Signature=9e643e5c1a494c954b28c0ad986b9343e70b02df2bdaddee7f7b2510073ae16c",
             "x-amz-date": "20181011T150505Z",
         },
     )
