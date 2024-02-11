@@ -8,8 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Remove deprecation warnings due to usage of `utcnow` and `utcfromtimestamp`. Thanks to [`Raphael Krupinski`](https://github.com/rafalkrupinski).
 - `httpx_auth.AWS4Auth.default_include_headers` value kept growing in size every time a new `httpx_auth.AWS4Auth` instance was created with `security_token` parameter provided. Thanks to [`Miikka Koskinen`](https://github.com/miikka).
-- `httpx_auth.AWS4Auth` is now processing included headers without spaces in value faster.
-- `httpx_auth.AWS4Auth` is now based almost entirely on AWS documentation, solving bugs in the original implementation from `requests-aws4auth`.
+- `httpx_auth.AWS4Auth` is now based almost entirely on AWS documentation, diverging from the original implementation based on `requests-aws4auth` and solving implementation issues in the process.
   - As the AWS documentation might be wrong or not exhaustive enough, feel free to open issues, should you encounter edge cases.
 
 ### Changed
@@ -19,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `httpx_auth.AWS4Auth` does not includes `date` header by default anymore. You will have to provide it via `include_headers` yourself if you need to.
   - Note that it should not be required as `httpx_auth.AWS4Auth` is sending `x-amz-date` by default and AWS documentation states that the request date can be specified by using either the HTTP `Date` or the `x-amz-date` header. If both headers are present, `x-amz-date` takes precedence.
 - `httpx_auth.AWS4Auth` `include_headers` does not needs to include `host`, `content-type` or `x-amz-*` anymore as those headers will always be included. It is now expected to be provided as a list of additional headers.
+- `httpx_auth.AWS4Auth` will not modify the headers values spaces when computing the canonical headers, only trim leading and trailing whitespaces as per AWS documentation.
 
 ## [0.19.0] - 2024-01-09
 ### Added
