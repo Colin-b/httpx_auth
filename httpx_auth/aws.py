@@ -54,13 +54,20 @@ class AWS4Auth(httpx.Auth):
 
         self.security_token = kwargs.get("security_token")
 
-        include_headers = {"host", "content-type", "date", "x-amz-*"}
-        if self.security_token:
-            include_headers.add("x-amz-security-token")
+        # https://docs.aws.amazon.com/AmazonS3/latest/API/sig-v4-header-based-auth.html
+        # For the purpose of calculating an authorization signature, only the host and any x-amz-* headers are required;
+        # however, in order to prevent data tampering, you should consider including all the headers in the signature calculation.
+        include_headers = {"host", "content-type", "x-amz-*"}
 
         self.include_headers = {
             header.lower() for header in kwargs.get("include_headers", include_headers)
         }
+
+        # https://docs.aws.amazon.com/AmazonS3/latest/API/sig-v4-header-based-auth.html
+        # if you are using temporary security credentials, you need to include x-amz-security-token in your request.
+        # You must add this header in the list of CanonicalHeaders
+        if self.security_token:
+            self.include_headers.add("x-amz-security-token")
 
     def auth_flow(
         self, request: httpx.Request
@@ -68,18 +75,26 @@ class AWS4Auth(httpx.Auth):
         date = datetime.datetime.now(datetime.timezone.utc)
 
         request.headers["x-amz-date"] = date.strftime("%Y%m%dT%H%M%SZ")
+
+        # https://docs.aws.amazon.com/AmazonS3/latest/API/sig-v4-header-based-auth.html
+        # The x-amz-content-sha256 header is required for all AWS Signature Version 4 requests.
+        # It provides a hash of the request payload.
+        # If there is no payload, you must provide the hash of an empty string.
         request.headers["x-amz-content-sha256"] = hashlib.sha256(
             request.read()
         ).hexdigest()
+
+        # https://docs.aws.amazon.com/AmazonS3/latest/API/sig-v4-header-based-auth.html
+        # if you are using temporary security credentials, you need to include x-amz-security-token in your request.
         if self.security_token:
             request.headers["x-amz-security-token"] = self.security_token
 
-        canonical_headers, signed_headers = self._canonical_headers(request)
+        canonical_headers, signed_headers = self._canonical_headers(request.headers)
         canonical_request = self._canonical_request(
             request, canonical_headers, signed_headers
         )
         scope = f"{date.strftime('%Y%m%d')}/{self.region}/{self.service}/aws4_request"
-        string_to_sign = self._string_to_sign(request, canonical_request, scope)
+        string_to_sign = _string_to_sign(request, canonical_request, scope)
         signing_key = _signing_key(
             self.secret_key, self.region, self.service, date.strftime("%Y%m%d")
         )
@@ -95,26 +110,68 @@ class AWS4Auth(httpx.Auth):
         yield request
 
     def _canonical_request(
-        self, req: httpx.Request, canonical_headers: str, signed_headers: str
+        self, request: httpx.Request, canonical_headers: str, signed_headers: str
     ) -> str:
         return "\n".join(
             [
-                req.method.upper(),
-                self._canonical_uri(req.url, is_s3=self.service.lower() == "s3"),
-                self._canonical_query_string(req.url),
+                request.method.upper(),
+                canonical_uri(request.url, is_s3=self.service.lower() == "s3"),
+                canonical_query_string(request.url),
                 canonical_headers,
                 signed_headers,
                 # Hashed payload
-                req.headers["x-amz-content-sha256"],
+                request.headers["x-amz-content-sha256"],
             ]
         )
 
-    def _canonical_headers(self, req: httpx.Request) -> Tuple[str, str]:
+    def _canonical_headers(self, headers: httpx.Headers) -> Tuple[str, str]:
         """
-        :return: (canonical_headers, signed_headers)
+        See https://docs.aws.amazon.com/AmazonS3/latest/API/sig-v4-header-based-auth.html for more details.
+
+        CanonicalHeaders is a list of request headers with their values.
+        Individual header name and value pairs are separated by the newline character ("\n").
+        Header names must be in lowercase.
+        You must sort the header names alphabetically to construct the string, as shown in the following example:
+
+        Lowercase(<HeaderName1>)+":"+Trim(<value>)+"\n"
+        Lowercase(<HeaderName2>)+":"+Trim(<value>)+"\n"
+        ...
+        Lowercase(<HeaderNameN>)+":"+Trim(<value>)+"\n"
+
+        The Lowercase() and Trim() functions used in this example are described in the preceding section.
+
+        The CanonicalHeaders list must include the following:
+         - HTTP host header.
+         - If the Content-Type header is present in the request, you must add it to the CanonicalHeaders list.
+         - Any x-amz-* headers that you plan to include in your request must also be added.
+
+        For example, if you are using temporary security credentials, you need to include x-amz-security-token in your request.
+        You must add this header in the list of CanonicalHeaders.
+
+        Note
+        The x-amz-content-sha256 header is required for all AWS Signature Version 4 requests.
+        It provides a hash of the request payload.
+        If there is no payload, you must provide the hash of an empty string.
+
+        The following is an example CanonicalHeaders string.
+        The header names are in lowercase and sorted.
+
+        host:s3.amazonaws.com
+        x-amz-content-sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+        x-amz-date:20130708T220855Z
+
+        Note
+        For the purpose of calculating an authorization signature, only the host and any x-amz-* headers are required;
+        however, in order to prevent data tampering, you should consider including all the headers in the signature calculation.
+
+        SignedHeaders is an alphabetically sorted, semicolon-separated list of lowercase request header names.
+        The request headers in the list are the same headers that you included in the CanonicalHeaders string.
+        For example, for the previous example, the value of SignedHeaders would be as follows:
+
+        host;x-amz-content-sha256;x-amz-date
         """
         included_headers = {}
-        for header, header_value in req.headers.items():
+        for header, header_value in headers.items():
             if (header or "*") in self.include_headers or (
                 "x-amz-*" in self.include_headers
                 and header.startswith("x-amz-")
@@ -133,104 +190,108 @@ class AWS4Auth(httpx.Auth):
 
         return canonical_headers, signed_headers
 
-    @staticmethod
-    def _string_to_sign(req: httpx.Request, canonical_request: str, scope: str) -> str:
-        hsh = hashlib.sha256(canonical_request.encode())
-        return "\n".join(
-            ["AWS4-HMAC-SHA256", req.headers["x-amz-date"], scope, hsh.hexdigest()]
-        )
 
-    @staticmethod
-    def _canonical_uri(url: httpx.URL, is_s3: bool) -> str:
-        """
-        CanonicalURI is the URI-encoded version of the absolute path component of the URI
-        — everything starting with the "/" that follows the domain name and
-        up to the end of the string
-        or to the question mark character ('?') if you have query string parameters.
+def _string_to_sign(request: httpx.Request, canonical_request: str, scope: str) -> str:
+    hsh = hashlib.sha256(canonical_request.encode())
+    return "\n".join(
+        ["AWS4-HMAC-SHA256", request.headers["x-amz-date"], scope, hsh.hexdigest()]
+    )
 
-        The URI in the following example, /examplebucket/myphoto.jpg, is the absolute path, and you don't encode the "/" in the absolute path:
 
-        http://s3.amazonaws.com/examplebucket/myphoto.jpg
-        >>> AWS4Auth._canonical_uri(httpx.URL("http://s3.amazonaws.com/examplebucket/myphoto.jpg"), is_s3=False)
-        '/examplebucket/myphoto.jpg'
+def canonical_uri(url: httpx.URL, is_s3: bool) -> str:
+    """
+    See https://docs.aws.amazon.com/AmazonS3/latest/API/sig-v4-header-based-auth.html for more details.
 
-        Note
-        You do not normalize URI paths for requests to Amazon S3.
-        For example, you may have a bucket with an object named "my-object//example//photo.user".
-        Normalizing the path changes the object name in the request to "my-object/example/photo.user".
-        This is an incorrect path for that object.
-        >>> AWS4Auth._canonical_uri(httpx.URL("http://s3.amazonaws.com/my-object//example//photo.user"), is_s3=False)
-        '/my-object/example/photo.user'
-        >>> AWS4Auth._canonical_uri(httpx.URL("http://s3.amazonaws.com/my-object//example//photo.user"), is_s3=True)
-        '/my-object//example//photo.user'
+    CanonicalURI is the URI-encoded version of the absolute path component of the URI
+    — everything starting with the "/" that follows the domain name and
+    up to the end of the string
+    or to the question mark character ('?') if you have query string parameters.
 
-        Some limitation that should be covered but not documented by AWS:
-        - Trailing / should be kept
-        >>> AWS4Auth._canonical_uri(httpx.URL("http://s3.amazonaws.com/resource/"), is_s3=False)
-        '/resource/'
+    The URI in the following example, /examplebucket/myphoto.jpg, is the absolute path, and you don't encode the "/" in the absolute path:
 
-        - Starting with // should be normalized
-        >>> AWS4Auth._canonical_uri(httpx.URL("http://s3.amazonaws.com//resource/"), is_s3=False)
-        '/resource/'
-        """
-        resource = url.path
-        if not is_s3:
-            # Convert to absolute path until python provides a clean RFC implementation of path-absolute
-            absolute_path = normpath(resource)
-            if absolute_path.startswith("//"):
-                absolute_path = resource[1:]
-            if resource.endswith("/") and not absolute_path.endswith("/"):
-                absolute_path += "/"
-            resource = absolute_path
+    http://s3.amazonaws.com/examplebucket/myphoto.jpg
+    >>> canonical_uri(httpx.URL("http://s3.amazonaws.com/examplebucket/myphoto.jpg"), is_s3=False)
+    '/examplebucket/myphoto.jpg'
 
-        return uri_encode(resource, is_key=True)
+    Note
+    You do not normalize URI paths for requests to Amazon S3.
+    For example, you may have a bucket with an object named "my-object//example//photo.user".
+    Normalizing the path changes the object name in the request to "my-object/example/photo.user".
+    This is an incorrect path for that object.
+    >>> canonical_uri(httpx.URL("http://s3.amazonaws.com/my-object//example//photo.user"), is_s3=False)
+    '/my-object/example/photo.user'
+    >>> canonical_uri(httpx.URL("http://s3.amazonaws.com/my-object//example//photo.user"), is_s3=True)
+    '/my-object//example//photo.user'
 
-    @staticmethod
-    def _canonical_query_string(url: httpx.URL) -> str:
-        """
-        CanonicalQueryString specifies the URI-encoded query string parameters.
-        You URI-encode name and values individually.
-        You must also sort the parameters in the canonical query string alphabetically by key name.
-        The sorting occurs after encoding.
+    Some limitation that should be covered but not documented by AWS:
+    - Trailing / should be kept
+    >>> canonical_uri(httpx.URL("http://s3.amazonaws.com/resource/"), is_s3=False)
+    '/resource/'
 
-        The query string in the following URI example is prefix=somePrefix&marker=someMarker&max-keys=20:
+    - Starting with // should be normalized
+    >>> canonical_uri(httpx.URL("http://s3.amazonaws.com//resource/"), is_s3=False)
+    '/resource/'
+    """
+    resource = url.path
+    if not is_s3:
+        # Convert to absolute path until python provides a clean RFC implementation of path-absolute
+        absolute_path = normpath(resource)
+        if absolute_path.startswith("//"):
+            absolute_path = resource[1:]
+        if resource.endswith("/") and not absolute_path.endswith("/"):
+            absolute_path += "/"
+        resource = absolute_path
 
-        http://s3.amazonaws.com/examplebucket?prefix=somePrefix&marker=someMarker&max-keys=20
+    return uri_encode(resource, is_key=True)
 
-        The canonical query string is as follows (line breaks are added to this example for readability):
-        UriEncode("marker")+"="+UriEncode("someMarker")+"&"+
-        UriEncode("max-keys")+"="+UriEncode("20") + "&" +
-        UriEncode("prefix")+"="+UriEncode("somePrefix")
-        >>> AWS4Auth._canonical_query_string(httpx.URL("http://s3.amazonaws.com/examplebucket?prefix=somePrefix&marker=someMarker&max-keys=20"))
-        'marker=someMarker&max-keys=20&prefix=somePrefix'
 
-        When a request targets a subresource, the corresponding query parameter value will be an empty string ("").
+def canonical_query_string(url: httpx.URL) -> str:
+    """
+    See https://docs.aws.amazon.com/AmazonS3/latest/API/sig-v4-header-based-auth.html for more details.
 
-        For example, the following URI identifies the ACL subresource on the examplebucket bucket:
+    CanonicalQueryString specifies the URI-encoded query string parameters.
+    You URI-encode name and values individually.
+    You must also sort the parameters in the canonical query string alphabetically by key name.
+    The sorting occurs after encoding.
 
-        http://s3.amazonaws.com/examplebucket?acl
+    The query string in the following URI example is prefix=somePrefix&marker=someMarker&max-keys=20:
 
-        The CanonicalQueryString in this case is as follows:
-        UriEncode("acl") + "=" + ""
-        >>> AWS4Auth._canonical_query_string(httpx.URL("http://s3.amazonaws.com/examplebucket?acl"))
-        'acl='
+    http://s3.amazonaws.com/examplebucket?prefix=somePrefix&marker=someMarker&max-keys=20
 
-        If the URI does not include a '?', there is no query string in the request, and you set the canonical query string to an empty string ("").
-        >>> AWS4Auth._canonical_query_string(httpx.URL("http://s3.amazonaws.com/examplebucket"))
-        ''
+    The canonical query string is as follows (line breaks are added to this example for readability):
+    UriEncode("marker")+"="+UriEncode("someMarker")+"&"+
+    UriEncode("max-keys")+"="+UriEncode("20") + "&" +
+    UriEncode("prefix")+"="+UriEncode("somePrefix")
+    >>> canonical_query_string(httpx.URL("http://s3.amazonaws.com/examplebucket?prefix=somePrefix&marker=someMarker&max-keys=20"))
+    'marker=someMarker&max-keys=20&prefix=somePrefix'
 
-        You will still need to include the "\n".
-        """
-        encoded_params = defaultdict(list)
-        for name, value in url.params.multi_items():
-            encoded_params[uri_encode(name, is_key=True)].append(uri_encode(value))
+    When a request targets a subresource, the corresponding query parameter value will be an empty string ("").
 
-        sorted_params = []
-        for encoded_name in sorted(encoded_params):
-            for encoded_value in sorted(encoded_params[encoded_name]):
-                sorted_params.append(f"{encoded_name}={encoded_value}")
+    For example, the following URI identifies the ACL subresource on the examplebucket bucket:
 
-        return "&".join(sorted_params)
+    http://s3.amazonaws.com/examplebucket?acl
+
+    The CanonicalQueryString in this case is as follows:
+    UriEncode("acl") + "=" + ""
+    >>> canonical_query_string(httpx.URL("http://s3.amazonaws.com/examplebucket?acl"))
+    'acl='
+
+    If the URI does not include a '?', there is no query string in the request, and you set the canonical query string to an empty string ("").
+    >>> canonical_query_string(httpx.URL("http://s3.amazonaws.com/examplebucket"))
+    ''
+
+    You will still need to include the "\n".
+    """
+    encoded_params = defaultdict(list)
+    for name, value in url.params.multi_items():
+        encoded_params[uri_encode(name, is_key=True)].append(uri_encode(value))
+
+    sorted_params = []
+    for encoded_name in sorted(encoded_params):
+        for encoded_value in sorted(encoded_params[encoded_name]):
+            sorted_params.append(f"{encoded_name}={encoded_value}")
+
+    return "&".join(sorted_params)
 
 
 def _signing_key(secret_key: str, region: str, service: str, date: str) -> bytes:

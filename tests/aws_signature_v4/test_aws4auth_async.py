@@ -105,11 +105,10 @@ async def test_aws_auth_share_security_tokens_between_instances(
         security_token="security_token",
     )
     assert auth2.include_headers == {
-        "host",
         "content-type",
-        "date",
-        "x-amz-*",
         "x-amz-security-token",
+        "host",
+        "x-amz-*",
     }
 
     httpx_mock.add_response(
