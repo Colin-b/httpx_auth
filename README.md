@@ -694,6 +694,7 @@ Note that the following changes were made compared to `requests-aws4auth`:
   - `host` is not considered as a specific Amazon service anymore (no test specific code).
   - Canonical query string computation is entirely based on AWS documentation (and consider undocumented fragment (`#` and following characters) as not part of the query string).
   - Canonical uri computation is entirely based on AWS documentation.
+  - Canonical headers computation is almost entirely based on AWS documentation.
 
 ### Parameters
 

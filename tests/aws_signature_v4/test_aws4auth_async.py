@@ -104,10 +104,7 @@ async def test_aws_auth_share_security_tokens_between_instances(
         service="iam",
         security_token="security_token",
     )
-    assert auth2.include_headers == {
-        "content-type",
-        "host",
-    }
+    assert auth2.include_headers == set()
 
     httpx_mock.add_response(
         url="https://authorized_only",

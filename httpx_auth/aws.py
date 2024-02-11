@@ -53,14 +53,9 @@ class AWS4Auth(httpx.Auth):
 
         self.security_token = kwargs.get("security_token")
 
-        # https://docs.aws.amazon.com/AmazonS3/latest/API/sig-v4-header-based-auth.html
-        # For the purpose of calculating an authorization signature, only the host and any x-amz-* headers are required;
-        # however, in order to prevent data tampering, you should consider including all the headers in the signature calculation.
         self.include_headers = {
             header.lower() for header in kwargs.get("include_headers", [])
         }
-        self.include_headers.add("host")
-        self.include_headers.add("content-type")
 
     def auth_flow(
         self, request: httpx.Request
@@ -127,7 +122,7 @@ class AWS4Auth(httpx.Auth):
 def canonical_and_signed_headers(
     headers: httpx.Headers, include_headers: set[str]
 ) -> tuple[str, str]:
-    """
+    r"""
     See https://docs.aws.amazon.com/AmazonS3/latest/API/sig-v4-header-based-auth.html for more details.
 
     CanonicalHeaders is a list of request headers with their values.
@@ -171,7 +166,11 @@ def canonical_and_signed_headers(
     For example, for the previous example, the value of SignedHeaders would be as follows:
 
     host;x-amz-content-sha256;x-amz-date
+    >>> canonical_and_signed_headers(httpx.Headers({"Host": "s3.amazonaws.com", "x-amz-content-sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", "x-amz-date": "20130708T220855Z"}), include_headers={"host"})
+    ('host:s3.amazonaws.com\nx-amz-content-sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\nx-amz-date:20130708T220855Z\n', 'host;x-amz-content-sha256;x-amz-date')
     """
+    include_headers.add("host")
+    include_headers.add("content-type")
     included_headers = {}
     for header, header_value in headers.items():
         if (header or "*") in include_headers or (
@@ -179,7 +178,7 @@ def canonical_and_signed_headers(
             # x-amz-client-context break mobile analytics auth if included
             and not header == "x-amz-client-context"
         ):
-            included_headers[header] = _amz_norm_whitespace(header_value)
+            included_headers[header] = trim(header_value)
 
     canonical_headers = ""
     signed_headers = []
@@ -307,14 +306,15 @@ def sign_sha256(signing_key: bytes, message: str) -> bytes:
     return hmac.new(signing_key, message.encode("utf-8"), hashlib.sha256).digest()
 
 
-def _amz_norm_whitespace(text: str) -> str:
+def trim(value: str) -> str:
     """
-    Replace runs of whitespace with a single space.
-    Ignore text enclosed in quotes.
+    >>> trim(" this  is  the  value ")
+    'this is the value'
     """
-    if re.search(r"\s", text):
-        return " ".join(shlex.split(text, posix=False)).strip()
-    return text
+    # TODO AWS documentation expects only leading or trailing whitespace to be removed.
+    if re.search(r"\s", value):
+        return " ".join(shlex.split(value, posix=False)).strip()
+    return value
 
 
 def uri_encode(value: str, is_key: bool = False) -> str:
