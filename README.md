@@ -668,7 +668,7 @@ OAuth2.token_cache = JsonTokenFileCache('path/to/my_token_cache.json')
 
 ## AWS Signature v4
 
-Amazon Web Service Signature version 4 is implemented following [Amazon S3 documentation](https://docs.aws.amazon.com/AmazonS3/latest/API/sigv4-auth-using-authorization-header.html) and [request-aws4auth 1.0.1](https://github.com/sam-washington/requests-aws4auth) (with some changes, see below).
+Amazon Web Service Signature version 4 is implemented following [Amazon S3 documentation](https://docs.aws.amazon.com/AmazonS3/latest/API/sigv4-auth-using-authorization-header.html) and [request-aws4auth 1.2.3](https://github.com/sam-washington/requests-aws4auth) (with some changes, see below).
 
 Use `httpx_auth.AWS4Auth` to configure this kind of authentication.
 
