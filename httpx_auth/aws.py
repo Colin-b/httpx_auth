@@ -38,8 +38,8 @@ class AWS4Auth(httpx.Auth):
         e.g. elasticbeanstalk.
         :param security_token: Used for the x-amz-security-token header, for use with STS temporary credentials.
         :param include_headers: Set of headers to include in the canonical and signed headers.
-        {"host", "content-type", "date", "x-amz-*"} by default.
-        Note that if security_token is provided, x-amz-security-token is also included by default.
+        {"host", "content-type", "x-amz-*"} by default.
+        Note that if security_token is provided, x-amz-security-token will always be included.
         Specific values:
         - "x-amz-*" matches any header starting with 'x-amz-' except for x-amz-client context.
         - "*" will include every provided header.
