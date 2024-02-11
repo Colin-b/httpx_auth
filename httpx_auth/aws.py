@@ -37,12 +37,11 @@ class AWS4Auth(httpx.Auth):
         http://docs.aws.amazon.com/general/latest/gr/rande.html
         e.g. elasticbeanstalk.
         :param security_token: Used for the x-amz-security-token header, for use with STS temporary credentials.
-        :param include_headers: Set of headers to include in the canonical and signed headers.
-        {"host", "content-type", "x-amz-*"} by default.
-        Note that if security_token is provided, x-amz-security-token will always be included.
-        Specific values:
-        - "x-amz-*" matches any header starting with 'x-amz-' except for x-amz-client context.
-        - "*" will include every provided header.
+        :param include_headers: Set of headers to include in the canonical and signed headers, in addition to:
+         * host
+         * content-type
+         * Every header prefixed with x-amz- (except for x-amz-client-context)
+        Providing {"*"} as value will include all headers.
         """
         self.secret_key = secret_key
         if not self.secret_key:
@@ -57,17 +56,11 @@ class AWS4Auth(httpx.Auth):
         # https://docs.aws.amazon.com/AmazonS3/latest/API/sig-v4-header-based-auth.html
         # For the purpose of calculating an authorization signature, only the host and any x-amz-* headers are required;
         # however, in order to prevent data tampering, you should consider including all the headers in the signature calculation.
-        include_headers = {"host", "content-type", "x-amz-*"}
-
         self.include_headers = {
-            header.lower() for header in kwargs.get("include_headers", include_headers)
+            header.lower() for header in kwargs.get("include_headers", [])
         }
-
-        # https://docs.aws.amazon.com/AmazonS3/latest/API/sig-v4-header-based-auth.html
-        # if you are using temporary security credentials, you need to include x-amz-security-token in your request.
-        # You must add this header in the list of CanonicalHeaders
-        if self.security_token:
-            self.include_headers.add("x-amz-security-token")
+        self.include_headers.add("host")
+        self.include_headers.add("content-type")
 
     def auth_flow(
         self, request: httpx.Request
@@ -89,10 +82,13 @@ class AWS4Auth(httpx.Auth):
 
         # https://docs.aws.amazon.com/AmazonS3/latest/API/sig-v4-header-based-auth.html
         # if you are using temporary security credentials, you need to include x-amz-security-token in your request.
+        # You must add this header in the list of CanonicalHeaders
         if self.security_token:
             request.headers["x-amz-security-token"] = self.security_token
 
-        canonical_headers, signed_headers = self._canonical_headers(request.headers)
+        canonical_headers, signed_headers = canonical_and_signed_headers(
+            request.headers, self.include_headers
+        )
         canonical_request = self._canonical_request(
             request, canonical_headers, signed_headers
         )
@@ -127,71 +123,73 @@ class AWS4Auth(httpx.Auth):
             ]
         )
 
-    def _canonical_headers(self, headers: httpx.Headers) -> Tuple[str, str]:
-        """
-        See https://docs.aws.amazon.com/AmazonS3/latest/API/sig-v4-header-based-auth.html for more details.
 
-        CanonicalHeaders is a list of request headers with their values.
-        Individual header name and value pairs are separated by the newline character ("\n").
-        Header names must be in lowercase.
-        You must sort the header names alphabetically to construct the string, as shown in the following example:
+def canonical_and_signed_headers(
+    headers: httpx.Headers, include_headers: set[str]
+) -> tuple[str, str]:
+    """
+    See https://docs.aws.amazon.com/AmazonS3/latest/API/sig-v4-header-based-auth.html for more details.
 
-        Lowercase(<HeaderName1>)+":"+Trim(<value>)+"\n"
-        Lowercase(<HeaderName2>)+":"+Trim(<value>)+"\n"
-        ...
-        Lowercase(<HeaderNameN>)+":"+Trim(<value>)+"\n"
+    CanonicalHeaders is a list of request headers with their values.
+    Individual header name and value pairs are separated by the newline character ("\n").
+    Header names must be in lowercase.
+    You must sort the header names alphabetically to construct the string, as shown in the following example:
 
-        The Lowercase() and Trim() functions used in this example are described in the preceding section.
+    Lowercase(<HeaderName1>)+":"+Trim(<value>)+"\n"
+    Lowercase(<HeaderName2>)+":"+Trim(<value>)+"\n"
+    ...
+    Lowercase(<HeaderNameN>)+":"+Trim(<value>)+"\n"
 
-        The CanonicalHeaders list must include the following:
-         - HTTP host header.
-         - If the Content-Type header is present in the request, you must add it to the CanonicalHeaders list.
-         - Any x-amz-* headers that you plan to include in your request must also be added.
+    The Lowercase() and Trim() functions used in this example are described in the preceding section.
 
-        For example, if you are using temporary security credentials, you need to include x-amz-security-token in your request.
-        You must add this header in the list of CanonicalHeaders.
+    The CanonicalHeaders list must include the following:
+     - HTTP host header.
+     - If the Content-Type header is present in the request, you must add it to the CanonicalHeaders list.
+     - Any x-amz-* headers that you plan to include in your request must also be added.
 
-        Note
-        The x-amz-content-sha256 header is required for all AWS Signature Version 4 requests.
-        It provides a hash of the request payload.
-        If there is no payload, you must provide the hash of an empty string.
+    For example, if you are using temporary security credentials, you need to include x-amz-security-token in your request.
+    You must add this header in the list of CanonicalHeaders.
 
-        The following is an example CanonicalHeaders string.
-        The header names are in lowercase and sorted.
+    Note
+    The x-amz-content-sha256 header is required for all AWS Signature Version 4 requests.
+    It provides a hash of the request payload.
+    If there is no payload, you must provide the hash of an empty string.
 
-        host:s3.amazonaws.com
-        x-amz-content-sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
-        x-amz-date:20130708T220855Z
+    The following is an example CanonicalHeaders string.
+    The header names are in lowercase and sorted.
 
-        Note
-        For the purpose of calculating an authorization signature, only the host and any x-amz-* headers are required;
-        however, in order to prevent data tampering, you should consider including all the headers in the signature calculation.
+    host:s3.amazonaws.com
+    x-amz-content-sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+    x-amz-date:20130708T220855Z
 
-        SignedHeaders is an alphabetically sorted, semicolon-separated list of lowercase request header names.
-        The request headers in the list are the same headers that you included in the CanonicalHeaders string.
-        For example, for the previous example, the value of SignedHeaders would be as follows:
+    Note
+    For the purpose of calculating an authorization signature, only the host and any x-amz-* headers are required;
+    however, in order to prevent data tampering, you should consider including all the headers in the signature calculation.
 
-        host;x-amz-content-sha256;x-amz-date
-        """
-        included_headers = {}
-        for header, header_value in headers.items():
-            if (header or "*") in self.include_headers or (
-                "x-amz-*" in self.include_headers
-                and header.startswith("x-amz-")
-                # x-amz-client-context break mobile analytics auth if included
-                and not header == "x-amz-client-context"
-            ):
-                included_headers[header] = _amz_norm_whitespace(header_value)
+    SignedHeaders is an alphabetically sorted, semicolon-separated list of lowercase request header names.
+    The request headers in the list are the same headers that you included in the CanonicalHeaders string.
+    For example, for the previous example, the value of SignedHeaders would be as follows:
 
-        canonical_headers = ""
-        signed_headers = []
-        for header in sorted(included_headers):
-            signed_headers.append(header)
-            canonical_headers += f"{header}:{included_headers[header]}\n"
+    host;x-amz-content-sha256;x-amz-date
+    """
+    included_headers = {}
+    for header, header_value in headers.items():
+        if (header or "*") in include_headers or (
+            header.startswith("x-amz-")
+            # x-amz-client-context break mobile analytics auth if included
+            and not header == "x-amz-client-context"
+        ):
+            included_headers[header] = _amz_norm_whitespace(header_value)
 
-        signed_headers = ";".join(signed_headers)
+    canonical_headers = ""
+    signed_headers = []
+    for header in sorted(included_headers):
+        signed_headers.append(header)
+        canonical_headers += f"{header}:{included_headers[header]}\n"
 
-        return canonical_headers, signed_headers
+    signed_headers = ";".join(signed_headers)
+
+    return canonical_headers, signed_headers
 
 
 def _string_to_sign(request: httpx.Request, canonical_request: str, scope: str) -> str:

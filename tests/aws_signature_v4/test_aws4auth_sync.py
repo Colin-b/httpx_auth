@@ -102,9 +102,7 @@ def test_aws_auth_share_security_tokens_between_instances(
     )
     assert auth2.include_headers == {
         "content-type",
-        "x-amz-security-token",
         "host",
-        "x-amz-*",
     }
 
     httpx_mock.add_response(
@@ -192,12 +190,8 @@ def test_aws_auth_allows_to_include_custom_and_default_forbidden_header(
         region="us-east-1",
         service="iam",
         include_headers=[
-            "Host",
-            "content-type",
-            "date",
             "cusTom",
             "x-aMz-client-context",
-            "x-amz-*",
         ],
     )
 
@@ -231,11 +225,7 @@ def test_aws_auth_does_not_strips_header_names(
         region="us-east-1",
         service="iam",
         include_headers=[
-            "Host",
-            "content-type",
-            "date",
             " cusTom ",
-            "x-amz-*",
         ],
     )
 
@@ -268,11 +258,7 @@ def test_aws_auth_header_with_multiple_values(
         region="us-east-1",
         service="iam",
         include_headers=[
-            "Host",
-            "content-type",
-            "date",
             "cusTom",
-            "x-amz-*",
         ],
     )
 
@@ -308,11 +294,7 @@ def test_aws_auth_header_performances_with_spaces_in_value(
         region="us-east-1",
         service="iam",
         include_headers=[
-            "Host",
-            "content-type",
-            "date",
             "custom_with_spaces",
-            "x-amz-*",
         ],
     )
 
@@ -351,11 +333,7 @@ def test_aws_auth_header_performances_without_spaces_in_value(
         region="us-east-1",
         service="iam",
         include_headers=[
-            "Host",
-            "content-type",
-            "date",
             "custom_without_spaces",
-            "x-amz-*",
         ],
     )
 
@@ -413,11 +391,7 @@ def test_aws_auth_headers_encoded_values(
         region="us-east-1",
         service="iam",
         include_headers=[
-            "Host",
-            "content-type",
-            "date",
             "My-Header1",
-            "x-amz-*",
         ],
     )
 
@@ -449,12 +423,6 @@ def test_aws_auth_host_header_with_port(httpx_mock: HTTPXMock):
         secret_key="wJalrXUtnFEMI/K7MDENG+bPxRfiCYEXAMPLEKEY",
         region="us-east-1",
         service="iam",
-        include_headers=[
-            "Host",
-            "content-type",
-            "date",
-            "x-amz-*",
-        ],
     )
 
     httpx_mock.add_response(
