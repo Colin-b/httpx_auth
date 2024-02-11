@@ -9,8 +9,9 @@ import posixpath
 import re
 import shlex
 import datetime
-from urllib.parse import urlparse, parse_qs, quote, unquote
-from typing import Generator, List, Tuple
+from collections import defaultdict
+from urllib.parse import urlparse, quote, unquote
+from typing import Generator, Tuple
 
 import httpx
 
@@ -163,26 +164,49 @@ class AWS4Auth(httpx.Auth):
     @staticmethod
     def _canonical_query_string(url: httpx.URL) -> str:
         """
-        Perform percent quoting as needed.
+        CanonicalQueryString specifies the URI-encoded query string parameters.
+        You URI-encode name and values individually.
+        You must also sort the parameters in the canonical query string alphabetically by key name.
+        The sorting occurs after encoding.
+
+        The query string in the following URI example is prefix=somePrefix&marker=someMarker&max-keys=20:
+
+        http://s3.amazonaws.com/examplebucket?prefix=somePrefix&marker=someMarker&max-keys=20
+
+        The canonical query string is as follows (line breaks are added to this example for readability):
+        UriEncode("marker")+"="+UriEncode("someMarker")+"&"+
+        UriEncode("max-keys")+"="+UriEncode("20") + "&" +
+        UriEncode("prefix")+"="+UriEncode("somePrefix")
+        >>> AWS4Auth._canonical_query_string(httpx.URL("http://s3.amazonaws.com/examplebucket?prefix=somePrefix&marker=someMarker&max-keys=20"))
+        'marker=someMarker&max-keys=20&prefix=somePrefix'
+
+        When a request targets a subresource, the corresponding query parameter value will be an empty string ("").
+
+        For example, the following URI identifies the ACL subresource on the examplebucket bucket:
+
+        http://s3.amazonaws.com/examplebucket?acl
+
+        The CanonicalQueryString in this case is as follows:
+        UriEncode("acl") + "=" + ""
+        >>> AWS4Auth._canonical_query_string(httpx.URL("http://s3.amazonaws.com/examplebucket?acl"))
+        'acl='
+
+        If the URI does not include a '?', there is no query string in the request, and you set the canonical query string to an empty string ("").
+        >>> AWS4Auth._canonical_query_string(httpx.URL("http://s3.amazonaws.com/examplebucket"))
+        ''
+
+        You will still need to include the "\n".
         """
-        url_str = str(url)
-        # TODO Now that we have test_aws_auth_query_reserved to ensure non regression on this, check if this is still required
-        split = url_str.split("?", 1)
-        qs = split[1] if len(split) == 2 else ""
-        qs = unquote(qs)
-        qs = qs.split(" ")[0]
-        qs = quote(qs, safe="&=+")
+        encoded_params = defaultdict(list)
+        for name, value in url.params.multi_items():
+            encoded_params[uri_encode(name, is_key=True)].append(uri_encode(value))
 
-        qs_items = {}
-        for name, vals in parse_qs(qs, keep_blank_values=True).items():
-            name = quote(name, safe="-_.~")
-            vals = [quote(val, safe="-_.~") for val in vals]
-            qs_items[name] = vals
+        sorted_params = []
+        for encoded_name in sorted(encoded_params):
+            for encoded_value in sorted(encoded_params[encoded_name]):
+                sorted_params.append(f"{encoded_name}={encoded_value}")
 
-        qs_strings = sorted(
-            ["=".join([name, val]) for name, vals in qs_items.items() for val in vals]
-        )
-        return "&".join(qs_strings)
+        return "&".join(sorted_params)
 
 
 def _signing_key(secret_key: str, region: str, service: str, date: str) -> bytes:
@@ -205,3 +229,36 @@ def _amz_norm_whitespace(text: str) -> str:
     if re.search(r"\s", text):
         return " ".join(shlex.split(text, posix=False)).strip()
     return text
+
+
+def uri_encode(value: str, is_key: bool = False) -> str:
+    """
+    See https://docs.aws.amazon.com/AmazonS3/latest/API/sig-v4-header-based-auth.html for more details.
+
+    URI encode every byte. UriEncode() must enforce the following rules:
+
+    * URI encode every byte except the unreserved characters: 'A'-'Z', 'a'-'z', '0'-'9', '-', '.', '_', and '~'.
+    >>> uri_encode("ABCDEFGHIJKLMNOPQRSTUVWXYZ")
+    'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+    >>> uri_encode("abcdefghijklmnopqrstuvwxyz")
+    'abcdefghijklmnopqrstuvwxyz'
+    >>> uri_encode("0123456789")
+    '0123456789'
+    >>> uri_encode("-._~")
+    '-._~'
+
+    * The space character is a reserved character and must be encoded as "%20" (and not as "+").
+    >>> uri_encode(" ")
+    '%20'
+
+    * Each URI encoded byte is formed by a '%' and the two-digit hexadecimal value of the byte.
+    * Letters in the hexadecimal value must be uppercase, for example "%1A".
+    >>> uri_encode(r'''!"£$%^&*()=+[]{}#@;:/?><,|`\€''')
+    '%21%22%C2%A3%24%25%5E%26%2A%28%29%3D%2B%5B%5D%7B%7D%23%40%3B%3A%2F%3F%3E%3C%2C%7C%60%5C%E2%82%AC'
+
+    * Encode the forward slash character, '/', everywhere except in the object key name.
+    For example, if the object key name is photos/Jan/sample.jpg, the forward slash in the key name is not encoded.
+    >>> uri_encode("photos/Jan/sample.jpg", is_key=True)
+    'photos/Jan/sample.jpg'
+    """
+    return quote(value, safe="/" if is_key else "")

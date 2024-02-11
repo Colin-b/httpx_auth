@@ -9,10 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Remove deprecation warnings due to usage of `utcnow` and `utcfromtimestamp`. Thanks to [`Raphael Krupinski`](https://github.com/rafalkrupinski).
 - `httpx_auth.AWS4Auth.default_include_headers` value kept growing in size every time a new `httpx_auth.AWS4Auth` instance was created with `security_token` parameter provided. Thanks to [`Miikka Koskinen`](https://github.com/miikka).
 - `httpx_auth.AWS4Auth` is now processing included headers without spaces in value faster.
+- `httpx_auth.AWS4Auth` canonical query string generation is now based entirely on AWS documentation, solving bugs in the original implementation from `requests-aws4auth`.
+  - As the AWS documentation might be wrong or not exhaustive enough, feel free to open issues, should you encounter edge cases.
 
 ### Changed
 - `httpx_auth.AWS4Auth.default_include_headers` is not available anymore, use `httpx_auth.AWS4Auth` `include_headers` parameter instead to change the list of included headers if the default does not fit your need (refer to documentation for an exhaustive list).
 - `httpx_auth.AWS4Auth` `include_headers` values will not be stripped anymore, meaning that you can now include headers prefixed and/or suffixed with blank spaces.
+- `httpx_auth.AWS4Auth` query fragment (`#` and everything following) is not considered as part of the canonical query string anymore. Feel free to open an issue if this is one.
 
 ## [0.19.0] - 2024-01-09
 ### Added
