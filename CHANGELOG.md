@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `httpx_auth.AWS4Auth` `include_headers` values will not be stripped anymore, meaning that you can now include headers prefixed and/or suffixed with blank spaces.
 - `httpx_auth.AWS4Auth` query fragment (`#` and everything following) is not considered as part of the canonical query string anymore. Feel free to open an issue if this is one.
 - `httpx_auth.AWS4Auth` does not includes `date` header by default anymore. You will have to provide it via `include_headers` yourself if you need to.
+  - Note that it should not be required as `httpx_auth.AWS4Auth` is sending `x-amz-date` by default and AWS documentation states that the request date can be specified by using either the HTTP `Date` or the `x-amz-date` header. If both headers are present, `x-amz-date` takes precedence.
 
 ## [0.19.0] - 2024-01-09
 ### Added

@@ -74,6 +74,9 @@ class AWS4Auth(httpx.Auth):
     ) -> Generator[httpx.Request, httpx.Response, None]:
         date = datetime.datetime.now(datetime.timezone.utc)
 
+        # https://docs.aws.amazon.com/AmazonS3/latest/API/sigv4-auth-using-authorization-header.html
+        # The request date can be specified by using either the HTTP Date or the x-amz-date header.
+        # If both headers are present, x-amz-date takes precedence.
         request.headers["x-amz-date"] = date.strftime("%Y%m%dT%H%M%SZ")
 
         # https://docs.aws.amazon.com/AmazonS3/latest/API/sig-v4-header-based-auth.html
