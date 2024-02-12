@@ -78,6 +78,8 @@ with httpx.Client() as client:
 | `timeout`               | Maximum amount of seconds to wait for a code or a token to be received once requested. | Optional | 60 |
 | `success_display_time`  | In case a code is successfully received, this is the maximum amount of milliseconds the success page will be displayed in your browser. | Optional | 1 |
 | `failure_display_time`  | In case received code is not valid, this is the maximum amount of milliseconds the failure page will be displayed in your browser. | Optional | 5000 |
+| `success_template`      | HTML content to render to the browser upon successfully receiving an authorization code from the authorization server. Will be formatted with `text` and `display_time` parameters. | Optional |  |
+| `failure_template`      | HTML content to render to the browser upon successfully receiving an authorization code from the authorization server. Will be formatted with `text` and `display_time` parameters. | Optional |  |
 | `header_name`           | Name of the header field used to send token. | Optional | Authorization |
 | `header_value`          | Format used to send the token value. "{token}" must be present as it will be replaced by the actual token. | Optional | Bearer {token} |
 | `response_type`         | Value of the response_type query parameter if not already provided in authorization URL. | Optional | code |
@@ -137,6 +139,8 @@ with httpx.Client() as client:
 | `timeout`               | Maximum amount of seconds to wait for a token to be received once requested. | Optional | 60 |
 | `success_display_time`  | In case a token is successfully received, this is the maximum amount of milliseconds the success page will be displayed in your browser. | Optional | 1 |
 | `failure_display_time`  | In case received token is not valid, this is the maximum amount of milliseconds the failure page will be displayed in your browser. | Optional | 5000 |
+| `success_template`      | HTML content to render to the browser upon successfully receiving an authorization code from the authorization server. Will be formatted with `text` and `display_time` parameters. | Optional |  |
+| `failure_template`      | HTML content to render to the browser upon successfully receiving an authorization code from the authorization server. Will be formatted with `text` and `display_time` parameters. | Optional |  |
 | `header_name`           | Name of the header field used to send token. | Optional | Authorization |
 | `header_value`          | Format used to send the token value. "{token}" must be present as it will be replaced by the actual token. | Optional | Bearer {token} |
 | `client`                | `httpx.Client` instance that will be used to request the token. Use it to provide a custom proxying rule for instance. | Optional |  |
@@ -181,6 +185,8 @@ with httpx.Client() as client:
 | `timeout`               | Maximum amount of seconds to wait for a token to be received once requested. | Optional  | 60                                           |
 | `success_display_time`  | In case a token is successfully received, this is the maximum amount of milliseconds the success page will be displayed in your browser. | Optional  | 1                                            |
 | `failure_display_time`  | In case received token is not valid, this is the maximum amount of milliseconds the failure page will be displayed in your browser. | Optional  | 5000                                         |
+| `success_template`      | HTML content to render to the browser upon successfully receiving an authorization code from the authorization server. Will be formatted with `text` and `display_time` parameters. | Optional |  |
+| `failure_template`      | HTML content to render to the browser upon successfully receiving an authorization code from the authorization server. Will be formatted with `text` and `display_time` parameters. | Optional |  |
 | `header_name`           | Name of the header field used to send token. | Optional  | Authorization                                |
 | `header_value`          | Format used to send the token value. "{token}" must be present as it will be replaced by the actual token. | Optional  | Bearer {token}                               |
 | `client`                | `httpx.Client` instance that will be used to request the token. Use it to provide a custom proxying rule for instance. | Optional  |                                              |
@@ -212,6 +218,8 @@ with httpx.Client() as client:
 | `timeout`               | Maximum amount of seconds to wait for a code or a token to be received once requested. | Optional | 60 |
 | `success_display_time`  | In case a code is successfully received, this is the maximum amount of milliseconds the success page will be displayed in your browser. | Optional | 1 |
 | `failure_display_time`  | In case received code is not valid, this is the maximum amount of milliseconds the failure page will be displayed in your browser. | Optional | 5000 |
+| `success_template`      | HTML content to render to the browser upon successfully receiving an authorization code from the authorization server. Will be formatted with `text` and `display_time` parameters. | Optional |  |
+| `failure_template`      | HTML content to render to the browser upon successfully receiving an authorization code from the authorization server. Will be formatted with `text` and `display_time` parameters. | Optional |  |
 | `header_name`           | Name of the header field used to send token. | Optional | Authorization |
 | `header_value`          | Format used to send the token value. "{token}" must be present as it will be replaced by the actual token. | Optional | Bearer {token} |
 | `response_type`         | Value of the response_type query parameter if not already provided in authorization URL. | Optional | code |
@@ -270,6 +278,8 @@ with httpx.Client() as client:
 | `timeout`               | Maximum amount of seconds to wait for a token to be received once requested. | Optional | 60 |
 | `success_display_time`  | In case a token is successfully received, this is the maximum amount of milliseconds the success page will be displayed in your browser. | Optional | 1 |
 | `failure_display_time`  | In case received token is not valid, this is the maximum amount of milliseconds the failure page will be displayed in your browser. | Optional | 5000 |
+| `success_template`      | HTML content to render to the browser upon successfully receiving an authorization code from the authorization server. Will be formatted with `text` and `display_time` parameters. | Optional |  |
+| `failure_template`      | HTML content to render to the browser upon successfully receiving an authorization code from the authorization server. Will be formatted with `text` and `display_time` parameters. | Optional |  |
 | `header_name`           | Name of the header field used to send token. | Optional | Authorization |
 | `header_value`          | Format used to send the token value. "{token}" must be present as it will be replaced by the actual token. | Optional | Bearer {token} |
 | `client`                | `httpx.Client` instance that will be used to request the token. Use it to provide a custom proxying rule for instance. | Optional |  |

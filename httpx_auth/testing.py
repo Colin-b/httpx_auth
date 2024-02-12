@@ -7,6 +7,7 @@ import datetime
 import pytest
 
 import httpx_auth
+from httpx_auth.oauth2_authentication_responses_server import GrantDetails
 
 
 def create_token(expiry: Optional[datetime.datetime]) -> str:
@@ -22,10 +23,22 @@ def token_cache() -> httpx_auth.oauth2_tokens.TokenMemoryCache:
 
 
 class Tab(threading.Thread):
-    def __init__(self, reply_url: str, data: str):
+    def __init__(
+        self,
+        reply_url: str,
+        data: str,
+        success_template: Optional[str] = None,
+        failure_template: Optional[str] = None,
+    ):
         self.reply_url = reply_url
         self.data = data.encode() if data is not None else None
         self.checked = False
+        self.success_template = (
+            success_template or GrantDetails.DEFAULT_SUCCESS_TEMPLATE
+        )
+        self.failure_template = (
+            failure_template or GrantDetails.DEFAULT_FAILURE_TEMPLATE
+        )
         super().__init__()
 
     def run(self) -> None:
@@ -59,17 +72,15 @@ class Tab(threading.Thread):
 
     def assert_success(self, expected_message: str, timeout: int = 1):
         self.join()
-        assert (
-            self.content
-            == f"<body onload=\"window.open('', '_self', ''); window.setTimeout(close, {timeout})\" style=\"\n        color: #4F8A10;\n        background-color: #DFF2BF;\n        font-size: xx-large;\n        display: flex;\n        align-items: center;\n        justify-content: center;\">\n            <div style=\"border: 1px solid;\">{expected_message}</div>\n        </body>"
+        assert self.content == self.success_template.format(
+            display_time=timeout, text=expected_message
         )
         self.checked = True
 
     def assert_failure(self, expected_message: str, timeout: int = 5000):
         self.join()
-        assert (
-            self.content
-            == f"<body onload=\"window.open('', '_self', ''); window.setTimeout(close, {timeout})\" style=\"\n        color: #D8000C;\n        background-color: #FFBABA;\n        font-size: xx-large;\n        display: flex;\n        align-items: center;\n        justify-content: center;\">\n            <div style=\"border: 1px solid;\">{expected_message}</div>\n        </body>"
+        assert self.content == self.failure_template.format(
+            display_time=timeout, text=expected_message
         )
         self.checked = True
 
@@ -86,14 +97,26 @@ class BrowserMock:
         return True
 
     def add_response(
-        self, opened_url: str, reply_url: Optional[str], data: str = None
+        self,
+        opened_url: str,
+        reply_url: Optional[str],
+        data: str = None,
+        success_template: Optional[str] = None,
+        failure_template: Optional[str] = None,
     ) -> Tab:
         """
         :param opened_url: URL opened by httpx_auth
         :param reply_url: The URL to send a response to, None to simulate the fact that there is no redirect.
         :param data: Body of the POST response to be sent. None to send a GET request.
+        :success_template: Success template
+        :failure_template: Failure template
         """
-        tab = Tab(reply_url, data)
+        tab = Tab(
+            reply_url,
+            data,
+            success_template=success_template,
+            failure_template=failure_template,
+        )
         self.tabs[opened_url] = tab
         return tab
 
