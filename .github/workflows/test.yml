@@ -22,7 +22,7 @@ jobs:
         python -m pip install .[testing]
     - name: Test with pytest
       run: |
-        pytest --cov=httpx_auth --cov-fail-under=100 --cov-report=term-missing
+        pytest --doctest-modules --cov=httpx_auth --cov-fail-under=100 --cov-report=term-missing
     - name: Create packages
       run: |
         python -m pip install build

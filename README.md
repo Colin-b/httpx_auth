@@ -5,7 +5,7 @@
 <a href="https://github.com/Colin-b/httpx_auth/actions"><img alt="Build status" src="https://github.com/Colin-b/httpx_auth/workflows/Release/badge.svg"></a>
 <a href="https://github.com/Colin-b/httpx_auth/actions"><img alt="Coverage" src="https://img.shields.io/badge/coverage-100%25-brightgreen"></a>
 <a href="https://github.com/psf/black"><img alt="Code style: black" src="https://img.shields.io/badge/code%20style-black-000000.svg"></a>
-<a href="https://github.com/Colin-b/httpx_auth/actions"><img alt="Number of tests" src="https://img.shields.io/badge/tests-335 passed-blue"></a>
+<a href="https://github.com/Colin-b/httpx_auth/actions"><img alt="Number of tests" src="https://img.shields.io/badge/tests-681 passed-blue"></a>
 <a href="https://pypi.org/project/httpx-auth/"><img alt="Number of downloads" src="https://img.shields.io/pypi/dm/httpx_auth"></a>
 </p>
 
@@ -18,7 +18,8 @@ Provides authentication classes to be used with [`httpx`][1] [authentication par
 <p align="center">
     <a href="https://oauth.net/2/"><img alt="OAuth2" src="https://oauth.net/images/oauth-2-sm.png"></a>
     <a href="https://www.okta.com"><img alt="Okta" src="https://www.okta.com/sites/all/themes/Okta/images/logos/developer/Dev_Logo-03_Large.png" height="120"></a>
-    <a href="https://azure.microsoft.com/en-us/services/active-directory/"><img alt="Azure Active Directory (AD)" src="https://azurecomcdn.azureedge.net/cvt-cda59ccd0aa5ced6ff5a2052417cf596b92980921e88e667127eaca2232a31ab/images/shared/services/pricing-glyph-lock.svg" height="120"></a>
+    <a href="https://www.microsoft.com/en-us/security/business/identity-access/microsoft-entra-id"><img alt="Microsoft Entra ID, formerly Azure Active Directory (AD)" src="https://svgshare.com/i/12u_.svg" height="120"></a>
+    <a href="https://docs.aws.amazon.com/AmazonS3/latest/API/sig-v4-authenticating-requests.html"><img alt="AWS Signature Version 4" src="https://upload.wikimedia.org/wikipedia/commons/9/93/Amazon_Web_Services_Logo.svg" height="120"></a>
 </p>
 <p align="center">Some of the supported authentication</p>
 
@@ -34,8 +35,8 @@ Provides authentication classes to be used with [`httpx`][1] [authentication par
   - [Client Credentials Flow](#client-credentials-flow)
     - [Okta](#okta-oauth2-client-credentials)
   - [Implicit Flow](#implicit-flow)
-    - [Azure AD (Access Token)](#microsoft---azure-active-directory-oauth2-access-token)
-    - [Azure AD (ID token)](#microsoft---azure-active-directory-openid-connect-id-token)
+    - [Microsoft Entra (Access Token)](#microsoft---azure-active-directory-oauth2-access-token)
+    - [Microsoft Entra (ID token)](#microsoft---azure-active-directory-openid-connect-id-token)
     - [Okta (Access Token)](#okta-oauth2-implicit-access-token)
     - [Okta (ID token)](#okta-openid-connect-implicit-id-token)
   - [Managing token cache](#managing-token-cache)
@@ -667,7 +668,7 @@ OAuth2.token_cache = JsonTokenFileCache('path/to/my_token_cache.json')
 
 ## AWS Signature v4
 
-Amazon Web Service Signature version 4 is implemented following [Amazon S3 documentation](https://docs.aws.amazon.com/AmazonS3/latest/API/sigv4-auth-using-authorization-header.html) and [request-aws4auth](https://github.com/sam-washington/requests-aws4auth).
+Amazon Web Service Signature version 4 is implemented following [Amazon S3 documentation](https://docs.aws.amazon.com/AmazonS3/latest/API/sigv4-auth-using-authorization-header.html) and [request-aws4auth 1.2.3](https://github.com/sam-washington/requests-aws4auth) (with some changes, see below).
 
 Use `httpx_auth.AWS4Auth` to configure this kind of authentication.
 
@@ -680,15 +681,31 @@ with httpx.Client() as client:
     client.get('http://s3-eu-west-1.amazonaws.com', auth=aws)
 ```
 
+Note that the following changes were made compared to `requests-aws4auth`:
+  - Each request now has its own signing key and `x-amz-date`. Meaning **you can use the same auth instance for more than one request**.
+  - `session_token` was renamed into `security_token` for consistency with the underlying name at Amazon.
+  - `include_hdrs` parameter was renamed into `include_headers`. When using this parameter:
+    - Provided values will not be stripped, [WYSIWYG](https://en.wikipedia.org/wiki/WYSIWYG).
+    - If multiple values are provided for a same header, the computation will be based on the value order you provided and value separated by `, `. Instead of ordered values separated by comma for `requests-aws4auth`.
+  - `amz_date` attribute has been removed.
+  - It is not possible to provide a `date`. It will default to now.
+  - It is not possible to provide an `AWSSigningKey` instance, use explicit parameters instead.
+  - It is not possible to provide `raise_invalid_date` parameter anymore as the date will always be valid.
+  - `host` is not considered as a specific Amazon service anymore (no test specific code).
+  - Canonical query string computation is entirely based on AWS documentation (and consider undocumented fragment (`#` and following characters) as part of the query string).
+  - Canonical uri computation is entirely based on AWS documentation.
+  - Canonical headers computation is entirely based on AWS documentation.
+
 ### Parameters
 
-| Name             | Description                | Mandatory | Default value |
-|:-----------------|:---------------------------|:----------|:--------------|
-| `access_id`      | AWS access ID. | Mandatory | |
-| `secret_key`     | AWS secret access key. | Mandatory | |
-| `region`         | The region you are connecting to, as per [this list](http://docs.aws.amazon.com/general/latest/gr/rande.html#s3_region). For services which do not require a region (e.g. IAM), use us-east-1. | Mandatory | |
-| `service`        | The name of the service you are connecting to, as per [this list](http://docs.aws.amazon.com/general/latest/gr/rande.html). e.g. elasticbeanstalk. | Mandatory | |
-| `security_token` | Used for the `x-amz-security-token` header, for use with STS temporary credentials. | Optional | |
+| Name               | Description                                                                                                                                                                                    | Mandatory  | Default value                                                                                                            |
+|:-------------------|:-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|:-----------|:-------------------------------------------------------------------------------------------------------------------------|
+| `access_id`        | AWS access ID.                                                                                                                                                                                 | Mandatory  |                                                                                                                          |
+| `secret_key`       | AWS secret access key.                                                                                                                                                                         | Mandatory  |                                                                                                                          |
+| `region`           | The region you are connecting to, as per [this list](http://docs.aws.amazon.com/general/latest/gr/rande.html#s3_region). For services which do not require a region (e.g. IAM), use us-east-1. | Mandatory  |                                                                                                                          |
+| `service`          | The name of the service you are connecting to, as per [this list](http://docs.aws.amazon.com/general/latest/gr/rande.html). e.g. elasticbeanstalk.                                             | Mandatory  |                                                                                                                          |
+| `security_token`   | Used for the `x-amz-security-token` header, for use with STS temporary credentials.                                                                                                            | Optional   |                                                                                                                          |
+| `include_headers`  | Set of headers to include in the canonical and signed headers (in addition to the default). Note that `x-amz-client-context` is not included by default and `*` will include all headers.      | Optional   | {"host", "content-type", "x-amz-*"} and if `security_token` is provided, `x-amz-security-token`. |
 
 ## API key in header
 
@@ -859,7 +876,7 @@ import datetime
 from httpx_auth.testing import browser_mock, BrowserMock, create_token
 
 def test_something(browser_mock: BrowserMock):
-    token_expiry = datetime.datetime.utcnow() + datetime.timedelta(hours=1)
+    token_expiry = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(hours=1)
     token = create_token(token_expiry)
     tab = browser_mock.add_response(
         opened_url="http://url_opened_by_browser?state=1234",
