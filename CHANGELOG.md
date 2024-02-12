@@ -5,6 +5,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [0.20.0] - 2024-02-12
 ### Fixed
 - Remove deprecation warnings due to usage of `utcnow` and `utcfromtimestamp`. Thanks to [`Raphael Krupinski`](https://github.com/rafalkrupinski).
 - `httpx_auth.AWS4Auth.default_include_headers` value kept growing in size every time a new `httpx_auth.AWS4Auth` instance was created with `security_token` parameter provided. Thanks to [`Miikka Koskinen`](https://github.com/miikka).
@@ -206,7 +208,8 @@ Note that a few changes were made:
 ### Added
 - Placeholder for port of requests_auth to httpx
 
-[Unreleased]: https://github.com/Colin-b/httpx_auth/compare/v0.19.0...HEAD
+[Unreleased]: https://github.com/Colin-b/httpx_auth/compare/v0.20.0...HEAD
+[0.20.0]: https://github.com/Colin-b/httpx_auth/compare/v0.19.0...v0.20.0
 [0.19.0]: https://github.com/Colin-b/httpx_auth/compare/v0.18.0...v0.19.0
 [0.18.0]: https://github.com/Colin-b/httpx_auth/compare/v0.17.0...v0.18.0
 [0.17.0]: https://github.com/Colin-b/httpx_auth/compare/v0.16.0...v0.17.0
