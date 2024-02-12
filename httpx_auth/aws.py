@@ -1,16 +1,14 @@
 """
-Provides code for AWSAuth ported to httpx from Sam Washington's requests-aws4auth
+Provides code for AWSAuth initially ported to httpx from Sam Washington's requests-aws4auth
 https://github.com/sam-washington/requests-aws4auth
 """
 
 import datetime
 import hashlib
 import hmac
-import re
-import shlex
 from collections import defaultdict
 from posixpath import normpath
-from typing import Generator, Tuple
+from typing import Generator
 from urllib.parse import quote
 
 import httpx
@@ -135,6 +133,9 @@ def canonical_and_signed_headers(
     ...
     Lowercase(<HeaderNameN>)+":"+Trim(<value>)+"\n"
 
+    >>> canonical_and_signed_headers(httpx.Headers({"X-AMZ-Whatever": "  value with  spaces  "}), include_headers=set())
+    ('x-amz-whatever:value with  spaces\n', 'x-amz-whatever')
+
     The Lowercase() and Trim() functions used in this example are described in the preceding section.
 
     The CanonicalHeaders list must include the following:
@@ -178,7 +179,7 @@ def canonical_and_signed_headers(
             # x-amz-client-context break mobile analytics auth if included
             and not header == "x-amz-client-context"
         ):
-            included_headers[header] = trim(header_value)
+            included_headers[header] = header_value.strip()
 
     canonical_headers = ""
     signed_headers = []
@@ -186,9 +187,7 @@ def canonical_and_signed_headers(
         signed_headers.append(header)
         canonical_headers += f"{header}:{included_headers[header]}\n"
 
-    signed_headers = ";".join(signed_headers)
-
-    return canonical_headers, signed_headers
+    return canonical_headers, ";".join(signed_headers)
 
 
 def _string_to_sign(request: httpx.Request, canonical_request: str, scope: str) -> str:
@@ -281,7 +280,23 @@ def canonical_query_string(url: httpx.URL) -> str:
     ''
 
     You will still need to include the "\n".
+
+    Undocumented:
+
+    As URL fragment are not mentionned in AWS documentation, it is assumed they don't treat it as what it is and part of the query string instead
+    >>> canonical_query_string(httpx.URL("http://s3.amazonaws.com/examplebucket?#this_will_be_a_parameter=and_its_value"))
+    '%23this_will_be_a_parameter=and_its_value'
+
+    >>> canonical_query_string(httpx.URL("http://s3.amazonaws.com/examplebucket?#first=1#invalue"))
+    '%23first=1%23invalue'
+
+    >>> canonical_query_string(httpx.URL("http://s3.amazonaws.com/examplebucket?first#=1&#second=invalue&#"))
+    '%23second=invalue&first%23=1'
     """
+    if fragment := url.fragment:
+        url_without_fragment = url.copy_with(fragment=None)
+        return canonical_query_string(httpx.URL(f"{url_without_fragment}%23{fragment}"))
+
     encoded_params = defaultdict(list)
     for name, value in url.params.multi_items():
         encoded_params[uri_encode(name, is_key=True)].append(uri_encode(value))
@@ -304,17 +319,6 @@ def _signing_key(secret_key: str, region: str, service: str, date: str) -> bytes
 
 def sign_sha256(signing_key: bytes, message: str) -> bytes:
     return hmac.new(signing_key, message.encode("utf-8"), hashlib.sha256).digest()
-
-
-def trim(value: str) -> str:
-    """
-    >>> trim(" this  is  the  value ")
-    'this is the value'
-    """
-    # TODO AWS documentation expects only leading or trailing whitespace to be removed.
-    if re.search(r"\s", value):
-        return " ".join(shlex.split(value, posix=False)).strip()
-    return value
 
 
 def uri_encode(value: str, is_key: bool = False) -> str:

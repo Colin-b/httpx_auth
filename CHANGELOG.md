@@ -5,20 +5,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [0.20.0] - 2024-02-12
 ### Fixed
 - Remove deprecation warnings due to usage of `utcnow` and `utcfromtimestamp`. Thanks to [`Raphael Krupinski`](https://github.com/rafalkrupinski).
 - `httpx_auth.AWS4Auth.default_include_headers` value kept growing in size every time a new `httpx_auth.AWS4Auth` instance was created with `security_token` parameter provided. Thanks to [`Miikka Koskinen`](https://github.com/miikka).
-- `httpx_auth.AWS4Auth` is now processing included headers without spaces in value faster.
-- `httpx_auth.AWS4Auth` is now based almost entirely on AWS documentation, solving bugs in the original implementation from `requests-aws4auth`.
+- `httpx_auth.AWS4Auth` is now based almost entirely on AWS documentation, diverging from the original implementation based on `requests-aws4auth` and solving implementation issues in the process.
   - As the AWS documentation might be wrong or not exhaustive enough, feel free to open issues, should you encounter edge cases.
 
 ### Changed
 - `httpx_auth.AWS4Auth.default_include_headers` is not available anymore, use `httpx_auth.AWS4Auth` `include_headers` parameter instead to include additional headers if the default does not fit your need (refer to documentation for an exhaustive list).
 - `httpx_auth.AWS4Auth` `include_headers` values will not be stripped anymore, meaning that you can now include headers prefixed and/or suffixed with blank spaces.
-- `httpx_auth.AWS4Auth` query fragment (`#` and everything following) is not considered as part of the canonical query string anymore. Feel free to open an issue if this is one.
 - `httpx_auth.AWS4Auth` does not includes `date` header by default anymore. You will have to provide it via `include_headers` yourself if you need to.
   - Note that it should not be required as `httpx_auth.AWS4Auth` is sending `x-amz-date` by default and AWS documentation states that the request date can be specified by using either the HTTP `Date` or the `x-amz-date` header. If both headers are present, `x-amz-date` takes precedence.
 - `httpx_auth.AWS4Auth` `include_headers` does not needs to include `host`, `content-type` or `x-amz-*` anymore as those headers will always be included. It is now expected to be provided as a list of additional headers.
+- `httpx_auth.AWS4Auth` will not modify the headers values spaces when computing the canonical headers, only trim leading and trailing whitespaces as per AWS documentation.
 
 ## [0.19.0] - 2024-01-09
 ### Added
@@ -207,7 +208,8 @@ Note that a few changes were made:
 ### Added
 - Placeholder for port of requests_auth to httpx
 
-[Unreleased]: https://github.com/Colin-b/httpx_auth/compare/v0.19.0...HEAD
+[Unreleased]: https://github.com/Colin-b/httpx_auth/compare/v0.20.0...HEAD
+[0.20.0]: https://github.com/Colin-b/httpx_auth/compare/v0.19.0...v0.20.0
 [0.19.0]: https://github.com/Colin-b/httpx_auth/compare/v0.18.0...v0.19.0
 [0.18.0]: https://github.com/Colin-b/httpx_auth/compare/v0.17.0...v0.18.0
 [0.17.0]: https://github.com/Colin-b/httpx_auth/compare/v0.16.0...v0.17.0

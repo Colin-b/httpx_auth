@@ -302,7 +302,7 @@ def test_aws_auth_header_performances_with_spaces_in_value(
         method="GET",
         match_headers={
             "x-amz-content-sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-            "Authorization": "AWS4-HMAC-SHA256 Credential=access_id/20181011/us-east-1/iam/aws4_request, SignedHeaders=custom_with_spaces;host;x-amz-content-sha256;x-amz-date, Signature=77d54dbb83fdcd5d7086c47c67e489ba4c66f69a1493d215ca417cdec71c5a95",
+            "Authorization": "AWS4-HMAC-SHA256 Credential=access_id/20181011/us-east-1/iam/aws4_request, SignedHeaders=custom_with_spaces;host;x-amz-content-sha256;x-amz-date, Signature=ea0663a29c9f4a5225d9e882121e5c3744321c12b07ce5e6d4e7081b2e26ad8b",
             "x-amz-date": "20181011T150505Z",
             "custom_with_spaces": header_value,
         },
@@ -373,7 +373,7 @@ def test_aws_auth_header_performances_without_spaces_in_value(
         ],
         [
             "a   b   c",
-            "7b6aea4a2378417c631c5621ddc99a94591022c775cfbb9dbf5c360492e238ef",
+            "226515100ad91c335cd215dd918807637b6f24c6ce83679f988ad953e2b80010",
         ],
         ["\nab", "3072938eb28cff19726cc2a27d5e570f916887a639b26475b390dd0edacf6496"],
     ],
@@ -663,7 +663,7 @@ def test_aws_auth_query_reserved_with_fragment(httpx_mock: HTTPXMock):
         method="POST",
         match_headers={
             "x-amz-content-sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-            "Authorization": "AWS4-HMAC-SHA256 Credential=access_id/20181011/us-east-1/iam/aws4_request, SignedHeaders=host;x-amz-content-sha256;x-amz-date, Signature=40f1e969709d1e89729fd9883dd2caca0ed2a8e9ec6f5fe320b5ee5629291116",
+            "Authorization": "AWS4-HMAC-SHA256 Credential=access_id/20181011/us-east-1/iam/aws4_request, SignedHeaders=host;x-amz-content-sha256;x-amz-date, Signature=73a30ab39b554b5d6b2d0e6b575b4d108794334a532068a2e388027e7914288f",
             "x-amz-date": "20181011T150505Z",
         },
     )
