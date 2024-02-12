@@ -1,16 +1,14 @@
 """
-Provides code for AWSAuth ported to httpx from Sam Washington's requests-aws4auth
+Provides code for AWSAuth initially ported to httpx from Sam Washington's requests-aws4auth
 https://github.com/sam-washington/requests-aws4auth
 """
 
 import datetime
 import hashlib
 import hmac
-import re
-import shlex
 from collections import defaultdict
 from posixpath import normpath
-from typing import Generator, Tuple
+from typing import Generator
 from urllib.parse import quote
 
 import httpx
@@ -282,7 +280,23 @@ def canonical_query_string(url: httpx.URL) -> str:
     ''
 
     You will still need to include the "\n".
+
+    Undocumented:
+
+    As URL fragment are not mentionned in AWS documentation, it is assumed they don't treat it as what it is and part of the query string instead
+    >>> canonical_query_string(httpx.URL("http://s3.amazonaws.com/examplebucket?#this_will_be_a_parameter=and_its_value"))
+    '%23this_will_be_a_parameter=and_its_value'
+
+    >>> canonical_query_string(httpx.URL("http://s3.amazonaws.com/examplebucket?#first=1#invalue"))
+    '%23first=1%23invalue'
+
+    >>> canonical_query_string(httpx.URL("http://s3.amazonaws.com/examplebucket?first#=1&#second=invalue&#"))
+    '%23second=invalue&first%23=1'
     """
+    if fragment := url.fragment:
+        url_without_fragment = url.copy_with(fragment=None)
+        return canonical_query_string(httpx.URL(f"{url_without_fragment}%23{fragment}"))
+
     encoded_params = defaultdict(list)
     for name, value in url.params.multi_items():
         encoded_params[uri_encode(name, is_key=True)].append(uri_encode(value))

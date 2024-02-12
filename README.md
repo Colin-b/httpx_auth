@@ -692,7 +692,7 @@ Note that the following changes were made compared to `requests-aws4auth`:
   - It is not possible to provide an `AWSSigningKey` instance, use explicit parameters instead.
   - It is not possible to provide `raise_invalid_date` parameter anymore as the date will always be valid.
   - `host` is not considered as a specific Amazon service anymore (no test specific code).
-  - Canonical query string computation is entirely based on AWS documentation (and consider undocumented fragment (`#` and following characters) as not part of the query string).
+  - Canonical query string computation is entirely based on AWS documentation (and consider undocumented fragment (`#` and following characters) as part of the query string).
   - Canonical uri computation is entirely based on AWS documentation.
   - Canonical headers computation is entirely based on AWS documentation.
 

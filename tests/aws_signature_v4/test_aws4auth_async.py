@@ -686,7 +686,7 @@ async def test_aws_auth_query_reserved_with_fragment(httpx_mock: HTTPXMock):
         method="POST",
         match_headers={
             "x-amz-content-sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-            "Authorization": "AWS4-HMAC-SHA256 Credential=access_id/20181011/us-east-1/iam/aws4_request, SignedHeaders=host;x-amz-content-sha256;x-amz-date, Signature=40f1e969709d1e89729fd9883dd2caca0ed2a8e9ec6f5fe320b5ee5629291116",
+            "Authorization": "AWS4-HMAC-SHA256 Credential=access_id/20181011/us-east-1/iam/aws4_request, SignedHeaders=host;x-amz-content-sha256;x-amz-date, Signature=73a30ab39b554b5d6b2d0e6b575b4d108794334a532068a2e388027e7914288f",
             "x-amz-date": "20181011T150505Z",
         },
     )
