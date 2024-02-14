@@ -6,6 +6,7 @@ import httpx
 
 import httpx_auth
 from httpx_auth.testing import token_cache
+from httpx_auth._oauth2.tokens import _to_expiry
 
 
 def test_oauth2_client_credentials_flow_uses_provided_client(
@@ -120,7 +121,7 @@ def test_oauth2_client_credentials_flow_token_is_expired_after_30_seconds_by_def
     token_cache._add_token(
         key="76c85306ab93a2db901b2c7add8eaf607fe803c60b24914a1799bdb7cc861b6ef96386025b5a1b97681b557ab761c6fa4040d4731d6f238d3c2b19b0e2ad7344",
         token="2YotnFZFEjr1zCsicMWpAA",
-        expiry=httpx_auth._oauth2.oauth2_tokens._to_expiry(expires_in=29),
+        expiry=_to_expiry(expires_in=29),
     )
     # Meaning a new one will be requested
     httpx_mock.add_response(
@@ -159,7 +160,7 @@ def test_oauth2_client_credentials_flow_token_custom_expiry(
     token_cache._add_token(
         key="76c85306ab93a2db901b2c7add8eaf607fe803c60b24914a1799bdb7cc861b6ef96386025b5a1b97681b557ab761c6fa4040d4731d6f238d3c2b19b0e2ad7344",
         token="2YotnFZFEjr1zCsicMWpAA",
-        expiry=httpx_auth._oauth2.oauth2_tokens._to_expiry(expires_in=29),
+        expiry=_to_expiry(expires_in=29),
     )
     httpx_mock.add_response(
         url="https://authorized_only",

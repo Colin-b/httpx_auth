@@ -96,7 +96,7 @@ def test_oauth2_authorization_code_flow_get_code_is_expired_after_30_seconds_by_
     token_cache._add_token(
         key="5264d11c8b268ccf911ce564ca42fd75cea68c4a3c1ec3ac1ab20243891ab7cd5250ad4c2d002017c6e8ac2ba34954293baa5e0e4fd00bb9ffd4a39c45f1960b",
         token="2YotnFZFEjr1zCsicMWpAA",
-        expiry=httpx_auth._oauth2.oauth2_tokens._to_expiry(expires_in=29),
+        expiry=_to_expiry(expires_in=29),
     )
     # Meaning a new one will be requested
     tab = browser_mock.add_response(
@@ -143,7 +143,7 @@ def test_oauth2_authorization_code_flow_get_code_custom_expiry(
     token_cache._add_token(
         key="5264d11c8b268ccf911ce564ca42fd75cea68c4a3c1ec3ac1ab20243891ab7cd5250ad4c2d002017c6e8ac2ba34954293baa5e0e4fd00bb9ffd4a39c45f1960b",
         token="2YotnFZFEjr1zCsicMWpAA",
-        expiry=httpx_auth._oauth2.oauth2_tokens._to_expiry(expires_in=29),
+        expiry=_to_expiry(expires_in=29),
     )
     httpx_mock.add_response(
         url="https://authorized_only",
