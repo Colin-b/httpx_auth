@@ -5,7 +5,7 @@ import httpx
 
 from httpx_auth._errors import GrantNotProvided, InvalidGrantRequest
 
-from httpx_auth._oauth2 import tokens
+from httpx_auth._oauth2.tokens import TokenMemoryCache
 
 
 def _add_parameters(initial_url: str, extra_parameters: dict) -> str:
@@ -84,7 +84,7 @@ def request_new_grant_with_post(
 
 
 class OAuth2:
-    token_cache = tokens.TokenMemoryCache()
+    token_cache = TokenMemoryCache()
 
 
 class BrowserAuth:
