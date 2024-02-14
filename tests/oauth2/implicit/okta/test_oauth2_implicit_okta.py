@@ -1,9 +1,10 @@
 import httpx_auth
+import httpx_auth._oauth2.implicit
 
 
 def test_corresponding_oauth2_implicit_flow_instance(monkeypatch):
     monkeypatch.setattr(
-        httpx_auth.authentication.uuid,
+        httpx_auth._oauth2.implicit.uuid,
         "uuid4",
         lambda *args: "27ddfeed4e-854b-4361-8e7a-eab371c9bc91",
     )
