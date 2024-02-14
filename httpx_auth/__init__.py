@@ -6,11 +6,13 @@ from httpx_auth._authentication import (
 )
 from httpx_auth._oauth2.common import OAuth2
 from httpx_auth._oauth2.authorization_code import (
-    OAuth2AuthorizationCodePKCE,
-    OktaAuthorizationCodePKCE,
     OAuth2AuthorizationCode,
     OktaAuthorizationCode,
     WakaTimeAuthorizationCode,
+)
+from httpx_auth._oauth2.authorization_code_pkce import (
+    OAuth2AuthorizationCodePKCE,
+    OktaAuthorizationCodePKCE,
 )
 from httpx_auth._oauth2.client_credentials import (
     OAuth2ClientCredentials,

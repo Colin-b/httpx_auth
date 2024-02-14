@@ -1,5 +1,7 @@
-from hashlib import sha512
-from typing import Generator, Iterable, Union
+import base64
+import os
+from hashlib import sha256, sha512
+from typing import Generator
 
 import httpx
 
@@ -11,20 +13,19 @@ from httpx_auth._oauth2.common import (
     _add_parameters,
     _pop_parameter,
     BrowserAuth,
-    _get_query_parameter,
 )
 
 
-class OAuth2AuthorizationCode(httpx.Auth, SupportMultiAuth, BrowserAuth):
+class OAuth2AuthorizationCodePKCE(httpx.Auth, SupportMultiAuth, BrowserAuth):
     """
-    Authorization Code Grant
+    Proof Key for Code Exchange
 
-    Describes an OAuth 2 authorization code (also called access code) flow requests authentication.
+    Describes an OAuth 2 Proof Key for Code Exchange (PKCE) flow requests authentication.
 
     Request a code with client browser, then request a token using this code.
     Store the token and use it for subsequent valid requests.
 
-    More details can be found in https://tools.ietf.org/html/rfc6749#section-4.1
+    More details can be found in https://tools.ietf.org/html/rfc7636
     """
 
     def __init__(self, authorization_url: str, token_url: str, **kwargs):
@@ -59,8 +60,6 @@ class OAuth2AuthorizationCode(httpx.Auth, SupportMultiAuth, BrowserAuth):
         Default to 30 seconds to ensure token will not expire between the time of retrieval and the time the request
         reaches the actual server. Set it to 0 to deactivate this feature and use the same token until actual expiry.
         :param code_field_name: Field name containing the code. code by default.
-        :param username: Username in case basic authentication should be used to retrieve token.
-        :param password: User password in case basic authentication should be used to retrieve token.
         :param client: httpx.Client instance that will be used to request the token.
         Use it to provide a custom proxying rule for instance.
         :param kwargs: all additional authorization parameters that should be put as query parameter
@@ -83,6 +82,8 @@ class OAuth2AuthorizationCode(httpx.Auth, SupportMultiAuth, BrowserAuth):
 
         BrowserAuth.__init__(self, kwargs)
 
+        self.client = kwargs.pop("client", None)
+
         self.header_name = kwargs.pop("header_name", None) or "Authorization"
         self.header_value = kwargs.pop("header_value", None) or "Bearer {token}"
         if "{token}" not in self.header_value:
@@ -91,22 +92,20 @@ class OAuth2AuthorizationCode(httpx.Auth, SupportMultiAuth, BrowserAuth):
         self.token_field_name = kwargs.pop("token_field_name", None) or "access_token"
         self.early_expiry = float(kwargs.pop("early_expiry", None) or 30.0)
 
-        username = kwargs.pop("username", None)
-        password = kwargs.pop("password", None)
-        self.auth = (username, password) if username and password else None
-        self.client = kwargs.pop("client", None)
-
         # As described in https://tools.ietf.org/html/rfc6749#section-4.1.2
         code_field_name = kwargs.pop("code_field_name", "code")
-        if _get_query_parameter(self.authorization_url, "response_type"):
+        authorization_url_without_response_type, response_type = _pop_parameter(
+            self.authorization_url, "response_type"
+        )
+        if response_type:
             # Ensure provided value will not be overridden
-            kwargs.pop("response_type", None)
+            kwargs["response_type"] = response_type
         else:
             # As described in https://tools.ietf.org/html/rfc6749#section-4.1.1
             kwargs.setdefault("response_type", "code")
 
         authorization_url_without_nonce = _add_parameters(
-            self.authorization_url, kwargs
+            authorization_url_without_response_type, kwargs
         )
         authorization_url_without_nonce, nonce = _pop_parameter(
             authorization_url_without_nonce, "nonce"
@@ -120,6 +119,15 @@ class OAuth2AuthorizationCode(httpx.Auth, SupportMultiAuth, BrowserAuth):
         }
         if nonce:
             custom_code_parameters["nonce"] = nonce
+
+        # generate PKCE code verifier and challenge
+        code_verifier = self.generate_code_verifier()
+        code_challenge = self.generate_code_challenge(code_verifier)
+
+        # add code challenge parameters to the authorization_url request
+        custom_code_parameters["code_challenge"] = code_challenge
+        custom_code_parameters["code_challenge_method"] = "S256"
+
         code_grant_url = _add_parameters(
             authorization_url_without_nonce, custom_code_parameters
         )
@@ -135,7 +143,9 @@ class OAuth2AuthorizationCode(httpx.Auth, SupportMultiAuth, BrowserAuth):
         )
 
         # As described in https://tools.ietf.org/html/rfc6749#section-4.1.3
+        # include the PKCE code verifier used in the second part of the flow
         self.token_data = {
+            "code_verifier": code_verifier.decode("ascii"),
             "grant_type": "authorization_code",
             "redirect_uri": self.redirect_uri,
         }
@@ -176,13 +186,44 @@ class OAuth2AuthorizationCode(httpx.Auth, SupportMultiAuth, BrowserAuth):
         return (self.state, token, expires_in) if expires_in else (self.state, token)
 
     def _configure_client(self, client: httpx.Client):
-        client.auth = self.auth
         client.timeout = self.timeout
 
+    @staticmethod
+    def generate_code_verifier() -> bytes:
+        """
+        Source: https://github.com/openstack/deb-python-oauth2client/blob/master/oauth2client/_pkce.py
 
-class OktaAuthorizationCode(OAuth2AuthorizationCode):
+        Generates a 'code_verifier' as described in section 4.1 of RFC 7636.
+        This is a 'high-entropy cryptographic random string' that will be
+        impractical for an attacker to guess.
+
+        https://tools.ietf.org/html/rfc7636#section-4.1
+
+        :return: urlsafe base64-encoded random data.
+        """
+        return base64.urlsafe_b64encode(os.urandom(64)).rstrip(b"=")
+
+    @staticmethod
+    def generate_code_challenge(verifier: bytes) -> bytes:
+        """
+        Source: https://github.com/openstack/deb-python-oauth2client/blob/master/oauth2client/_pkce.py
+
+        Creates a 'code_challenge' as described in section 4.2 of RFC 7636
+        by taking the sha256 hash of the verifier and then urlsafe
+        base64-encoding it.
+
+        https://tools.ietf.org/html/rfc7636#section-4.1
+
+        :param verifier: code_verifier as generated by generate_code_verifier()
+        :return: urlsafe base64-encoded sha256 hash digest, without '=' padding.
+        """
+        digest = sha256(verifier).digest()
+        return base64.urlsafe_b64encode(digest).rstrip(b"=")
+
+
+class OktaAuthorizationCodePKCE(OAuth2AuthorizationCodePKCE):
     """
-    Describes an Okta (OAuth 2) "Access Token" authorization code flow requests authentication.
+    Describes an Okta (OAuth 2) "Access Token" Proof Key for Code Exchange (PKCE) flow requests authentication.
     """
 
     def __init__(self, instance: str, client_id: str, **kwargs):
@@ -190,12 +231,13 @@ class OktaAuthorizationCode(OAuth2AuthorizationCode):
         :param instance: Okta instance (like "testserver.okta-emea.com")
         :param client_id: Okta Application Identifier (formatted as a Universal Unique Identifier)
         :param response_type: Value of the response_type query parameter.
-        token by default.
+        code by default.
         :param token_field_name: Name of the expected field containing the token.
         access_token by default.
         :param early_expiry: Number of seconds before actual token expiry where token will be considered as expired.
         Default to 30 seconds to ensure token will not expire between the time of retrieval and the time the request
         reaches the actual server. Set it to 0 to deactivate this feature and use the same token until actual expiry.
+        :param code_field_name: Field name containing the code. code by default.
         :param nonce: Refer to http://openid.net/specs/openid-connect-core-1_0.html#IDToken for more details
         (formatted as a Universal Unique Identifier - UUID). Use a newly generated UUID by default.
         :param authorization_server: Okta authorization server
@@ -226,81 +268,18 @@ class OktaAuthorizationCode(OAuth2AuthorizationCode):
         :param client: httpx.Client instance that will be used to request the token.
         Use it to provide a custom proxying rule for instance.
         :param kwargs: all additional authorization parameters that should be put as query parameter
-        in the authorization URL.
+        in the authorization URL and as body parameters in the token URL.
         Usual parameters are:
-        * prompt: none to avoid prompting the user if a session is already opened.
+        * client_secret: If client is not authenticated with the authorization server
+        * nonce: Refer to http://openid.net/specs/openid-connect-core-1_0.html#IDToken for more details
         """
         authorization_server = kwargs.pop("authorization_server", None) or "default"
         scopes = kwargs.pop("scope", "openid")
         kwargs["scope"] = " ".join(scopes) if isinstance(scopes, list) else scopes
-        OAuth2AuthorizationCode.__init__(
+        OAuth2AuthorizationCodePKCE.__init__(
             self,
             f"https://{instance}/oauth2/{authorization_server}/v1/authorize",
             f"https://{instance}/oauth2/{authorization_server}/v1/token",
             client_id=client_id,
-            **kwargs,
-        )
-
-
-class WakaTimeAuthorizationCode(OAuth2AuthorizationCode):
-    """
-    Describes a WakaTime (OAuth 2) "Access Token" authorization code flow requests authentication.
-    """
-
-    def __init__(
-        self,
-        client_id: str,
-        client_secret: str,
-        scope: Union[str, Iterable[str]],
-        **kwargs,
-    ):
-        """
-        :param client_id: WakaTime Application Identifier (formatted as a Universal Unique Identifier)
-        :param client_secret: WakaTime Application Secret (formatted as waka_sec_ followed by a Universal Unique Identifier)
-        :param scope: Scope parameter sent in query. Can also be a list of scopes.
-        :param response_type: Value of the response_type query parameter.
-        token by default.
-        :param token_field_name: Name of the expected field containing the token.
-        access_token by default.
-        :param early_expiry: Number of seconds before actual token expiry where token will be considered as expired.
-        Default to 30 seconds to ensure token will not expire between the time of retrieval and the time the request
-        reaches the actual server. Set it to 0 to deactivate this feature and use the same token until actual expiry.
-        :param nonce: Refer to http://openid.net/specs/openid-connect-core-1_0.html#IDToken for more details
-        (formatted as a Universal Unique Identifier - UUID). Use a newly generated UUID by default.
-        :param redirect_uri_endpoint: Custom endpoint that will be used as redirect_uri the following way:
-        http://localhost:<redirect_uri_port>/<redirect_uri_endpoint>. Default value is to redirect on / (root).
-        :param redirect_uri_port: The port on which the server listening for the OAuth 2 token will be started.
-        Listen on port 5000 by default.
-        :param timeout: Maximum amount of seconds to wait for a token to be received once requested.
-        Wait for 1 minute by default.
-        :param success_display_time: In case a token is successfully received,
-        this is the maximum amount of milliseconds the success page will be displayed in your browser.
-        Display the page for 1 millisecond by default.
-        :param failure_display_time: In case received token is not valid,
-        this is the maximum amount of milliseconds the failure page will be displayed in your browser.
-        Display the page for 5 seconds by default.
-        :param success_template: HTML content to render to the browser upon successfully receiving an
-        authorization code from the authorization server. Will be formatted with 'text' and 'display_time' parameters.
-        :param failure_template: HTML content to render to the browser upon failing to receive an
-        authorization code from the authorization server. Will be formatted with 'text' and 'display_time' parameters.
-        :param header_name: Name of the header field used to send token.
-        Token will be sent in Authorization header field by default.
-        :param header_value: Format used to send the token value.
-        "{token}" must be present as it will be replaced by the actual token.
-        Token will be sent as "Bearer {token}" by default.
-        :param client: httpx.Client instance that will be used to request the token.
-        Use it to provide a custom proxying rule for instance.
-        :param kwargs: all additional authorization parameters that should be put as query parameter
-        in the authorization URL.
-        """
-        if not scope:
-            raise Exception("Scope is mandatory.")
-        OAuth2AuthorizationCode.__init__(
-            self,
-            "https://wakatime.com/oauth/authorize",
-            "https://wakatime.com/oauth/token",
-            client_id=client_id,
-            client_secret=client_secret,
-            scope=",".join(scope) if isinstance(scope, list) else scope,
             **kwargs,
         )
