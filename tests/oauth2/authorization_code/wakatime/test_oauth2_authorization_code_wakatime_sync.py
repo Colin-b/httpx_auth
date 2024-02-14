@@ -4,6 +4,7 @@ import httpx
 
 import httpx_auth
 from httpx_auth.testing import BrowserMock, browser_mock, token_cache
+from httpx_auth._oauth2.tokens import _to_expiry
 
 
 def test_oauth2_authorization_code_flow_uses_provided_client(
