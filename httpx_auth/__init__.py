@@ -29,7 +29,7 @@ from httpx_auth._oauth2.resource_owner_password import (
     OAuth2ResourceOwnerPasswordCredentials,
     OktaResourceOwnerPasswordCredentials,
 )
-from httpx_auth._oauth2.tokens import JsonTokenFileCache
+from httpx_auth._oauth2.tokens import JsonTokenFileCache, TokenMemoryCache
 from httpx_auth._aws import AWS4Auth
 from httpx_auth._errors import (
     GrantNotProvided,
@@ -63,6 +63,7 @@ __all__ = [
     "WakaTimeAuthorizationCode",
     "SupportMultiAuth",
     "JsonTokenFileCache",
+    "TokenMemoryCache",
     "AWS4Auth",
     "GrantNotProvided",
     "TimeoutOccurred",
