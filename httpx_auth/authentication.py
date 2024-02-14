@@ -3,7 +3,7 @@ import os
 import uuid
 from hashlib import sha256, sha512
 from urllib.parse import parse_qs, urlsplit, urlunsplit, urlencode
-from typing import Optional, Generator, Union, Iterable
+from typing import Optional, Generator, Union, Iterable, Self
 
 import httpx
 
@@ -90,15 +90,39 @@ class OAuth2:
     token_cache = oauth2_tokens.TokenMemoryCache()
 
 
+class _MultiAuth(httpx.Auth):
+    """Authentication using multiple authentication methods."""
+
+    def __init__(self, *authentication_modes):
+        self.authentication_modes = authentication_modes
+
+    def auth_flow(
+        self, request: httpx.Request
+    ) -> Generator[httpx.Request, httpx.Response, None]:
+        for authentication_mode in self.authentication_modes:
+            next(authentication_mode.auth_flow(request))
+        yield request
+
+    def __add__(self, other) -> Self:
+        if isinstance(other, _MultiAuth):
+            return _MultiAuth(*self.authentication_modes, *other.authentication_modes)
+        return _MultiAuth(*self.authentication_modes, other)
+
+    def __and__(self, other) -> Self:
+        if isinstance(other, _MultiAuth):
+            return _MultiAuth(*self.authentication_modes, *other.authentication_modes)
+        return _MultiAuth(*self.authentication_modes, other)
+
+
 class SupportMultiAuth:
     """Inherit from this class to be able to use your class with httpx_auth provided authentication classes."""
 
-    def __add__(self, other):
+    def __add__(self, other) -> _MultiAuth:
         if isinstance(other, _MultiAuth):
             return _MultiAuth(self, *other.authentication_modes)
         return _MultiAuth(self, other)
 
-    def __and__(self, other):
+    def __and__(self, other) -> _MultiAuth:
         if isinstance(other, _MultiAuth):
             return _MultiAuth(self, *other.authentication_modes)
         return _MultiAuth(self, other)
@@ -1363,27 +1387,3 @@ class Basic(httpx.BasicAuth, SupportMultiAuth):
 
     def __init__(self, username: str, password: str):
         httpx.BasicAuth.__init__(self, username, password)
-
-
-class _MultiAuth(httpx.Auth):
-    """Authentication using multiple authentication methods."""
-
-    def __init__(self, *authentication_modes):
-        self.authentication_modes = authentication_modes
-
-    def auth_flow(
-        self, request: httpx.Request
-    ) -> Generator[httpx.Request, httpx.Response, None]:
-        for authentication_mode in self.authentication_modes:
-            next(authentication_mode.auth_flow(request))
-        yield request
-
-    def __add__(self, other) -> "_MultiAuth":
-        if isinstance(other, _MultiAuth):
-            return _MultiAuth(*self.authentication_modes, *other.authentication_modes)
-        return _MultiAuth(*self.authentication_modes, other)
-
-    def __and__(self, other) -> "_MultiAuth":
-        if isinstance(other, _MultiAuth):
-            return _MultiAuth(*self.authentication_modes, *other.authentication_modes)
-        return _MultiAuth(*self.authentication_modes, other)
