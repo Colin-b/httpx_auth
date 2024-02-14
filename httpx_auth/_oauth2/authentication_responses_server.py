@@ -7,7 +7,7 @@ from typing import Optional
 
 import httpx
 
-from httpx_auth.errors import (
+from httpx_auth._errors import (
     InvalidGrantRequest,
     GrantNotProvided,
     StateNotProvided,

@@ -183,7 +183,7 @@ def test_oauth2_implicit_flow_post_token_is_expired_after_30_seconds_by_default(
     token_cache._add_token(
         key="bee505cb6ceb14b9f6ac3573cd700b3b3e965004078d7bb57c7b92df01e448c992a7a46b4804164fc998ea166ece3f3d5849ca2405c4a548f43b915b0677231c",
         token=create_token(expiry_in_29_seconds),
-        expiry=httpx_auth.oauth2_tokens._to_expiry(expires_in=29),
+        expiry=httpx_auth._oauth2.oauth2_tokens._to_expiry(expires_in=29),
     )
     # Meaning a new one will be requested
     expiry_in_1_hour = datetime.datetime.now(
@@ -223,7 +223,7 @@ def test_oauth2_implicit_flow_post_token_custom_expiry(
     token_cache._add_token(
         key="bee505cb6ceb14b9f6ac3573cd700b3b3e965004078d7bb57c7b92df01e448c992a7a46b4804164fc998ea166ece3f3d5849ca2405c4a548f43b915b0677231c",
         token=create_token(expiry_in_29_seconds),
-        expiry=httpx_auth.oauth2_tokens._to_expiry(expires_in=29),
+        expiry=httpx_auth._oauth2.oauth2_tokens._to_expiry(expires_in=29),
     )
     httpx_mock.add_response(
         url="https://authorized_only",
@@ -238,7 +238,7 @@ def test_oauth2_implicit_flow_post_token_custom_expiry(
 
 
 def test_browser_opening_failure(token_cache, httpx_mock: HTTPXMock, monkeypatch):
-    import httpx_auth.oauth2_authentication_responses_server
+    import httpx_auth._oauth2.authentication_responses_server
 
     auth = httpx_auth.OAuth2Implicit("https://provide_token", timeout=0.1)
 
@@ -247,7 +247,7 @@ def test_browser_opening_failure(token_cache, httpx_mock: HTTPXMock, monkeypatch
             return False
 
     monkeypatch.setattr(
-        httpx_auth.oauth2_authentication_responses_server.webbrowser,
+        httpx_auth._oauth2.oauth2_authentication_responses_server.webbrowser,
         "get",
         lambda *args: FakeBrowser(),
     )
@@ -268,7 +268,7 @@ def test_browser_opening_failure(token_cache, httpx_mock: HTTPXMock, monkeypatch
 
 
 def test_browser_error(token_cache, httpx_mock: HTTPXMock, monkeypatch):
-    import httpx_auth.oauth2_authentication_responses_server
+    import httpx_auth._oauth2.authentication_responses_server
 
     auth = httpx_auth.OAuth2Implicit("https://provide_token", timeout=0.1)
 
@@ -279,7 +279,7 @@ def test_browser_error(token_cache, httpx_mock: HTTPXMock, monkeypatch):
             raise webbrowser.Error("Failure")
 
     monkeypatch.setattr(
-        httpx_auth.oauth2_authentication_responses_server.webbrowser,
+        httpx_auth._oauth2.oauth2_authentication_responses_server.webbrowser,
         "get",
         lambda *args: FakeBrowser(),
     )

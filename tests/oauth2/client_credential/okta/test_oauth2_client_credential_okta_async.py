@@ -80,7 +80,7 @@ async def test_okta_client_credentials_flow_token_is_expired_after_30_seconds_by
     token_cache._add_token(
         key="f0d25aa4e496c6615328e776bb981dabe53fa77768a0a58eaf6d54215c598d80e57ffc7926fd96ec6a6a872942cb684a473e36233b593fb760d3eb6dc22ae550",
         token="2YotnFZFEjr1zCsicMWpAA",
-        expiry=httpx_auth.oauth2_tokens._to_expiry(expires_in=29),
+        expiry=httpx_auth._oauth2.oauth2_tokens._to_expiry(expires_in=29),
     )
     # Meaning a new one will be requested
     httpx_mock.add_response(
@@ -117,7 +117,7 @@ async def test_okta_client_credentials_flow_token_custom_expiry(
     token_cache._add_token(
         key="f0d25aa4e496c6615328e776bb981dabe53fa77768a0a58eaf6d54215c598d80e57ffc7926fd96ec6a6a872942cb684a473e36233b593fb760d3eb6dc22ae550",
         token="2YotnFZFEjr1zCsicMWpAA",
-        expiry=httpx_auth.oauth2_tokens._to_expiry(expires_in=29),
+        expiry=httpx_auth._oauth2.oauth2_tokens._to_expiry(expires_in=29),
     )
     httpx_mock.add_response(
         url="https://authorized_only",

@@ -6,7 +6,11 @@ import threading
 import logging
 from typing import Union
 
-from httpx_auth.errors import InvalidToken, TokenExpiryNotProvided, AuthenticationFailed
+from httpx_auth._errors import (
+    InvalidToken,
+    TokenExpiryNotProvided,
+    AuthenticationFailed,
+)
 
 logger = logging.getLogger(__name__)
 

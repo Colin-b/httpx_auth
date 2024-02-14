@@ -8,6 +8,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Publicly expose `httpx_auth.SupportMultiAuth`, allowing multiple authentication support for every `httpx` authentication class that exists.
 
+### Changed
+- Except for `httpx_auth.testing`, only direct access via `httpx_auth.` was considered publicly exposed. This is now explicit, as inner packages are now using private prefix (`_`).
+  If you were relying on some classes or functions that are now internal, feel free to open an issue.
+
 ## [0.20.0] - 2024-02-12
 ### Fixed
 - Remove deprecation warnings due to usage of `utcnow` and `utcfromtimestamp`. Thanks to [`Raphael Krupinski`](https://github.com/rafalkrupinski).

@@ -7,7 +7,7 @@ import datetime
 import pytest
 
 import httpx_auth
-from httpx_auth.oauth2_authentication_responses_server import GrantDetails
+from httpx_auth._oauth2.authentication_responses_server import GrantDetails
 
 
 def create_token(expiry: Optional[datetime.datetime]) -> str:
@@ -17,7 +17,7 @@ def create_token(expiry: Optional[datetime.datetime]) -> str:
 
 
 @pytest.fixture
-def token_cache() -> httpx_auth.oauth2_tokens.TokenMemoryCache:
+def token_cache() -> httpx_auth._oauth2.oauth2_tokens.TokenMemoryCache:
     yield httpx_auth.OAuth2.token_cache
     httpx_auth.OAuth2.token_cache.clear()
 
@@ -129,10 +129,10 @@ class BrowserMock:
 @pytest.fixture
 def browser_mock(monkeypatch) -> BrowserMock:
     mock = BrowserMock()
-    import httpx_auth.oauth2_authentication_responses_server
+    import httpx_auth._oauth2.authentication_responses_server
 
     monkeypatch.setattr(
-        httpx_auth.oauth2_authentication_responses_server.webbrowser,
+        httpx_auth._oauth2.oauth2_authentication_responses_server.webbrowser,
         "get",
         lambda *args: mock,
     )
