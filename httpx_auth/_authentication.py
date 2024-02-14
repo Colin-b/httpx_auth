@@ -1,4 +1,4 @@
-from typing import Generator, Self
+from typing import Generator
 
 import httpx
 
@@ -16,12 +16,12 @@ class _MultiAuth(httpx.Auth):
             next(authentication_mode.auth_flow(request))
         yield request
 
-    def __add__(self, other) -> Self:
+    def __add__(self, other) -> "_MultiAuth":
         if isinstance(other, _MultiAuth):
             return _MultiAuth(*self.authentication_modes, *other.authentication_modes)
         return _MultiAuth(*self.authentication_modes, other)
 
-    def __and__(self, other) -> Self:
+    def __and__(self, other) -> "_MultiAuth":
         if isinstance(other, _MultiAuth):
             return _MultiAuth(*self.authentication_modes, *other.authentication_modes)
         return _MultiAuth(*self.authentication_modes, other)
