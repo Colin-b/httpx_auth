@@ -6,6 +6,7 @@ import httpx
 
 import httpx_auth
 from httpx_auth.testing import token_cache
+from httpx_auth._oauth2.tokens import _to_expiry
 
 
 @pytest.mark.asyncio

@@ -4,6 +4,8 @@ import httpx
 
 import httpx_auth
 from httpx_auth.testing import BrowserMock, browser_mock, token_cache
+from httpx_auth._oauth2.tokens import _to_expiry
+import httpx_auth._oauth2.authorization_code_pkce
 
 
 @pytest.mark.asyncio
@@ -11,7 +13,9 @@ async def test_oauth2_pkce_flow_uses_provided_client(
     token_cache, httpx_mock: HTTPXMock, monkeypatch, browser_mock: BrowserMock
 ):
     client = httpx.Client(headers={"x-test": "Test value"})
-    monkeypatch.setattr(httpx_auth.authentication.os, "urandom", lambda x: b"1" * 63)
+    monkeypatch.setattr(
+        httpx_auth._oauth2.authorization_code_pkce.os, "urandom", lambda x: b"1" * 63
+    )
     auth = httpx_auth.OktaAuthorizationCodePKCE(
         "testserver.okta-emea.com",
         "54239d18-c68c-4c47-8bdd-ce71ea1d50cd",
@@ -54,7 +58,9 @@ async def test_oauth2_pkce_flow_uses_provided_client(
 async def test_oauth2_pkce_flow_get_code_is_sent_in_authorization_header_by_default(
     token_cache, httpx_mock: HTTPXMock, monkeypatch, browser_mock: BrowserMock
 ):
-    monkeypatch.setattr(httpx_auth.authentication.os, "urandom", lambda x: b"1" * 63)
+    monkeypatch.setattr(
+        httpx_auth._oauth2.authorization_code_pkce.os, "urandom", lambda x: b"1" * 63
+    )
     auth = httpx_auth.OktaAuthorizationCodePKCE(
         "testserver.okta-emea.com", "54239d18-c68c-4c47-8bdd-ce71ea1d50cd"
     )
@@ -94,7 +100,9 @@ async def test_oauth2_pkce_flow_get_code_is_sent_in_authorization_header_by_defa
 async def test_oauth2_pkce_flow_get_code_is_expired_after_30_seconds_by_default(
     token_cache, httpx_mock: HTTPXMock, monkeypatch, browser_mock: BrowserMock
 ):
-    monkeypatch.setattr(httpx_auth.authentication.os, "urandom", lambda x: b"1" * 63)
+    monkeypatch.setattr(
+        httpx_auth._oauth2.authorization_code_pkce.os, "urandom", lambda x: b"1" * 63
+    )
     auth = httpx_auth.OktaAuthorizationCodePKCE(
         "testserver.okta-emea.com", "54239d18-c68c-4c47-8bdd-ce71ea1d50cd"
     )
@@ -141,7 +149,9 @@ async def test_oauth2_pkce_flow_get_code_is_expired_after_30_seconds_by_default(
 async def test_oauth2_pkce_flow_get_code_custom_expiry(
     token_cache, httpx_mock: HTTPXMock, monkeypatch, browser_mock: BrowserMock
 ):
-    monkeypatch.setattr(httpx_auth.authentication.os, "urandom", lambda x: b"1" * 63)
+    monkeypatch.setattr(
+        httpx_auth._oauth2.authorization_code_pkce.os, "urandom", lambda x: b"1" * 63
+    )
     auth = httpx_auth.OktaAuthorizationCodePKCE(
         "testserver.okta-emea.com",
         "54239d18-c68c-4c47-8bdd-ce71ea1d50cd",
@@ -169,7 +179,9 @@ async def test_oauth2_pkce_flow_get_code_custom_expiry(
 async def test_expires_in_sent_as_str(
     token_cache, httpx_mock: HTTPXMock, monkeypatch, browser_mock: BrowserMock
 ):
-    monkeypatch.setattr(httpx_auth.authentication.os, "urandom", lambda x: b"1" * 63)
+    monkeypatch.setattr(
+        httpx_auth._oauth2.authorization_code_pkce.os, "urandom", lambda x: b"1" * 63
+    )
     auth = httpx_auth.OktaAuthorizationCodePKCE(
         "testserver.okta-emea.com", "54239d18-c68c-4c47-8bdd-ce71ea1d50cd"
     )
@@ -209,7 +221,9 @@ async def test_expires_in_sent_as_str(
 async def test_with_invalid_grant_request_no_json(
     token_cache, httpx_mock: HTTPXMock, monkeypatch, browser_mock: BrowserMock
 ):
-    monkeypatch.setattr(httpx_auth.authentication.os, "urandom", lambda x: b"1" * 63)
+    monkeypatch.setattr(
+        httpx_auth._oauth2.authorization_code_pkce.os, "urandom", lambda x: b"1" * 63
+    )
     auth = httpx_auth.OktaAuthorizationCodePKCE(
         "testserver.okta-emea.com", "54239d18-c68c-4c47-8bdd-ce71ea1d50cd"
     )
@@ -237,7 +251,9 @@ async def test_with_invalid_grant_request_no_json(
 async def test_with_invalid_grant_request_invalid_request_error(
     token_cache, httpx_mock: HTTPXMock, monkeypatch, browser_mock: BrowserMock
 ):
-    monkeypatch.setattr(httpx_auth.authentication.os, "urandom", lambda x: b"1" * 63)
+    monkeypatch.setattr(
+        httpx_auth._oauth2.authorization_code_pkce.os, "urandom", lambda x: b"1" * 63
+    )
     auth = httpx_auth.OktaAuthorizationCodePKCE(
         "testserver.okta-emea.com", "54239d18-c68c-4c47-8bdd-ce71ea1d50cd"
     )
@@ -272,7 +288,9 @@ async def test_with_invalid_grant_request_invalid_request_error(
 async def test_with_invalid_grant_request_invalid_request_error_and_error_description(
     token_cache, httpx_mock: HTTPXMock, monkeypatch, browser_mock: BrowserMock
 ):
-    monkeypatch.setattr(httpx_auth.authentication.os, "urandom", lambda x: b"1" * 63)
+    monkeypatch.setattr(
+        httpx_auth._oauth2.authorization_code_pkce.os, "urandom", lambda x: b"1" * 63
+    )
     auth = httpx_auth.OktaAuthorizationCodePKCE(
         "testserver.okta-emea.com", "54239d18-c68c-4c47-8bdd-ce71ea1d50cd"
     )
@@ -301,7 +319,9 @@ async def test_with_invalid_grant_request_invalid_request_error_and_error_descri
 async def test_with_invalid_grant_request_invalid_request_error_and_error_description_and_uri(
     token_cache, httpx_mock: HTTPXMock, monkeypatch, browser_mock: BrowserMock
 ):
-    monkeypatch.setattr(httpx_auth.authentication.os, "urandom", lambda x: b"1" * 63)
+    monkeypatch.setattr(
+        httpx_auth._oauth2.authorization_code_pkce.os, "urandom", lambda x: b"1" * 63
+    )
     auth = httpx_auth.OktaAuthorizationCodePKCE(
         "testserver.okta-emea.com", "54239d18-c68c-4c47-8bdd-ce71ea1d50cd"
     )
@@ -337,7 +357,9 @@ async def test_with_invalid_grant_request_invalid_request_error_and_error_descri
 async def test_with_invalid_grant_request_invalid_request_error_and_error_description_and_uri_and_other_fields(
     token_cache, httpx_mock: HTTPXMock, monkeypatch, browser_mock: BrowserMock
 ):
-    monkeypatch.setattr(httpx_auth.authentication.os, "urandom", lambda x: b"1" * 63)
+    monkeypatch.setattr(
+        httpx_auth._oauth2.authorization_code_pkce.os, "urandom", lambda x: b"1" * 63
+    )
     auth = httpx_auth.OktaAuthorizationCodePKCE(
         "testserver.okta-emea.com", "54239d18-c68c-4c47-8bdd-ce71ea1d50cd"
     )
@@ -374,7 +396,9 @@ async def test_with_invalid_grant_request_invalid_request_error_and_error_descri
 async def test_with_invalid_grant_request_without_error(
     token_cache, httpx_mock: HTTPXMock, monkeypatch, browser_mock: BrowserMock
 ):
-    monkeypatch.setattr(httpx_auth.authentication.os, "urandom", lambda x: b"1" * 63)
+    monkeypatch.setattr(
+        httpx_auth._oauth2.authorization_code_pkce.os, "urandom", lambda x: b"1" * 63
+    )
     auth = httpx_auth.OktaAuthorizationCodePKCE(
         "testserver.okta-emea.com", "54239d18-c68c-4c47-8bdd-ce71ea1d50cd"
     )
@@ -404,7 +428,9 @@ async def test_with_invalid_grant_request_without_error(
 async def test_with_invalid_grant_request_invalid_client_error(
     token_cache, httpx_mock: HTTPXMock, monkeypatch, browser_mock: BrowserMock
 ):
-    monkeypatch.setattr(httpx_auth.authentication.os, "urandom", lambda x: b"1" * 63)
+    monkeypatch.setattr(
+        httpx_auth._oauth2.authorization_code_pkce.os, "urandom", lambda x: b"1" * 63
+    )
     auth = httpx_auth.OktaAuthorizationCodePKCE(
         "testserver.okta-emea.com", "54239d18-c68c-4c47-8bdd-ce71ea1d50cd"
     )
@@ -443,7 +469,9 @@ async def test_with_invalid_grant_request_invalid_client_error(
 async def test_with_invalid_grant_request_invalid_grant_error(
     token_cache, httpx_mock: HTTPXMock, monkeypatch, browser_mock: BrowserMock
 ):
-    monkeypatch.setattr(httpx_auth.authentication.os, "urandom", lambda x: b"1" * 63)
+    monkeypatch.setattr(
+        httpx_auth._oauth2.authorization_code_pkce.os, "urandom", lambda x: b"1" * 63
+    )
     auth = httpx_auth.OktaAuthorizationCodePKCE(
         "testserver.okta-emea.com", "54239d18-c68c-4c47-8bdd-ce71ea1d50cd"
     )
@@ -478,7 +506,9 @@ async def test_with_invalid_grant_request_invalid_grant_error(
 async def test_with_invalid_grant_request_unauthorized_client_error(
     token_cache, httpx_mock: HTTPXMock, monkeypatch, browser_mock: BrowserMock
 ):
-    monkeypatch.setattr(httpx_auth.authentication.os, "urandom", lambda x: b"1" * 63)
+    monkeypatch.setattr(
+        httpx_auth._oauth2.authorization_code_pkce.os, "urandom", lambda x: b"1" * 63
+    )
     auth = httpx_auth.OktaAuthorizationCodePKCE(
         "testserver.okta-emea.com", "54239d18-c68c-4c47-8bdd-ce71ea1d50cd"
     )
@@ -511,7 +541,9 @@ async def test_with_invalid_grant_request_unauthorized_client_error(
 async def test_with_invalid_grant_request_unsupported_grant_type_error(
     token_cache, httpx_mock: HTTPXMock, monkeypatch, browser_mock: BrowserMock
 ):
-    monkeypatch.setattr(httpx_auth.authentication.os, "urandom", lambda x: b"1" * 63)
+    monkeypatch.setattr(
+        httpx_auth._oauth2.authorization_code_pkce.os, "urandom", lambda x: b"1" * 63
+    )
     auth = httpx_auth.OktaAuthorizationCodePKCE(
         "testserver.okta-emea.com", "54239d18-c68c-4c47-8bdd-ce71ea1d50cd"
     )
@@ -544,7 +576,9 @@ async def test_with_invalid_grant_request_unsupported_grant_type_error(
 async def test_with_invalid_grant_request_invalid_scope_error(
     token_cache, httpx_mock: HTTPXMock, monkeypatch, browser_mock: BrowserMock
 ):
-    monkeypatch.setattr(httpx_auth.authentication.os, "urandom", lambda x: b"1" * 63)
+    monkeypatch.setattr(
+        httpx_auth._oauth2.authorization_code_pkce.os, "urandom", lambda x: b"1" * 63
+    )
     auth = httpx_auth.OktaAuthorizationCodePKCE(
         "testserver.okta-emea.com", "54239d18-c68c-4c47-8bdd-ce71ea1d50cd"
     )
@@ -577,7 +611,9 @@ async def test_with_invalid_grant_request_invalid_scope_error(
 async def test_with_invalid_token_request_invalid_request_error(
     token_cache, httpx_mock: HTTPXMock, monkeypatch, browser_mock: BrowserMock
 ):
-    monkeypatch.setattr(httpx_auth.authentication.os, "urandom", lambda x: b"1" * 63)
+    monkeypatch.setattr(
+        httpx_auth._oauth2.authorization_code_pkce.os, "urandom", lambda x: b"1" * 63
+    )
     auth = httpx_auth.OktaAuthorizationCodePKCE(
         "testserver.okta-emea.com", "54239d18-c68c-4c47-8bdd-ce71ea1d50cd"
     )
@@ -603,7 +639,9 @@ async def test_with_invalid_token_request_invalid_request_error(
 async def test_with_invalid_token_request_invalid_request_error_and_error_description(
     token_cache, httpx_mock: HTTPXMock, monkeypatch, browser_mock: BrowserMock
 ):
-    monkeypatch.setattr(httpx_auth.authentication.os, "urandom", lambda x: b"1" * 63)
+    monkeypatch.setattr(
+        httpx_auth._oauth2.authorization_code_pkce.os, "urandom", lambda x: b"1" * 63
+    )
     auth = httpx_auth.OktaAuthorizationCodePKCE(
         "testserver.okta-emea.com", "54239d18-c68c-4c47-8bdd-ce71ea1d50cd"
     )
@@ -626,7 +664,9 @@ async def test_with_invalid_token_request_invalid_request_error_and_error_descri
 async def test_with_invalid_token_request_invalid_request_error_and_error_description_and_uri(
     token_cache, httpx_mock: HTTPXMock, monkeypatch, browser_mock: BrowserMock
 ):
-    monkeypatch.setattr(httpx_auth.authentication.os, "urandom", lambda x: b"1" * 63)
+    monkeypatch.setattr(
+        httpx_auth._oauth2.authorization_code_pkce.os, "urandom", lambda x: b"1" * 63
+    )
     auth = httpx_auth.OktaAuthorizationCodePKCE(
         "testserver.okta-emea.com", "54239d18-c68c-4c47-8bdd-ce71ea1d50cd"
     )
@@ -652,7 +692,9 @@ async def test_with_invalid_token_request_invalid_request_error_and_error_descri
 async def test_with_invalid_token_request_invalid_request_error_and_error_description_and_uri_and_other_fields(
     token_cache, httpx_mock: HTTPXMock, monkeypatch, browser_mock: BrowserMock
 ):
-    monkeypatch.setattr(httpx_auth.authentication.os, "urandom", lambda x: b"1" * 63)
+    monkeypatch.setattr(
+        httpx_auth._oauth2.authorization_code_pkce.os, "urandom", lambda x: b"1" * 63
+    )
     auth = httpx_auth.OktaAuthorizationCodePKCE(
         "testserver.okta-emea.com", "54239d18-c68c-4c47-8bdd-ce71ea1d50cd"
     )
@@ -678,7 +720,9 @@ async def test_with_invalid_token_request_invalid_request_error_and_error_descri
 async def test_with_invalid_token_request_unauthorized_client_error(
     token_cache, httpx_mock: HTTPXMock, monkeypatch, browser_mock: BrowserMock
 ):
-    monkeypatch.setattr(httpx_auth.authentication.os, "urandom", lambda x: b"1" * 63)
+    monkeypatch.setattr(
+        httpx_auth._oauth2.authorization_code_pkce.os, "urandom", lambda x: b"1" * 63
+    )
     auth = httpx_auth.OktaAuthorizationCodePKCE(
         "testserver.okta-emea.com", "54239d18-c68c-4c47-8bdd-ce71ea1d50cd"
     )
@@ -704,7 +748,9 @@ async def test_with_invalid_token_request_unauthorized_client_error(
 async def test_with_invalid_token_request_access_denied_error(
     token_cache, httpx_mock: HTTPXMock, monkeypatch, browser_mock: BrowserMock
 ):
-    monkeypatch.setattr(httpx_auth.authentication.os, "urandom", lambda x: b"1" * 63)
+    monkeypatch.setattr(
+        httpx_auth._oauth2.authorization_code_pkce.os, "urandom", lambda x: b"1" * 63
+    )
     auth = httpx_auth.OktaAuthorizationCodePKCE(
         "testserver.okta-emea.com", "54239d18-c68c-4c47-8bdd-ce71ea1d50cd"
     )
@@ -730,7 +776,9 @@ async def test_with_invalid_token_request_access_denied_error(
 async def test_with_invalid_token_request_unsupported_response_type_error(
     token_cache, httpx_mock: HTTPXMock, monkeypatch, browser_mock: BrowserMock
 ):
-    monkeypatch.setattr(httpx_auth.authentication.os, "urandom", lambda x: b"1" * 63)
+    monkeypatch.setattr(
+        httpx_auth._oauth2.authorization_code_pkce.os, "urandom", lambda x: b"1" * 63
+    )
     auth = httpx_auth.OktaAuthorizationCodePKCE(
         "testserver.okta-emea.com", "54239d18-c68c-4c47-8bdd-ce71ea1d50cd"
     )
@@ -756,7 +804,9 @@ async def test_with_invalid_token_request_unsupported_response_type_error(
 async def test_with_invalid_token_request_invalid_scope_error(
     token_cache, httpx_mock: HTTPXMock, monkeypatch, browser_mock: BrowserMock
 ):
-    monkeypatch.setattr(httpx_auth.authentication.os, "urandom", lambda x: b"1" * 63)
+    monkeypatch.setattr(
+        httpx_auth._oauth2.authorization_code_pkce.os, "urandom", lambda x: b"1" * 63
+    )
     auth = httpx_auth.OktaAuthorizationCodePKCE(
         "testserver.okta-emea.com", "54239d18-c68c-4c47-8bdd-ce71ea1d50cd"
     )
@@ -782,7 +832,9 @@ async def test_with_invalid_token_request_invalid_scope_error(
 async def test_with_invalid_token_request_server_error_error(
     token_cache, httpx_mock: HTTPXMock, monkeypatch, browser_mock: BrowserMock
 ):
-    monkeypatch.setattr(httpx_auth.authentication.os, "urandom", lambda x: b"1" * 63)
+    monkeypatch.setattr(
+        httpx_auth._oauth2.authorization_code_pkce.os, "urandom", lambda x: b"1" * 63
+    )
     auth = httpx_auth.OktaAuthorizationCodePKCE(
         "testserver.okta-emea.com", "54239d18-c68c-4c47-8bdd-ce71ea1d50cd"
     )
@@ -808,7 +860,9 @@ async def test_with_invalid_token_request_server_error_error(
 async def test_with_invalid_token_request_temporarily_unavailable_error(
     token_cache, httpx_mock: HTTPXMock, monkeypatch, browser_mock: BrowserMock
 ):
-    monkeypatch.setattr(httpx_auth.authentication.os, "urandom", lambda x: b"1" * 63)
+    monkeypatch.setattr(
+        httpx_auth._oauth2.authorization_code_pkce.os, "urandom", lambda x: b"1" * 63
+    )
     auth = httpx_auth.OktaAuthorizationCodePKCE(
         "testserver.okta-emea.com", "54239d18-c68c-4c47-8bdd-ce71ea1d50cd"
     )

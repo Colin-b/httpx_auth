@@ -248,7 +248,7 @@ def test_browser_opening_failure(token_cache, httpx_mock: HTTPXMock, monkeypatch
             return False
 
     monkeypatch.setattr(
-        httpx_auth._oauth2.oauth2_authentication_responses_server.webbrowser,
+        httpx_auth._oauth2.authentication_responses_server.webbrowser,
         "get",
         lambda *args: FakeBrowser(),
     )
@@ -280,7 +280,7 @@ def test_browser_error(token_cache, httpx_mock: HTTPXMock, monkeypatch):
             raise webbrowser.Error("Failure")
 
     monkeypatch.setattr(
-        httpx_auth._oauth2.oauth2_authentication_responses_server.webbrowser,
+        httpx_auth._oauth2.authentication_responses_server.webbrowser,
         "get",
         lambda *args: FakeBrowser(),
     )

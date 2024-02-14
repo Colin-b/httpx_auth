@@ -6,6 +6,7 @@ import httpx
 
 import httpx_auth
 from httpx_auth.testing import BrowserMock, create_token, token_cache, browser_mock
+import httpx_auth._oauth2.authorization_code_pkce
 
 
 @pytest.mark.asyncio
@@ -408,7 +409,9 @@ async def test_oauth2_authorization_code_and_multiple_authentication_can_be_comb
 async def test_oauth2_pkce_and_api_key_authentication_can_be_combined(
     token_cache, httpx_mock: HTTPXMock, browser_mock: BrowserMock, monkeypatch
 ):
-    monkeypatch.setattr(httpx_auth.authentication.os, "urandom", lambda x: b"1" * 63)
+    monkeypatch.setattr(
+        httpx_auth._oauth2.authorization_code_pkce.os, "urandom", lambda x: b"1" * 63
+    )
     pkce_auth = httpx_auth.OAuth2AuthorizationCodePKCE(
         "https://provide_code", "https://provide_access_token"
     )
@@ -453,7 +456,9 @@ async def test_oauth2_pkce_and_api_key_authentication_can_be_combined(
 async def test_oauth2_pkce_and_multiple_authentication_can_be_combined(
     token_cache, httpx_mock: HTTPXMock, browser_mock: BrowserMock, monkeypatch
 ):
-    monkeypatch.setattr(httpx_auth.authentication.os, "urandom", lambda x: b"1" * 63)
+    monkeypatch.setattr(
+        httpx_auth._oauth2.authorization_code_pkce.os, "urandom", lambda x: b"1" * 63
+    )
     pkce_auth = httpx_auth.OAuth2AuthorizationCodePKCE(
         "https://provide_code", "https://provide_access_token"
     )
