@@ -790,6 +790,17 @@ with httpx.Client() as client:
     client.get('https://www.example.com', auth=api_key + oauth2)
 ```
 
+This is supported on every authentication class exposed by `httpx_auth`, but you can also enable it on your own authentication classes by using `httpx_auth.SupportMultiAuth` as in the following sample:
+
+```python
+from httpx_auth import SupportMultiAuth
+from my_package import MyAuth
+
+class MyMultiAuth(MyAuth, SupportMultiAuth):
+    pass
+```
+
+
 ## Available pytest fixtures
 
 Testing the code using `httpx_auth` authentication classes can be achieved using provided [`pytest`][6] fixtures.
