@@ -625,7 +625,7 @@ async def test_with_invalid_token_request_invalid_request_error(
         == "invalid_request: The request is missing a required parameter, includes an invalid parameter value, includes a parameter more than once, or is otherwise malformed."
     )
     tab.assert_failure(
-        "Unable to properly perform authentication: invalid_request: The request is missing a required parameter, includes an invalid parameter value, includes a parameter more than once, or is otherwise malformed."
+        "invalid_request: The request is missing a required parameter, includes an invalid parameter value, includes a parameter more than once, or is otherwise malformed."
     )
 
 
@@ -644,12 +644,10 @@ async def test_with_invalid_token_request_invalid_request_error_and_error_descri
     async with httpx.AsyncClient() as client:
         with pytest.raises(
             httpx_auth.InvalidGrantRequest, match="invalid_request: desc"
-        ) as exception_info:
+        ):
             await client.get("https://authorized_only", auth=auth)
 
-    tab.assert_failure(
-        "Unable to properly perform authentication: invalid_request: desc"
-    )
+    tab.assert_failure("invalid_request: desc")
 
 
 @pytest.mark.asyncio
