@@ -25,7 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `httpx_auth.OktaImplicitIdToken`.
 
 ### Added
-- You can now provide your own HTML success and failure display via the new `OAuth2.display` shared setting. Refer to documentation for more details.
+- You can now provide your own HTML success (`success_template`) and failure (`failure_template`) display via the new `OAuth2.display` shared setting. Refer to documentation for more details.
 
 ## [0.20.0] - 2024-02-12
 ### Fixed
