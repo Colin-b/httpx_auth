@@ -42,7 +42,7 @@ class OAuth2ResponseHandler(BaseHTTPRequestHandler):
             self.send_html(
                 OAuth2.display.failure_template.format(
                     display_time=OAuth2.display.failure_display_time,
-                    text=f"Unable to properly perform authentication: {e}",
+                    information=str(e).replace("\n", "<br>"),
                 )
             )
 
@@ -57,11 +57,16 @@ class OAuth2ResponseHandler(BaseHTTPRequestHandler):
             self.send_html(
                 OAuth2.display.failure_template.format(
                     display_time=OAuth2.display.failure_display_time,
-                    text=f"Unable to properly perform authentication: {e}",
+                    information=str(e).replace("\n", "<br>"),
                 )
             )
 
     def _parse_grant(self, arguments: dict) -> None:
+        """
+        :raises InvalidGrantRequest: If the request was invalid.
+        :raises GrantNotProvided: If grant is not provided in response (but no error occurred).
+        :raises StateNotProvided: If state is not provided in addition to the grant.
+        """
         grants = arguments.get(self.server.grant_details.name)
         if not grants or len(grants) > 1:
             if "error" in arguments:
@@ -78,8 +83,7 @@ class OAuth2ResponseHandler(BaseHTTPRequestHandler):
         self.server.grant = state, grant
         self.send_html(
             OAuth2.display.success_template.format(
-                display_time=OAuth2.display.success_display_time,
-                text=f"You are now authenticated on {state}. You may close this tab.",
+                display_time=OAuth2.display.success_display_time
             )
         )
 
@@ -169,7 +173,7 @@ def request_new_grant(grant_details: GrantDetails) -> (str, str):
     :raises InvalidGrantRequest: If the request was invalid.
     :raises TimeoutOccurred: If not retrieved within timeout.
     :raises GrantNotProvided: If grant is not provided in response (but no error occurred).
-    :raises StateNotProvided: If state if not provided in addition to the grant.
+    :raises StateNotProvided: If state is not provided in addition to the grant.
     """
     logger.debug(f"Requesting new {grant_details.name}...")
 

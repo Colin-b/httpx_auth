@@ -36,31 +36,163 @@ class Tab(threading.Thread):
         self.success_template = (
             success_template
             or """<!DOCTYPE html>
-<html>
-<body onload="window.open('', '_self', ''); window.setTimeout(close, {display_time})"
- style="color: #4F8A10;
-        background-color: #DFF2BF;
-        font-size: xx-large;
-        display: flex;
-        align-items: center;
-        justify-content: center;">
-    <div style="border: 1px solid; padding: 8px;">{text}</div>
-</body>
+<html lang="en">
+    <head>
+        <title>Authentication success</title>
+        <style>
+body {
+    border: none;
+    box-sizing: border-box;
+    display: block;
+    font-family: "Segoe UI";
+    font-weight: 500;
+    line-height: 1.5;
+    padding: 50px 0 76px 0;
+    text-align: center;
+}
+
+.content {
+    padding: 30px 0 50px 0;
+}
+
+h1 {
+    color: #32cd32;
+    font-size: 2.4rem;
+    margin: 1.7rem auto .5rem auto;
+}
+
+p {
+    color: #2f374f;
+    font-size: 1.2rem;
+    margin: .75rem 0 0 0;
+}
+
+.btn {
+    display: inline-block;
+    color: #32cd32 !important;
+    text-decoration: none;
+    background-color: #f0fff0;
+    padding: 14px 24px;
+    border-radius: 8px;
+    font-size: 1em;
+    font-weight: 400;
+    margin: 50px 0 0 0;
+}
+
+.btn:hover {
+    color: #f0fff0 !important;
+    background-color: #32cd32;
+}
+
+@keyframes zoomText {
+  from {
+    opacity: 0;
+    transform: scale3d(0.9, 0.9, 0.9);
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.content h1 {
+    animation-duration: .6s;
+    animation-fill-mode: both;
+    animation-name: zoomText;
+    animation-delay: .2s;
+}
+        </style>
+    </head>
+    <body onload="window.open('', '_self', ''); window.setTimeout(close, {display_time})">
+        <div class="content">
+            <h1>Authentication success</h1>
+            <p>You can close this tab</p>
+        </div>
+        <div class="more">
+            <a href="https://colin-b.github.io/httpx_auth/" class="btn" target="_blank" rel="noreferrer noopener" role="button">Documentation</a>
+            <a href="https://github.com/Colin-b/httpx_auth/blob/develop/CHANGELOG.md" class="btn" target="_blank" rel="noreferrer noopener" role="button">Latest changes</a>
+        </div>
+    </body>
 </html>"""
         )
         self.failure_template = (
             failure_template
             or """<!DOCTYPE html>
-<html>
-<body onload="window.open('', '_self', ''); window.setTimeout(close, {display_time})"
- style="color: #D8000C;
-        background-color: #FFBABA;
-        font-size: xx-large;
-        display: flex;
-        align-items: center;
-        justify-content: center;">
-    <div style="border: 1px solid; padding: 8px;">{text}</div>
-</body>
+<html lang="en">
+    <head>
+        <title>Authentication failed</title>
+        <style>
+body {
+    border: none;
+    box-sizing: border-box;
+    display: block;
+    font-family: "Segoe UI";
+    font-weight: 500;
+    line-height: 1.5;
+    padding: 50px 0 76px 0;
+    text-align: center;
+}
+
+.content {
+    padding: 30px 0 50px 0;
+}
+
+h1 {
+    color: #dc143c;
+    font-size: 2.4rem;
+    margin: 1.7rem auto .5rem auto;
+}
+
+p {
+    color: #2f374f;
+    font-size: 1.2rem;
+    margin: .75rem 0 0 0;
+}
+
+.btn {
+    display: inline-block;
+    color: #dc143c !important;
+    text-decoration: none;
+    background-color: #fffafa;
+    padding: 14px 24px;
+    border-radius: 8px;
+    font-size: 1em;
+    font-weight: 400;
+    margin: 50px 0 0 0;
+}
+
+.btn:hover {
+    color: #fffafa !important;
+    background-color: #dc143c;
+}
+
+@keyframes zoomText {
+  from {
+    opacity: 0;
+    transform: scale3d(0.9, 0.9, 0.9);
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.content h1 {
+    animation-duration: .6s;
+    animation-fill-mode: both;
+    animation-name: zoomText;
+    animation-delay: .2s;
+}
+        </style>
+    </head>
+    <body onload="window.open('', '_self', ''); window.setTimeout(close, {display_time})">
+        <div class="content">
+            <h1>Authentication failed</h1>
+            <p>{information}</p>
+        </div>
+        <div class="more">
+            <a href="https://colin-b.github.io/httpx_auth/" class="btn" target="_blank" rel="noreferrer noopener" role="button">Documentation</a>
+            <a href="https://github.com/Colin-b/httpx_auth/blob/develop/CHANGELOG.md" class="btn" target="_blank" rel="noreferrer noopener" role="button">Latest changes</a>
+        </div>
+    </body>
 </html>"""
         )
         super().__init__()
@@ -94,17 +226,15 @@ class Tab(threading.Thread):
         )
         return urllib.request.urlopen(reply_url, data=self.data).read()
 
-    def assert_success(self, expected_message: str, timeout: int = 1):
+    def assert_success(self, timeout: int = 1):
         self.join()
-        assert self.content == self.success_template.format(
-            display_time=timeout, text=expected_message
-        )
+        assert self.content == self.success_template.format(display_time=timeout)
         self.checked = True
 
     def assert_failure(self, expected_message: str, timeout: int = 5000):
         self.join()
         assert self.content == self.failure_template.format(
-            display_time=timeout, text=expected_message
+            display_time=timeout, information=expected_message
         )
         self.checked = True
 

@@ -710,12 +710,12 @@ OAuth2.display = DisplaySettings()
 
 The following parameters can be provided to `DisplaySettings`:
 
-| Name                    | Description                                                                                                                                                                    | Default value |
-|:------------------------|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|:--------------|
-| `success_display_time`  | In case a code or token is successfully received, this is the maximum amount of milliseconds the success page will be displayed in your browser.                               | 1             |
-| `success_template`      | In case a code or token is successfully received, this is the success page that will be displayed in your browser. `{text}` and `{display_time}` are expected in this content. |               |
-| `failure_display_time`  | In case received code or token is not valid, this is the maximum amount of milliseconds the failure page will be displayed in your browser.                                    | 5000          |
-| `failure_template`      | In case received code or token is not valid, this is the failure page that will be displayed in your browser. `{text}` and `{display_time}` are expected in this content.      |               |
+| Name                    | Description                                                                                                                                                               | Default value |
+|:------------------------|:--------------------------------------------------------------------------------------------------------------------------------------------------------------------------|:--------------|
+| `success_display_time`  | In case a code or token is successfully received, this is the maximum amount of milliseconds the success page will be displayed in your browser.                          | 1             |
+| `success_template`      | In case a code or token is successfully received, this is the success page that will be displayed in your browser. `{display_time}` is expected in this content.          |               |
+| `failure_display_time`  | In case received code or token is not valid, this is the maximum amount of milliseconds the failure page will be displayed in your browser.                               | 5000          |
+| `failure_template`      | In case received code or token is not valid, this is the failure page that will be displayed in your browser. `{information}` and `{display_time}` are expected in this content. |               |
 
 ## AWS Signature v4
 
@@ -948,9 +948,7 @@ def test_something(browser_mock: BrowserMock):
 
     # perform code using authentication
 
-    tab.assert_success(
-        "You are now authenticated on 1234 You may close this tab."
-    )
+    tab.assert_success()
 ```
 
 [1]: https://pypi.python.org/pypi/httpx "httpx module"

@@ -352,9 +352,7 @@ async def test_oauth2_authorization_code_and_api_key_authentication_can_be_combi
     async with httpx.AsyncClient() as client:
         await client.get("https://authorized_only", auth=auth)
 
-    tab.assert_success(
-        "You are now authenticated on ce9c755b41b5e3c5b64c70598715d5de271023a53f39a67a70215d265d11d2bfb6ef6e9c701701e998e69cbdbf2cee29fd51d2a950aa05f59a20cf4a646099d5. You may close this tab."
-    )
+    tab.assert_success()
 
 
 @pytest.mark.asyncio
@@ -400,9 +398,7 @@ async def test_oauth2_authorization_code_and_multiple_authentication_can_be_comb
     async with httpx.AsyncClient() as client:
         await client.get("https://authorized_only", auth=auth)
 
-    tab.assert_success(
-        "You are now authenticated on ce9c755b41b5e3c5b64c70598715d5de271023a53f39a67a70215d265d11d2bfb6ef6e9c701701e998e69cbdbf2cee29fd51d2a950aa05f59a20cf4a646099d5. You may close this tab."
-    )
+    tab.assert_success()
 
 
 @pytest.mark.asyncio
@@ -447,9 +443,7 @@ async def test_oauth2_pkce_and_api_key_authentication_can_be_combined(
     async with httpx.AsyncClient() as client:
         await client.get("https://authorized_only", auth=auth)
 
-    tab.assert_success(
-        "You are now authenticated on ce9c755b41b5e3c5b64c70598715d5de271023a53f39a67a70215d265d11d2bfb6ef6e9c701701e998e69cbdbf2cee29fd51d2a950aa05f59a20cf4a646099d5. You may close this tab."
-    )
+    tab.assert_success()
 
 
 @pytest.mark.asyncio
@@ -498,9 +492,7 @@ async def test_oauth2_pkce_and_multiple_authentication_can_be_combined(
     async with httpx.AsyncClient() as client:
         await client.get("https://authorized_only", auth=auth)
 
-    tab.assert_success(
-        "You are now authenticated on ce9c755b41b5e3c5b64c70598715d5de271023a53f39a67a70215d265d11d2bfb6ef6e9c701701e998e69cbdbf2cee29fd51d2a950aa05f59a20cf4a646099d5. You may close this tab."
-    )
+    tab.assert_success()
 
 
 @pytest.mark.asyncio
@@ -533,9 +525,7 @@ async def test_oauth2_implicit_and_api_key_authentication_can_be_combined(
     async with httpx.AsyncClient() as client:
         await client.get("https://authorized_only", auth=auth)
 
-    tab.assert_success(
-        "You are now authenticated on bee505cb6ceb14b9f6ac3573cd700b3b3e965004078d7bb57c7b92df01e448c992a7a46b4804164fc998ea166ece3f3d5849ca2405c4a548f43b915b0677231c. You may close this tab."
-    )
+    tab.assert_success()
 
 
 @pytest.mark.asyncio
@@ -572,6 +562,4 @@ async def test_oauth2_implicit_and_multiple_authentication_can_be_combined(
     async with httpx.AsyncClient() as client:
         await client.get("https://authorized_only", auth=auth)
 
-    tab.assert_success(
-        "You are now authenticated on bee505cb6ceb14b9f6ac3573cd700b3b3e965004078d7bb57c7b92df01e448c992a7a46b4804164fc998ea166ece3f3d5849ca2405c4a548f43b915b0677231c. You may close this tab."
-    )
+    tab.assert_success()

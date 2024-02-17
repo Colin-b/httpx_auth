@@ -260,9 +260,7 @@ def test_expires_in_sent_as_str(
     with httpx.Client() as client:
         client.get("https://authorized_only", auth=auth)
 
-    tab.assert_success(
-        "You are now authenticated on ce9c755b41b5e3c5b64c70598715d5de271023a53f39a67a70215d265d11d2bfb6ef6e9c701701e998e69cbdbf2cee29fd51d2a950aa05f59a20cf4a646099d5. You may close this tab."
-    )
+    tab.assert_success()
 
 
 def test_nonce_is_sent_if_provided_in_authorization_url(

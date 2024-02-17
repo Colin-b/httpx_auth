@@ -23,6 +23,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `httpx_auth.AzureActiveDirectoryImplicitIdToken`.
   - `httpx_auth.OktaImplicit`.
   - `httpx_auth.OktaImplicitIdToken`.
+- The authentication success and failure displayed in the browser were revamped to be more user-friendly. `httpx_auth.testing` was modified to accomodate this change:
+  - `tab.assert_success` `expected_message` parameter was removed.
+  - `tab.assert_failure` `expected_message` parameter should not be prefixed with `Unable to properly perform authentication: ` anymore and `\n` in the message should be replaced with `<br>`.
 
 ### Added
 - You can now provide your own HTML success (`success_template`) and failure (`failure_template`) display via the new `OAuth2.display` shared setting. Refer to documentation for more details.
