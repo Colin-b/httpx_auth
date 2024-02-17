@@ -1,17 +1,16 @@
+from __future__ import annotations
 import urllib.request
 import threading
 from urllib.parse import urlsplit
-from typing import Dict, Optional
 import datetime
 
 import pytest
 
 import httpx_auth
 import httpx_auth._oauth2.authentication_responses_server
-from httpx_auth._oauth2.authentication_responses_server import GrantDetails
 
 
-def create_token(expiry: Optional[datetime.datetime]) -> str:
+def create_token(expiry: datetime.datetime | None) -> str:
     import jwt  # Consider jwt an optional dependency for testing
 
     return jwt.encode({"exp": expiry}, "secret") if expiry else jwt.encode({}, "secret")
@@ -28,17 +27,41 @@ class Tab(threading.Thread):
         self,
         reply_url: str,
         data: str,
-        success_template: Optional[str] = None,
-        failure_template: Optional[str] = None,
+        success_template: str | None = None,
+        failure_template: str | None = None,
     ):
         self.reply_url = reply_url
         self.data = data.encode() if data is not None else None
         self.checked = False
         self.success_template = (
-            success_template or GrantDetails.DEFAULT_SUCCESS_TEMPLATE
+            success_template
+            or """<!DOCTYPE html>
+<html>
+<body onload="window.open('', '_self', ''); window.setTimeout(close, {display_time})"
+ style="color: #4F8A10;
+        background-color: #DFF2BF;
+        font-size: xx-large;
+        display: flex;
+        align-items: center;
+        justify-content: center;">
+    <div style="border: 1px solid; padding: 8px;">{text}</div>
+</body>
+</html>"""
         )
         self.failure_template = (
-            failure_template or GrantDetails.DEFAULT_FAILURE_TEMPLATE
+            failure_template
+            or """<!DOCTYPE html>
+<html>
+<body onload="window.open('', '_self', ''); window.setTimeout(close, {display_time})"
+ style="color: #D8000C;
+        background-color: #FFBABA;
+        font-size: xx-large;
+        display: flex;
+        align-items: center;
+        justify-content: center;">
+    <div style="border: 1px solid; padding: 8px;">{text}</div>
+</body>
+</html>"""
         )
         super().__init__()
 
@@ -88,7 +111,7 @@ class Tab(threading.Thread):
 
 class BrowserMock:
     def __init__(self):
-        self.tabs: Dict[str, Tab] = {}
+        self.tabs: dict[str, Tab] = {}
 
     def open(self, url: str, new: int) -> bool:
         assert new == 1
@@ -100,23 +123,23 @@ class BrowserMock:
     def add_response(
         self,
         opened_url: str,
-        reply_url: Optional[str],
-        data: str = None,
-        success_template: Optional[str] = None,
-        failure_template: Optional[str] = None,
+        reply_url: str | None,
+        data: str | None = None,
+        success_template: str | None = None,
+        failure_template: str | None = None,
     ) -> Tab:
         """
         :param opened_url: URL opened by httpx_auth
         :param reply_url: The URL to send a response to, None to simulate the fact that there is no redirect.
         :param data: Body of the POST response to be sent. None to send a GET request.
-        :success_template: Success template
-        :failure_template: Failure template
+        :param success_template: Success template
+        :param failure_template: Failure template
         """
         tab = Tab(
             reply_url,
             data,
-            success_template=success_template,
-            failure_template=failure_template,
+            success_template,
+            failure_template,
         )
         self.tabs[opened_url] = tab
         return tab

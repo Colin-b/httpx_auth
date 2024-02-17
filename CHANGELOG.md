@@ -12,6 +12,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Except for `httpx_auth.testing`, only direct access via `httpx_auth.` was considered publicly exposed. This is now explicit, as inner packages are now using private prefix (`_`).
   If you were relying on some classes or functions that are now internal, feel free to open an issue.
+- Browser display settings have been moved to a shared setting, see documentation for more information on `OAuth2.display`. As a result the following classes no longer expose `success_display_time` and `failure_display_time` parameters.
+  - `httpx_auth.OAuth2AuthorizationCode`.
+  - `httpx_auth.OktaAuthorizationCode`.
+  - `httpx_auth.WakaTimeAuthorizationCode`.
+  - `httpx_auth.OAuth2AuthorizationCodePKCE`.
+  - `httpx_auth.OktaAuthorizationCodePKCE`.
+  - `httpx_auth.OAuth2Implicit`.
+  - `httpx_auth.AzureActiveDirectoryImplicit`.
+  - `httpx_auth.AzureActiveDirectoryImplicitIdToken`.
+  - `httpx_auth.OktaImplicit`.
+  - `httpx_auth.OktaImplicitIdToken`.
+
+### Added
+- You can now provide your own HTML success and failure display via the new `OAuth2.display` shared setting. Refer to documentation for more details.
 
 ## [0.20.0] - 2024-02-12
 ### Fixed

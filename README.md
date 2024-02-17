@@ -40,6 +40,7 @@ Provides authentication classes to be used with [`httpx`][1] [authentication par
     - [Okta (Access Token)](#okta-oauth2-implicit-access-token)
     - [Okta (ID token)](#okta-openid-connect-implicit-id-token)
   - [Managing token cache](#managing-token-cache)
+  - [Managing browser](#managing-the-web-browser)
 - [Amazon](#aws-signature-v4)
 - API key
   - [In header](#api-key-in-header)
@@ -67,6 +68,10 @@ with httpx.Client() as client:
     client.get('https://www.example.com', auth=OAuth2AuthorizationCode('https://www.authorization.url', 'https://www.token.url'))
 ```
 
+Note:
+* You can persist tokens thanks to [the token cache](#managing-token-cache).
+* You can tweak web browser interaction thanks to [the display settings](#managing-the-web-browser).
+
 #### Parameters
 
 | Name                    | Description                | Mandatory | Default value |
@@ -76,10 +81,6 @@ with httpx.Client() as client:
 | `redirect_uri_endpoint` | Custom endpoint that will be used as redirect_uri the following way: http://localhost:<redirect_uri_port>/<redirect_uri_endpoint>. | Optional | ''             |
 | `redirect_uri_port`     | The port on which the server listening for the OAuth 2 code will be started. | Optional | 5000 |
 | `timeout`               | Maximum amount of seconds to wait for a code or a token to be received once requested. | Optional | 60 |
-| `success_display_time`  | In case a code is successfully received, this is the maximum amount of milliseconds the success page will be displayed in your browser. | Optional | 1 |
-| `failure_display_time`  | In case received code is not valid, this is the maximum amount of milliseconds the failure page will be displayed in your browser. | Optional | 5000 |
-| `success_template`      | HTML content to render to the browser upon successfully receiving an authorization code from the authorization server. Will be formatted with `text` and `display_time` parameters. | Optional |  |
-| `failure_template`      | HTML content to render to the browser upon successfully receiving an authorization code from the authorization server. Will be formatted with `text` and `display_time` parameters. | Optional |  |
 | `header_name`           | Name of the header field used to send token. | Optional | Authorization |
 | `header_value`          | Format used to send the token value. "{token}" must be present as it will be replaced by the actual token. | Optional | Bearer {token} |
 | `response_type`         | Value of the response_type query parameter if not already provided in authorization URL. | Optional | code |
@@ -122,6 +123,10 @@ with httpx.Client() as client:
     client.get('https://www.example.com', auth=okta)
 ```
 
+Note:
+* You can persist tokens thanks to [the token cache](#managing-token-cache).
+* You can tweak web browser interaction thanks to [the display settings](#managing-the-web-browser).
+
 ###### Parameters
 
 | Name                    | Description                | Mandatory | Default value |
@@ -137,10 +142,6 @@ with httpx.Client() as client:
 | `redirect_uri_endpoint` | Custom endpoint that will be used as redirect_uri the following way: http://localhost:<redirect_uri_port>/<redirect_uri_endpoint>. | Optional | ''             |
 | `redirect_uri_port`     | The port on which the server listening for the OAuth 2 token will be started. | Optional | 5000 |
 | `timeout`               | Maximum amount of seconds to wait for a token to be received once requested. | Optional | 60 |
-| `success_display_time`  | In case a token is successfully received, this is the maximum amount of milliseconds the success page will be displayed in your browser. | Optional | 1 |
-| `failure_display_time`  | In case received token is not valid, this is the maximum amount of milliseconds the failure page will be displayed in your browser. | Optional | 5000 |
-| `success_template`      | HTML content to render to the browser upon successfully receiving an authorization code from the authorization server. Will be formatted with `text` and `display_time` parameters. | Optional |  |
-| `failure_template`      | HTML content to render to the browser upon successfully receiving an authorization code from the authorization server. Will be formatted with `text` and `display_time` parameters. | Optional |  |
 | `header_name`           | Name of the header field used to send token. | Optional | Authorization |
 | `header_value`          | Format used to send the token value. "{token}" must be present as it will be replaced by the actual token. | Optional | Bearer {token} |
 | `client`                | `httpx.Client` instance that will be used to request the token. Use it to provide a custom proxying rule for instance. | Optional |  |
@@ -169,6 +170,10 @@ with httpx.Client() as client:
     client.get('https://wakatime.com/api/v1/users/current', auth=waka_time)
 ```
 
+Note:
+* You can persist tokens thanks to [the token cache](#managing-token-cache).
+* You can tweak web browser interaction thanks to [the display settings](#managing-the-web-browser).
+
 ###### Parameters
 
 | Name                    | Description                | Mandatory | Default value                                |
@@ -183,10 +188,6 @@ with httpx.Client() as client:
 | `redirect_uri_endpoint` | Custom endpoint that will be used as redirect_uri the following way: http://localhost:<redirect_uri_port>/<redirect_uri_endpoint>. | Optional  | ''                                           |
 | `redirect_uri_port`     | The port on which the server listening for the OAuth 2 token will be started. | Optional  | 5000                                         |
 | `timeout`               | Maximum amount of seconds to wait for a token to be received once requested. | Optional  | 60                                           |
-| `success_display_time`  | In case a token is successfully received, this is the maximum amount of milliseconds the success page will be displayed in your browser. | Optional  | 1                                            |
-| `failure_display_time`  | In case received token is not valid, this is the maximum amount of milliseconds the failure page will be displayed in your browser. | Optional  | 5000                                         |
-| `success_template`      | HTML content to render to the browser upon successfully receiving an authorization code from the authorization server. Will be formatted with `text` and `display_time` parameters. | Optional |  |
-| `failure_template`      | HTML content to render to the browser upon successfully receiving an authorization code from the authorization server. Will be formatted with `text` and `display_time` parameters. | Optional |  |
 | `header_name`           | Name of the header field used to send token. | Optional  | Authorization                                |
 | `header_value`          | Format used to send the token value. "{token}" must be present as it will be replaced by the actual token. | Optional  | Bearer {token}                               |
 | `client`                | `httpx.Client` instance that will be used to request the token. Use it to provide a custom proxying rule for instance. | Optional  |                                              |
@@ -207,6 +208,10 @@ with httpx.Client() as client:
     client.get('https://www.example.com', auth=OAuth2AuthorizationCodePKCE('https://www.authorization.url', 'https://www.token.url'))
 ```
 
+Note:
+* You can persist tokens thanks to [the token cache](#managing-token-cache).
+* You can tweak web browser interaction thanks to [the display settings](#managing-the-web-browser).
+
 #### Parameters 
 
 | Name                    | Description                | Mandatory | Default value |
@@ -216,10 +221,6 @@ with httpx.Client() as client:
 | `redirect_uri_endpoint` | Custom endpoint that will be used as redirect_uri the following way: http://localhost:<redirect_uri_port>/<redirect_uri_endpoint>. | Optional | ''             |
 | `redirect_uri_port`     | The port on which the server listening for the OAuth 2 code will be started. | Optional | 5000 |
 | `timeout`               | Maximum amount of seconds to wait for a code or a token to be received once requested. | Optional | 60 |
-| `success_display_time`  | In case a code is successfully received, this is the maximum amount of milliseconds the success page will be displayed in your browser. | Optional | 1 |
-| `failure_display_time`  | In case received code is not valid, this is the maximum amount of milliseconds the failure page will be displayed in your browser. | Optional | 5000 |
-| `success_template`      | HTML content to render to the browser upon successfully receiving an authorization code from the authorization server. Will be formatted with `text` and `display_time` parameters. | Optional |  |
-| `failure_template`      | HTML content to render to the browser upon successfully receiving an authorization code from the authorization server. Will be formatted with `text` and `display_time` parameters. | Optional |  |
 | `header_name`           | Name of the header field used to send token. | Optional | Authorization |
 | `header_value`          | Format used to send the token value. "{token}" must be present as it will be replaced by the actual token. | Optional | Bearer {token} |
 | `response_type`         | Value of the response_type query parameter if not already provided in authorization URL. | Optional | code |
@@ -260,6 +261,10 @@ with httpx.Client() as client:
     client.get('https://www.example.com', auth=okta)
 ```
 
+Note:
+* You can persist tokens thanks to [the token cache](#managing-token-cache).
+* You can tweak web browser interaction thanks to [the display settings](#managing-the-web-browser).
+
 ###### Parameters
 
 | Name                    | Description                | Mandatory | Default value |
@@ -276,10 +281,6 @@ with httpx.Client() as client:
 | `redirect_uri_endpoint` | Custom endpoint that will be used as redirect_uri the following way: http://localhost:<redirect_uri_port>/<redirect_uri_endpoint>. | Optional | ''             |
 | `redirect_uri_port`     | The port on which the server listening for the OAuth 2 token will be started. | Optional | 5000 |
 | `timeout`               | Maximum amount of seconds to wait for a token to be received once requested. | Optional | 60 |
-| `success_display_time`  | In case a token is successfully received, this is the maximum amount of milliseconds the success page will be displayed in your browser. | Optional | 1 |
-| `failure_display_time`  | In case received token is not valid, this is the maximum amount of milliseconds the failure page will be displayed in your browser. | Optional | 5000 |
-| `success_template`      | HTML content to render to the browser upon successfully receiving an authorization code from the authorization server. Will be formatted with `text` and `display_time` parameters. | Optional |  |
-| `failure_template`      | HTML content to render to the browser upon successfully receiving an authorization code from the authorization server. Will be formatted with `text` and `display_time` parameters. | Optional |  |
 | `header_name`           | Name of the header field used to send token. | Optional | Authorization |
 | `header_value`          | Format used to send the token value. "{token}" must be present as it will be replaced by the actual token. | Optional | Bearer {token} |
 | `client`                | `httpx.Client` instance that will be used to request the token. Use it to provide a custom proxying rule for instance. | Optional |  |
@@ -306,6 +307,9 @@ from httpx_auth import OAuth2ResourceOwnerPasswordCredentials
 with httpx.Client() as client:
     client.get('https://www.example.com', auth=OAuth2ResourceOwnerPasswordCredentials('https://www.token.url', 'user name', 'user password'))
 ```
+
+Note:
+* You can persist tokens thanks to [the token cache](#managing-token-cache).
 
 #### Parameters
 
@@ -347,6 +351,9 @@ with httpx.Client() as client:
     client.get('https://www.example.com', auth=okta)
 ```
 
+Note:
+* You can persist tokens thanks to [the token cache](#managing-token-cache).
+
 ###### Parameters
 
 | Name                    | Description                | Mandatory | Default value |
@@ -380,6 +387,9 @@ from httpx_auth import OAuth2ClientCredentials
 with httpx.Client() as client:
     client.get('https://www.example.com', auth=OAuth2ClientCredentials('https://www.token.url', client_id='id', client_secret='secret'))
 ```
+
+Note:
+* You can persist tokens thanks to [the token cache](#managing-token-cache).
 
 #### Parameters
 
@@ -420,6 +430,9 @@ with httpx.Client() as client:
     client.get('https://www.example.com', auth=okta)
 ```
 
+Note:
+* You can persist tokens thanks to [the token cache](#managing-token-cache).
+
 ###### Parameters
 
 | Name                    | Description                | Mandatory | Default value |
@@ -452,6 +465,10 @@ with httpx.Client() as client:
     client.get('https://www.example.com', auth=OAuth2Implicit('https://www.authorization.url'))
 ```
 
+Note:
+* You can persist tokens thanks to [the token cache](#managing-token-cache).
+* You can tweak web browser interaction thanks to [the display settings](#managing-the-web-browser).
+
 #### Parameters
 
 | Name                    | Description                | Mandatory | Default value |
@@ -463,8 +480,6 @@ with httpx.Client() as client:
 | `redirect_uri_endpoint` | Custom endpoint that will be used as redirect_uri the following way: http://localhost:<redirect_uri_port>/<redirect_uri_endpoint>. | Optional | ''             |
 | `redirect_uri_port`     | The port on which the server listening for the OAuth 2 token will be started. | Optional | 5000 |
 | `timeout`               | Maximum amount of seconds to wait for a token to be received once requested. | Optional | 60 |
-| `success_display_time`  | In case a token is successfully received, this is the maximum amount of milliseconds the success page will be displayed in your browser. | Optional | 1 |
-| `failure_display_time`  | In case received token is not valid, this is the maximum amount of milliseconds the failure page will be displayed in your browser. | Optional | 5000 |
 | `header_name`           | Name of the header field used to send token. | Optional | Authorization |
 | `header_value`          | Format used to send the token value. "{token}" must be present as it will be replaced by the actual token. | Optional | Bearer {token} |
 
@@ -500,6 +515,10 @@ with httpx.Client() as client:
     client.get('https://www.example.com', auth=aad)
 ```
 
+Note:
+* You can persist tokens thanks to [the token cache](#managing-token-cache).
+* You can tweak web browser interaction thanks to [the display settings](#managing-the-web-browser).
+
 You can retrieve Microsoft Azure Active Directory application information thanks to the [application list on Azure portal](https://portal.azure.com/#blade/Microsoft_AAD_IAM/StartboardApplicationsMenuBlade/AllApps/menuId/).
 
 ###### Parameters
@@ -515,8 +534,6 @@ You can retrieve Microsoft Azure Active Directory application information thanks
 | `redirect_uri_endpoint` | Custom endpoint that will be used as redirect_uri the following way: http://localhost:<redirect_uri_port>/<redirect_uri_endpoint>. | Optional | ''             |
 | `redirect_uri_port`     | The port on which the server listening for the OAuth 2 token will be started. | Optional | 5000 |
 | `timeout`               | Maximum amount of seconds to wait for a token to be received once requested. | Optional | 60 |
-| `success_display_time`  | In case a token is successfully received, this is the maximum amount of milliseconds the success page will be displayed in your browser. | Optional | 1 |
-| `failure_display_time`  | In case received token is not valid, this is the maximum amount of milliseconds the failure page will be displayed in your browser. | Optional | 5000 |
 | `header_name`           | Name of the header field used to send token. | Optional | Authorization |
 | `header_value`          | Format used to send the token value. "{token}" must be present as it will be replaced by the actual token. | Optional | Bearer {token} |
 
@@ -544,6 +561,10 @@ with httpx.Client() as client:
     client.get('https://www.example.com', auth=aad)
 ```
 
+Note:
+* You can persist tokens thanks to [the token cache](#managing-token-cache).
+* You can tweak web browser interaction thanks to [the display settings](#managing-the-web-browser).
+
 You can retrieve Microsoft Azure Active Directory application information thanks to the [application list on Azure portal](https://portal.azure.com/#blade/Microsoft_AAD_IAM/StartboardApplicationsMenuBlade/AllApps/menuId/).
 
 ###### Parameters
@@ -559,8 +580,6 @@ You can retrieve Microsoft Azure Active Directory application information thanks
 | `redirect_uri_endpoint` | Custom endpoint that will be used as redirect_uri the following way: http://localhost:<redirect_uri_port>/<redirect_uri_endpoint>. | Optional | ''             |
 | `redirect_uri_port`     | The port on which the server listening for the OAuth 2 token will be started. | Optional | 5000 |
 | `timeout`               | Maximum amount of seconds to wait for a token to be received once requested. | Optional | 60 |
-| `success_display_time`  | In case a token is successfully received, this is the maximum amount of milliseconds the success page will be displayed in your browser. | Optional | 1 |
-| `failure_display_time`  | In case received token is not valid, this is the maximum amount of milliseconds the failure page will be displayed in your browser. | Optional | 5000 |
 | `header_name`           | Name of the header field used to send token. | Optional | Authorization |
 | `header_value`          | Format used to send the token value. "{token}" must be present as it will be replaced by the actual token. | Optional | Bearer {token} |
 
@@ -588,6 +607,10 @@ with httpx.Client() as client:
     client.get('https://www.example.com', auth=okta)
 ```
 
+Note:
+* You can persist tokens thanks to [the token cache](#managing-token-cache).
+* You can tweak web browser interaction thanks to [the display settings](#managing-the-web-browser).
+
 ###### Parameters
 
 | Name                    | Description                | Mandatory | Default value |
@@ -603,8 +626,6 @@ with httpx.Client() as client:
 | `redirect_uri_endpoint` | Custom endpoint that will be used as redirect_uri the following way: http://localhost:<redirect_uri_port>/<redirect_uri_endpoint>. | Optional | ''             |
 | `redirect_uri_port`     | The port on which the server listening for the OAuth 2 token will be started. | Optional | 5000 |
 | `timeout`               | Maximum amount of seconds to wait for a token to be received once requested. | Optional | 60 |
-| `success_display_time`  | In case a token is successfully received, this is the maximum amount of milliseconds the success page will be displayed in your browser. | Optional | 1 |
-| `failure_display_time`  | In case received token is not valid, this is the maximum amount of milliseconds the failure page will be displayed in your browser. | Optional | 5000 |
 | `header_name`           | Name of the header field used to send token. | Optional | Authorization |
 | `header_value`          | Format used to send the token value. "{token}" must be present as it will be replaced by the actual token. | Optional | Bearer {token} |
 
@@ -632,6 +653,10 @@ with httpx.Client() as client:
     client.get('https://www.example.com', auth=okta)
 ```
 
+Note:
+* You can persist tokens thanks to [the token cache](#managing-token-cache).
+* You can tweak web browser interaction thanks to [the display settings](#managing-the-web-browser).
+
 ###### Parameters
 
 | Name                    | Description                | Mandatory | Default value |
@@ -647,8 +672,6 @@ with httpx.Client() as client:
 | `redirect_uri_endpoint` | Custom endpoint that will be used as redirect_uri the following way: http://localhost:<redirect_uri_port>/<redirect_uri_endpoint>. | Optional | ''             |
 | `redirect_uri_port`     | The port on which the server listening for the OAuth 2 token will be started. | Optional | 5000 |
 | `timeout`               | Maximum amount of seconds to wait for a token to be received once requested. | Optional | 60 |
-| `success_display_time`  | In case a token is successfully received, this is the maximum amount of milliseconds the success page will be displayed in your browser. | Optional | 1 |
-| `failure_display_time`  | In case received token is not valid, this is the maximum amount of milliseconds the failure page will be displayed in your browser. | Optional | 5000 |
 | `header_name`           | Name of the header field used to send token. | Optional | Authorization |
 | `header_value`          | Format used to send the token value. "{token}" must be present as it will be replaced by the actual token. | Optional | Bearer {token} |
 
@@ -664,17 +687,35 @@ Usual extra parameters are:
 
 To avoid asking for a new token every new request, a token cache is used.
 
-Default cache is in memory but it is also possible to use a physical cache.
+Default cache is in memory, but it is also possible to use a physical cache.
 
 You need to provide the location of your token cache file. It can be a full or relative path.
 
-If the file already exists it will be used, if the file do not exists it will be created.
+If the file already exists it will be used, if the file do not exist it will be created.
 
 ```python
 from httpx_auth import OAuth2, JsonTokenFileCache
 
 OAuth2.token_cache = JsonTokenFileCache('path/to/my_token_cache.json')
 ```
+
+### Managing the web browser
+
+You can configure the browser display settings thanks to `httpx_auth.OAuth2.display` as in the following:
+```python
+from httpx_auth import OAuth2, DisplaySettings
+
+OAuth2.display = DisplaySettings()
+```
+
+The following parameters can be provided to `DisplaySettings`:
+
+| Name                    | Description                                                                                                                                                                    | Default value |
+|:------------------------|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|:--------------|
+| `success_display_time`  | In case a code or token is successfully received, this is the maximum amount of milliseconds the success page will be displayed in your browser.                               | 1             |
+| `success_template`      | In case a code or token is successfully received, this is the success page that will be displayed in your browser. `{text}` and `{display_time}` are expected in this content. |               |
+| `failure_display_time`  | In case received code or token is not valid, this is the maximum amount of milliseconds the failure page will be displayed in your browser.                                    | 5000          |
+| `failure_template`      | In case received code or token is not valid, this is the failure page that will be displayed in your browser. `{text}` and `{display_time}` are expected in this content.      |               |
 
 ## AWS Signature v4
 

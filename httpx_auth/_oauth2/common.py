@@ -83,8 +83,66 @@ def request_new_grant_with_post(
     return token, content.get("expires_in")
 
 
+class DisplaySettings:
+    DEFAULT_SUCCESS_TEMPLATE = """<!DOCTYPE html>
+<html>
+<body onload="window.open('', '_self', ''); window.setTimeout(close, {display_time})"
+ style="color: #4F8A10;
+        background-color: #DFF2BF;
+        font-size: xx-large;
+        display: flex;
+        align-items: center;
+        justify-content: center;">
+    <div style="border: 1px solid; padding: 8px;">{text}</div>
+</body>
+</html>"""
+    DEFAULT_FAILURE_TEMPLATE = """<!DOCTYPE html>
+<html>
+<body onload="window.open('', '_self', ''); window.setTimeout(close, {display_time})"
+ style="color: #D8000C;
+        background-color: #FFBABA;
+        font-size: xx-large;
+        display: flex;
+        align-items: center;
+        justify-content: center;">
+    <div style="border: 1px solid; padding: 8px;">{text}</div>
+</body>
+</html>"""
+
+    def __init__(
+        self,
+        *,
+        success_display_time: int = 1,
+        success_template: str = None,
+        failure_display_time: int = 5000,
+        failure_template: str = None,
+    ):
+        """
+        :param success_display_time: In case a code/token is successfully received,
+        this is the maximum amount of milliseconds the success page will be displayed in your browser.
+        Display the page for 1 millisecond by default.
+        :param success_template: In case a code or token is successfully received,
+        this is the success page that will be displayed in your browser.
+        `{text}` and `{display_time}` are expected in this content.
+        :param failure_display_time: In case received code/token is not valid,
+        this is the maximum amount of milliseconds the failure page will be displayed in your browser.
+        Display the page for 5 seconds by default.
+        :param failure_template: In case received code or token is not valid,
+        this is the failure page that will be displayed in your browser.
+        `{text}` and `{display_time}` are expected in this content.
+        """
+        # Time is expressed in milliseconds
+        self.success_display_time = success_display_time
+        self.success_template = success_template or self.DEFAULT_SUCCESS_TEMPLATE
+
+        # Time is expressed in milliseconds
+        self.failure_display_time = failure_display_time
+        self.failure_template = failure_template or self.DEFAULT_FAILURE_TEMPLATE
+
+
 class OAuth2:
     token_cache = TokenMemoryCache()
+    display = DisplaySettings()
 
 
 class BrowserAuth:
@@ -96,12 +154,6 @@ class BrowserAuth:
         Listen on port 5000 by default.
         :param timeout: Maximum amount of seconds to wait for a code or a token to be received once requested.
         Wait for 1 minute (60 seconds) by default.
-        :param success_display_time: In case a code is successfully received,
-        this is the maximum amount of milliseconds the success page will be displayed in your browser.
-        Display the page for 1 millisecond by default.
-        :param failure_display_time: In case received code is not valid,
-        this is the maximum amount of milliseconds the failure page will be displayed in your browser.
-        Display the page for 5 seconds by default.
         """
         redirect_uri_endpoint = kwargs.pop("redirect_uri_endpoint", None) or ""
         self.redirect_uri_port = int(kwargs.pop("redirect_uri_port", None) or 5000)
@@ -111,9 +163,3 @@ class BrowserAuth:
 
         # Time is expressed in seconds
         self.timeout = float(kwargs.pop("timeout", None) or 60)
-        # Time is expressed in milliseconds
-        self.success_display_time = int(kwargs.pop("success_display_time", None) or 1)
-        # Time is expressed in milliseconds
-        self.failure_display_time = int(
-            kwargs.pop("failure_display_time", None) or 5000
-        )

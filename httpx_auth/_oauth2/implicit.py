@@ -43,12 +43,6 @@ class OAuth2Implicit(httpx.Auth, SupportMultiAuth, BrowserAuth):
         Listen on port 5000 by default.
         :param timeout: Maximum amount of seconds to wait for a token to be received once requested.
         Wait for 1 minute by default.
-        :param success_display_time: In case a token is successfully received,
-        this is the maximum amount of milliseconds the success page will be displayed in your browser.
-        Display the page for 1 millisecond by default.
-        :param failure_display_time: In case received token is not valid,
-        this is the maximum amount of milliseconds the failure page will be displayed in your browser.
-        Display the page for 5 seconds by default.
         :param header_name: Name of the header field used to send token.
         Token will be sent in Authorization header field by default.
         :param header_value: Format used to send the token value.
@@ -106,8 +100,6 @@ class OAuth2Implicit(httpx.Auth, SupportMultiAuth, BrowserAuth):
             grant_url,
             token_field_name,
             self.timeout,
-            self.success_display_time,
-            self.failure_display_time,
             self.redirect_uri_port,
         )
 
@@ -149,12 +141,6 @@ class AzureActiveDirectoryImplicit(OAuth2Implicit):
         Listen on port 5000 by default.
         :param timeout: Maximum amount of seconds to wait for a token to be received once requested.
         Wait for 1 minute by default.
-        :param success_display_time: In case a token is successfully received,
-        this is the maximum amount of milliseconds the success page will be displayed in your browser.
-        Display the page for 1 millisecond by default.
-        :param failure_display_time: In case received token is not valid,
-        this is the maximum amount of milliseconds the failure page will be displayed in your browser.
-        Display the page for 5 seconds by default.
         :param header_name: Name of the header field used to send token.
         Token will be sent in Authorization header field by default.
         :param header_value: Format used to send the token value.
@@ -199,12 +185,6 @@ class AzureActiveDirectoryImplicitIdToken(OAuth2Implicit):
         Listen on port 5000 by default.
         :param timeout: Maximum amount of seconds to wait for a token to be received once requested.
         Wait for 1 minute by default.
-        :param success_display_time: In case a token is successfully received,
-        this is the maximum amount of milliseconds the success page will be displayed in your browser.
-        Display the page for 1 millisecond by default.
-        :param failure_display_time: In case received token is not valid,
-        this is the maximum amount of milliseconds the failure page will be displayed in your browser.
-        Display the page for 5 seconds by default.
         :param header_name: Name of the header field used to send token.
         Token will be sent in Authorization header field by default.
         :param header_value: Format used to send the token value.
@@ -256,12 +236,6 @@ class OktaImplicit(OAuth2Implicit):
         Listen on port 5000 by default.
         :param timeout: Maximum amount of seconds to wait for a token to be received once requested.
         Wait for 1 minute by default.
-        :param success_display_time: In case a token is successfully received,
-        this is the maximum amount of milliseconds the success page will be displayed in your browser.
-        Display the page for 1 millisecond by default.
-        :param failure_display_time: In case received token is not valid,
-        this is the maximum amount of milliseconds the failure page will be displayed in your browser.
-        Display the page for 5 seconds by default.
         :param header_name: Name of the header field used to send token.
         Token will be sent in Authorization header field by default.
         :param header_value: Format used to send the token value.
@@ -312,12 +286,6 @@ class OktaImplicitIdToken(OAuth2Implicit):
         Listen on port 5000 by default.
         :param timeout: Maximum amount of seconds to wait for a token to be received once requested.
         Wait for 1 minute by default.
-        :param success_display_time: In case a token is successfully received,
-        this is the maximum amount of milliseconds the success page will be displayed in your browser.
-        Display the page for 1 millisecond by default.
-        :param failure_display_time: In case received token is not valid,
-        this is the maximum amount of milliseconds the failure page will be displayed in your browser.
-        Display the page for 5 seconds by default.
         :param header_name: Name of the header field used to send token.
         Token will be sent in Authorization header field by default.
         :param header_value: Format used to send the token value.

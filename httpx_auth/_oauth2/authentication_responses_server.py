@@ -3,7 +3,6 @@ import logging
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from urllib.parse import parse_qs, urlparse
 from socket import socket
-from typing import Optional
 
 import httpx
 
@@ -13,6 +12,7 @@ from httpx_auth._errors import (
     StateNotProvided,
     TimeoutOccurred,
 )
+from httpx_auth._oauth2.common import OAuth2
 
 logger = logging.getLogger(__name__)
 
@@ -40,7 +40,10 @@ class OAuth2ResponseHandler(BaseHTTPRequestHandler):
             self.server.request_error = e
             logger.exception("Unable to properly perform authentication.")
             self.send_html(
-                self.error_page(f"Unable to properly perform authentication: {e}")
+                OAuth2.display.failure_template.format(
+                    display_time=OAuth2.display.failure_display_time,
+                    text=f"Unable to properly perform authentication: {e}",
+                )
             )
 
     def do_POST(self) -> None:
@@ -52,7 +55,10 @@ class OAuth2ResponseHandler(BaseHTTPRequestHandler):
             self.server.request_error = e
             logger.exception("Unable to properly perform authentication.")
             self.send_html(
-                self.error_page(f"Unable to properly perform authentication: {e}")
+                OAuth2.display.failure_template.format(
+                    display_time=OAuth2.display.failure_display_time,
+                    text=f"Unable to properly perform authentication: {e}",
+                )
             )
 
     def _parse_grant(self, arguments: dict) -> None:
@@ -71,15 +77,16 @@ class OAuth2ResponseHandler(BaseHTTPRequestHandler):
         state = states[0]
         self.server.grant = state, grant
         self.send_html(
-            self.success_page(
-                f"You are now authenticated on {state}. You may close this tab."
+            OAuth2.display.success_template.format(
+                display_time=OAuth2.display.success_display_time,
+                text=f"You are now authenticated on {state}. You may close this tab.",
             )
         )
 
     def _get_form(self) -> dict:
         content_length = int(self.headers.get("Content-Length", 0))
         body_str = self.rfile.read(content_length).decode("utf-8")
-        return parse_qs(body_str, keep_blank_values=1)
+        return parse_qs(body_str, keep_blank_values=True)
 
     def _get_params(self) -> dict:
         return parse_qs(urlparse(self.path).query)
@@ -90,18 +97,6 @@ class OAuth2ResponseHandler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(str.encode(html_content))
         logger.debug("HTML content sent to client.")
-
-    def success_page(self, text: str) -> str:
-        return self.server.grant_details.success_page_template.format(
-            display_time=self.server.grant_details.reception_success_display_time,
-            text=text,
-        )
-
-    def error_page(self, text: str) -> str:
-        return self.server.grant_details.failure_page_template.format(
-            display_time=self.server.grant_details.reception_failure_display_time,
-            text=text,
-        )
 
     def fragment_redirect_page(self) -> str:
         """Return a page with JS that calls back the server on the url
@@ -128,55 +123,16 @@ class OAuth2ResponseHandler(BaseHTTPRequestHandler):
 
 
 class GrantDetails:
-    DEFAULT_SUCCESS_TEMPLATE = """
-        <!DOCTYPE html>
-        <html>
-        <body onload="window.open('', '_self', ''); window.setTimeout(close, {display_time})"
-         style="color: #4F8A10;
-                background-color: #DFF2BF;
-                font-size: xx-large;
-                display: flex;
-                align-items: center;
-                justify-content: center;">
-            <div style="border: 1px solid; padding: 8px;">{text}</div>
-        </body>
-        </html>"""
-    DEFAULT_FAILURE_TEMPLATE = """
-        <!DOCTYPE html>
-        <html>
-        <body onload="window.open('', '_self', ''); window.setTimeout(close, {display_time})"
-         style="color: #D8000C;
-                background-color: #FFBABA;
-                font-size: xx-large;
-                display: flex;
-                align-items: center;
-                justify-content: center;">
-            <div style="border: 1px solid; padding: 8px;">{text}</div>
-        </body>
-        </html>"""
-
     def __init__(
         self,
         url: str,
         name: str,
         reception_timeout: float,
-        reception_success_display_time: int,
-        reception_failure_display_time: int,
         redirect_uri_port: int,
-        reception_success_template: Optional[str] = None,
-        reception_failure_template: Optional[str] = None,
     ):
         self.url = url
         self.name = name
         self.reception_timeout = reception_timeout
-        self.success_page_template = (
-            reception_success_template or GrantDetails.DEFAULT_SUCCESS_TEMPLATE
-        )
-        self.failure_page_template = (
-            reception_failure_template or GrantDetails.DEFAULT_FAILURE_TEMPLATE
-        )
-        self.reception_success_display_time = reception_success_display_time
-        self.reception_failure_display_time = reception_failure_display_time
         self.redirect_uri_port = redirect_uri_port
 
 
@@ -247,7 +203,7 @@ def _wait_for_grant(server: FixedHttpServer) -> (str, str):
     :raises InvalidGrantRequest: If the request was invalid.
     :raises TimeoutOccurred: If not retrieved within timeout.
     :raises GrantNotProvided: If grant is not provided in response (but no error occurred).
-    :raises StateNotProvided: If state if not provided in addition to the grant.
+    :raises StateNotProvided: If state is not provided in addition to the grant.
     """
     logger.debug("Waiting for user authentication...")
     while not server.grant:

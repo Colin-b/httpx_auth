@@ -38,16 +38,6 @@ class OAuth2AuthorizationCodePKCE(httpx.Auth, SupportMultiAuth, BrowserAuth):
         Listen on port 5000 by default.
         :param timeout: Maximum amount of seconds to wait for a code or a token to be received once requested.
         Wait for 1 minute by default.
-        :param success_display_time: In case a code is successfully received,
-        this is the maximum amount of milliseconds the success page will be displayed in your browser.
-        Display the page for 1 millisecond by default.
-        :param failure_display_time: In case received code is not valid,
-        this is the maximum amount of milliseconds the failure page will be displayed in your browser.
-        Display the page for 5 seconds by default.
-        :param success_template: HTML content to render to the browser upon successfully receiving an
-        authorization code from the authorization server. Will be formatted with 'text' and 'display_time' parameters.
-        :param failure_template: HTML content to render to the browser upon failing to receive an
-        authorization code from the authorization server. Will be formatted with 'text' and 'display_time' parameters.
         :param header_name: Name of the header field used to send token.
         Token will be sent in Authorization header field by default.
         :param header_value: Format used to send the token value.
@@ -76,9 +66,6 @@ class OAuth2AuthorizationCodePKCE(httpx.Auth, SupportMultiAuth, BrowserAuth):
         self.token_url = token_url
         if not self.token_url:
             raise Exception("Token URL is mandatory.")
-
-        success_template = kwargs.pop("success_template", None)
-        failure_template = kwargs.pop("failure_template", None)
 
         BrowserAuth.__init__(self, kwargs)
 
@@ -135,11 +122,7 @@ class OAuth2AuthorizationCodePKCE(httpx.Auth, SupportMultiAuth, BrowserAuth):
             code_grant_url,
             code_field_name,
             self.timeout,
-            self.success_display_time,
-            self.failure_display_time,
             self.redirect_uri_port,
-            reception_success_template=success_template,
-            reception_failure_template=failure_template,
         )
 
         # As described in https://tools.ietf.org/html/rfc6749#section-4.1.3
@@ -250,16 +233,6 @@ class OktaAuthorizationCodePKCE(OAuth2AuthorizationCodePKCE):
         Listen on port 5000 by default.
         :param timeout: Maximum amount of seconds to wait for a token to be received once requested.
         Wait for 1 minute by default.
-        :param success_display_time: In case a token is successfully received,
-        this is the maximum amount of milliseconds the success page will be displayed in your browser.
-        Display the page for 1 millisecond by default.
-        :param failure_display_time: In case received token is not valid,
-        this is the maximum amount of milliseconds the failure page will be displayed in your browser.
-        Display the page for 5 seconds by default.
-        :param success_template: HTML content to render to the browser upon successfully receiving an
-        authorization code from the authorization server. Will be formatted with 'text' and 'display_time' parameters.
-        :param failure_template: HTML content to render to the browser upon failing to receive an
-        authorization code from the authorization server. Will be formatted with 'text' and 'display_time' parameters.
         :param header_name: Name of the header field used to send token.
         Token will be sent in Authorization header field by default.
         :param header_value: Format used to send the token value.
