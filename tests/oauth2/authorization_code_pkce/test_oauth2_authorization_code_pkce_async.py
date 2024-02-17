@@ -49,9 +49,7 @@ async def test_oauth2_pkce_flow_uses_provided_client(
     async with httpx.AsyncClient() as client:
         await client.get("https://authorized_only", auth=auth)
 
-    tab.assert_success(
-        "You are now authenticated on ce9c755b41b5e3c5b64c70598715d5de271023a53f39a67a70215d265d11d2bfb6ef6e9c701701e998e69cbdbf2cee29fd51d2a950aa05f59a20cf4a646099d5. You may close this tab."
-    )
+    tab.assert_success()
 
 
 @pytest.mark.asyncio
@@ -93,9 +91,7 @@ async def test_oauth2_pkce_flow_is_able_to_reuse_client(
     async with httpx.AsyncClient() as client:
         await client.get("https://authorized_only", auth=auth)
 
-    tab.assert_success(
-        "You are now authenticated on ce9c755b41b5e3c5b64c70598715d5de271023a53f39a67a70215d265d11d2bfb6ef6e9c701701e998e69cbdbf2cee29fd51d2a950aa05f59a20cf4a646099d5. You may close this tab."
-    )
+    tab.assert_success()
     time.sleep(10)
     tab = browser_mock.add_response(
         opened_url="https://provide_code?response_type=code&state=ce9c755b41b5e3c5b64c70598715d5de271023a53f39a67a70215d265d11d2bfb6ef6e9c701701e998e69cbdbf2cee29fd51d2a950aa05f59a20cf4a646099d5&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F&code_challenge=5C_ph_KZ3DstYUc965SiqmKAA-ShvKF4Ut7daKd3fjc&code_challenge_method=S256",
@@ -105,9 +101,7 @@ async def test_oauth2_pkce_flow_is_able_to_reuse_client(
     async with httpx.AsyncClient() as client:
         await client.get("https://authorized_only", auth=auth)
 
-    tab.assert_success(
-        "You are now authenticated on ce9c755b41b5e3c5b64c70598715d5de271023a53f39a67a70215d265d11d2bfb6ef6e9c701701e998e69cbdbf2cee29fd51d2a950aa05f59a20cf4a646099d5. You may close this tab."
-    )
+    tab.assert_success()
 
 
 @pytest.mark.asyncio
@@ -147,9 +141,7 @@ async def test_oauth2_pkce_flow_get_code_is_sent_in_authorization_header_by_defa
     async with httpx.AsyncClient() as client:
         await client.get("https://authorized_only", auth=auth)
 
-    tab.assert_success(
-        "You are now authenticated on ce9c755b41b5e3c5b64c70598715d5de271023a53f39a67a70215d265d11d2bfb6ef6e9c701701e998e69cbdbf2cee29fd51d2a950aa05f59a20cf4a646099d5. You may close this tab."
-    )
+    tab.assert_success()
 
 
 @pytest.mark.asyncio
@@ -196,9 +188,7 @@ async def test_oauth2_pkce_flow_get_code_is_expired_after_30_seconds_by_default(
     async with httpx.AsyncClient() as client:
         await client.get("https://authorized_only", auth=auth)
 
-    tab.assert_success(
-        "You are now authenticated on ce9c755b41b5e3c5b64c70598715d5de271023a53f39a67a70215d265d11d2bfb6ef6e9c701701e998e69cbdbf2cee29fd51d2a950aa05f59a20cf4a646099d5. You may close this tab."
-    )
+    tab.assert_success()
 
 
 @pytest.mark.asyncio
