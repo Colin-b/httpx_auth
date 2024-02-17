@@ -45,9 +45,7 @@ async def test_oauth2_authorization_code_flow_uses_provided_client(
     async with httpx.AsyncClient() as client:
         await client.get("https://authorized_only", auth=auth)
 
-    tab.assert_success(
-        "You are now authenticated on ce9c755b41b5e3c5b64c70598715d5de271023a53f39a67a70215d265d11d2bfb6ef6e9c701701e998e69cbdbf2cee29fd51d2a950aa05f59a20cf4a646099d5. You may close this tab."
-    )
+    tab.assert_success()
 
 
 @pytest.mark.asyncio
@@ -86,9 +84,7 @@ async def test_oauth2_authorization_code_flow_is_able_to_reuse_client(
     async with httpx.AsyncClient() as client:
         await client.get("https://authorized_only", auth=auth)
 
-    tab.assert_success(
-        "You are now authenticated on ce9c755b41b5e3c5b64c70598715d5de271023a53f39a67a70215d265d11d2bfb6ef6e9c701701e998e69cbdbf2cee29fd51d2a950aa05f59a20cf4a646099d5. You may close this tab."
-    )
+    tab.assert_success()
 
     time.sleep(10)
     tab = browser_mock.add_response(
@@ -99,9 +95,7 @@ async def test_oauth2_authorization_code_flow_is_able_to_reuse_client(
     async with httpx.AsyncClient() as client:
         await client.get("https://authorized_only", auth=auth)
 
-    tab.assert_success(
-        "You are now authenticated on ce9c755b41b5e3c5b64c70598715d5de271023a53f39a67a70215d265d11d2bfb6ef6e9c701701e998e69cbdbf2cee29fd51d2a950aa05f59a20cf4a646099d5. You may close this tab."
-    )
+    tab.assert_success()
 
 
 @pytest.mark.asyncio
@@ -138,9 +132,7 @@ async def test_oauth2_authorization_code_flow_get_code_is_sent_in_authorization_
     async with httpx.AsyncClient() as client:
         await client.get("https://authorized_only", auth=auth)
 
-    tab.assert_success(
-        "You are now authenticated on ce9c755b41b5e3c5b64c70598715d5de271023a53f39a67a70215d265d11d2bfb6ef6e9c701701e998e69cbdbf2cee29fd51d2a950aa05f59a20cf4a646099d5. You may close this tab."
-    )
+    tab.assert_success()
 
 
 @pytest.mark.asyncio
@@ -171,9 +163,7 @@ async def test_oauth2_authorization_code_flow_token_as_html(
     async with httpx.AsyncClient() as client:
         await client.get("https://authorized_only", auth=auth)
 
-    tab.assert_success(
-        "You are now authenticated on ce9c755b41b5e3c5b64c70598715d5de271023a53f39a67a70215d265d11d2bfb6ef6e9c701701e998e69cbdbf2cee29fd51d2a950aa05f59a20cf4a646099d5. You may close this tab."
-    )
+    tab.assert_success()
 
 
 @pytest.mark.asyncio
@@ -217,9 +207,7 @@ async def test_oauth2_authorization_code_flow_get_code_is_expired_after_30_secon
     async with httpx.AsyncClient() as client:
         await client.get("https://authorized_only", auth=auth)
 
-    tab.assert_success(
-        "You are now authenticated on ce9c755b41b5e3c5b64c70598715d5de271023a53f39a67a70215d265d11d2bfb6ef6e9c701701e998e69cbdbf2cee29fd51d2a950aa05f59a20cf4a646099d5. You may close this tab."
-    )
+    tab.assert_success()
 
 
 @pytest.mark.asyncio

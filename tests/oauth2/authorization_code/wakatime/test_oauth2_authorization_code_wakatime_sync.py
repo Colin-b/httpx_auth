@@ -39,9 +39,7 @@ def test_oauth2_authorization_code_flow_uses_provided_client(
     with httpx.Client() as client:
         client.get("https://authorized_only", auth=auth)
 
-    tab.assert_success(
-        "You are now authenticated on 5d0adb208bdbecaf5cfb6de0bf4ba0aea52986f3fc5ea7bc30c4b2db449c17e5c9d15f9a3926476cdaf1c72e9f73c7cfdc624dde0187c38d8c6b04532770df2a. You may close this tab."
-    )
+    tab.assert_success()
 
 
 def test_multiple_scopes_are_comma_separated(
@@ -73,9 +71,7 @@ def test_multiple_scopes_are_comma_separated(
     with httpx.Client() as client:
         client.get("https://authorized_only", auth=auth)
 
-    tab.assert_success(
-        "You are now authenticated on 34f21f9ea8be7b1dfd3dd1673a9aea7c3a1737228b4f08bc11ebacb88449afaa658811f8022e9962927a0ec42805c0e3cc5e6b0d9185308216b298a686001a1f. You may close this tab."
-    )
+    tab.assert_success()
 
 
 def test_oauth2_authorization_code_flow_get_code_is_sent_in_authorization_header_by_default(
@@ -107,9 +103,7 @@ def test_oauth2_authorization_code_flow_get_code_is_sent_in_authorization_header
     with httpx.Client() as client:
         client.get("https://authorized_only", auth=auth)
 
-    tab.assert_success(
-        "You are now authenticated on 5d0adb208bdbecaf5cfb6de0bf4ba0aea52986f3fc5ea7bc30c4b2db449c17e5c9d15f9a3926476cdaf1c72e9f73c7cfdc624dde0187c38d8c6b04532770df2a. You may close this tab."
-    )
+    tab.assert_success()
 
 
 def test_json_response_is_handled_even_if_unused(
@@ -148,9 +142,7 @@ def test_json_response_is_handled_even_if_unused(
     with httpx.Client() as client:
         client.get("https://authorized_only", auth=auth)
 
-    tab.assert_success(
-        "You are now authenticated on 5d0adb208bdbecaf5cfb6de0bf4ba0aea52986f3fc5ea7bc30c4b2db449c17e5c9d15f9a3926476cdaf1c72e9f73c7cfdc624dde0187c38d8c6b04532770df2a. You may close this tab."
-    )
+    tab.assert_success()
 
 
 def test_oauth2_authorization_code_flow_get_code_is_expired_after_30_seconds_by_default(
@@ -189,9 +181,7 @@ def test_oauth2_authorization_code_flow_get_code_is_expired_after_30_seconds_by_
     with httpx.Client() as client:
         client.get("https://authorized_only", auth=auth)
 
-    tab.assert_success(
-        "You are now authenticated on 5d0adb208bdbecaf5cfb6de0bf4ba0aea52986f3fc5ea7bc30c4b2db449c17e5c9d15f9a3926476cdaf1c72e9f73c7cfdc624dde0187c38d8c6b04532770df2a. You may close this tab."
-    )
+    tab.assert_success()
 
 
 def test_oauth2_authorization_code_flow_get_code_custom_expiry(
