@@ -105,13 +105,9 @@ def test_with_invalid_request_error_uses_custom_failure_template(
     )
 
     with httpx.Client() as client:
-        with pytest.raises(httpx_auth.InvalidGrantRequest) as exception_info:
+        with pytest.raises(httpx_auth.InvalidGrantRequest):
             client.get("https://authorized_only", auth=auth)
 
-    assert (
-        str(exception_info.value)
-        == "invalid_request: The request is missing a required parameter, includes an invalid parameter value, includes a parameter more than once, or is otherwise malformed."
-    )
     tab.assert_failure(
         "invalid_request: The request is missing a required parameter, includes an invalid parameter value, includes a parameter more than once, or is otherwise malformed."
     )

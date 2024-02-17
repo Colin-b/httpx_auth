@@ -44,6 +44,70 @@ async def test_oauth2_authorization_code_flow_uses_provided_client(
 
 
 @pytest.mark.asyncio
+async def test_oauth2_authorization_code_flow_uses_custom_success_template(
+    token_cache, httpx_mock: HTTPXMock, browser_mock: BrowserMock
+):
+    auth = httpx_auth.WakaTimeAuthorizationCode(
+        "jPJQV0op6Pu3b66MWDi8b1wD",
+        "waka_sec_0c4MBGeR9LN74LzV5uelF9SgeQ32CqfeWpIuieneBbsL57dAAlqqJWDiVDJOlsSx61pVwHMKlsb3uMvU",
+        scope="email",
+    )
+    httpx_auth.OAuth2.display.success_template = (
+        "<body><div>SUCCESS: {display_time}</div></body>"
+    )
+    tab = browser_mock.add_response(
+        opened_url="https://wakatime.com/oauth/authorize?client_id=jPJQV0op6Pu3b66MWDi8b1wD&client_secret=waka_sec_0c4MBGeR9LN74LzV5uelF9SgeQ32CqfeWpIuieneBbsL57dAAlqqJWDiVDJOlsSx61pVwHMKlsb3uMvU&scope=email&response_type=code&state=5d0adb208bdbecaf5cfb6de0bf4ba0aea52986f3fc5ea7bc30c4b2db449c17e5c9d15f9a3926476cdaf1c72e9f73c7cfdc624dde0187c38d8c6b04532770df2a&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F",
+        reply_url="http://localhost:5000#code=SplxlOBeZQQYbYS6WxSbIA&state=5d0adb208bdbecaf5cfb6de0bf4ba0aea52986f3fc5ea7bc30c4b2db449c17e5c9d15f9a3926476cdaf1c72e9f73c7cfdc624dde0187c38d8c6b04532770df2a",
+        success_template="<body><div>SUCCESS: {display_time}</div></body>",
+    )
+    httpx_mock.add_response(
+        method="POST",
+        url="https://wakatime.com/oauth/token",
+        html="access_token=waka_tok_12345&token_type=bearer&expires_in=3600&refresh_token=waka_ref_12345&scope=email&example_parameter=example_value",
+        match_content=b"grant_type=authorization_code&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F&client_id=jPJQV0op6Pu3b66MWDi8b1wD&client_secret=waka_sec_0c4MBGeR9LN74LzV5uelF9SgeQ32CqfeWpIuieneBbsL57dAAlqqJWDiVDJOlsSx61pVwHMKlsb3uMvU&scope=email&response_type=code&code=SplxlOBeZQQYbYS6WxSbIA",
+    )
+    httpx_mock.add_response(
+        url="https://authorized_only",
+        method="GET",
+        match_headers={
+            "Authorization": "Bearer waka_tok_12345",
+        },
+    )
+
+    async with httpx.AsyncClient() as client:
+        await client.get("https://authorized_only", auth=auth)
+
+    tab.assert_success()
+
+
+@pytest.mark.asyncio
+async def test_oauth2_authorization_code_flow_uses_custom_failure_template(
+    token_cache, httpx_mock: HTTPXMock, browser_mock: BrowserMock
+):
+    auth = httpx_auth.WakaTimeAuthorizationCode(
+        "jPJQV0op6Pu3b66MWDi8b1wD",
+        "waka_sec_0c4MBGeR9LN74LzV5uelF9SgeQ32CqfeWpIuieneBbsL57dAAlqqJWDiVDJOlsSx61pVwHMKlsb3uMvU",
+        scope="email",
+    )
+    httpx_auth.OAuth2.display.failure_template = (
+        "FAILURE: {display_time}\n{information}"
+    )
+    tab = browser_mock.add_response(
+        opened_url="https://wakatime.com/oauth/authorize?client_id=jPJQV0op6Pu3b66MWDi8b1wD&client_secret=waka_sec_0c4MBGeR9LN74LzV5uelF9SgeQ32CqfeWpIuieneBbsL57dAAlqqJWDiVDJOlsSx61pVwHMKlsb3uMvU&scope=email&response_type=code&state=5d0adb208bdbecaf5cfb6de0bf4ba0aea52986f3fc5ea7bc30c4b2db449c17e5c9d15f9a3926476cdaf1c72e9f73c7cfdc624dde0187c38d8c6b04532770df2a&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F",
+        reply_url="http://localhost:5000#error=invalid_request",
+        failure_template="FAILURE: {display_time}\n{information}",
+    )
+
+    async with httpx.AsyncClient() as client:
+        with pytest.raises(httpx_auth.InvalidGrantRequest):
+            await client.get("https://authorized_only", auth=auth)
+
+    tab.assert_failure(
+        "invalid_request: The request is missing a required parameter, includes an invalid parameter value, includes a parameter more than once, or is otherwise malformed."
+    )
+
+
+@pytest.mark.asyncio
 async def test_multiple_scopes_are_comma_separated(
     token_cache, httpx_mock: HTTPXMock, browser_mock: BrowserMock
 ):
