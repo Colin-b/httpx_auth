@@ -89,7 +89,7 @@ class DisplaySettings:
     <head>
         <title>{title}</title>
         <style>
-body {
+body {{
     border: none;
     box-sizing: border-box;
     display: block;
@@ -98,25 +98,25 @@ body {
     line-height: 1.5;
     padding: 50px 0 76px 0;
     text-align: center;
-}
+}}
 
-.content {
+.content {{
     padding: 30px 0 50px 0;
-}
+}}
 
-h1 {
+h1 {{
     color: {color};
     font-size: 2.4rem;
     margin: 1.7rem auto .5rem auto;
-}
+}}
 
-p {
+p {{
     color: #2f374f;
     font-size: 1.2rem;
     margin: .75rem 0 0 0;
-}
+}}
 
-.btn {
+.btn {{
     display: inline-block;
     color: {color} !important;
     text-decoration: none;
@@ -126,29 +126,29 @@ p {
     font-size: 1em;
     font-weight: 400;
     margin: 50px 0 0 0;
-}
+}}
 
-.btn:hover {
+.btn:hover {{
     color: {background_color} !important;
     background-color: {color};
-}
+}}
 
-@keyframes zoomText {
-  from {
+@keyframes zoomText {{
+  from {{
     opacity: 0;
     transform: scale3d(0.9, 0.9, 0.9);
-  }
-  50% {
+  }}
+  50% {{
     opacity: 1;
-  }
-}
+  }}
+}}
 
-.content h1 {
+.content h1 {{
     animation-duration: .6s;
     animation-fill-mode: both;
     animation-name: zoomText;
     animation-delay: .2s;
-}
+}}
         </style>
     </head>
     <body onload="window.open('', '_self', ''); window.setTimeout(close, {display_time})">
