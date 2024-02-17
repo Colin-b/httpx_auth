@@ -159,7 +159,10 @@ def browser_mock(monkeypatch) -> BrowserMock:
         "get",
         lambda *args: mock,
     )
+    monkeypatch.setattr(httpx_auth.OAuth2, "display", httpx_auth.DisplaySettings())
+
     yield mock
+
     mock.assert_checked()
 
 
