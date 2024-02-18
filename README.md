@@ -758,6 +758,36 @@ Note that the following changes were made compared to `requests-aws4auth`:
 | `security_token`   | Used for the `x-amz-security-token` header, for use with STS temporary credentials.                                                                                                            | Optional   |                                                                                                                          |
 | `include_headers`  | Set of headers to include in the canonical and signed headers (in addition to the default). Note that `x-amz-client-context` is not included by default and `*` will include all headers.      | Optional   | {"host", "content-type", "x-amz-*"} and if `security_token` is provided, `x-amz-security-token`. |
 
+### Dynamically retrieving credentials using boto3
+
+While `httpx-auth` does not want to include support for `botocore`, the following authentication class should allow you to automatically retrieve up-to-date credentials.
+
+```python
+import httpx
+from botocore.session import Session
+from httpx_auth import AWS4Auth
+
+class AWS4BotoAuth(AWS4Auth):
+    def __init__(self, region: str, service: str = "s3", **kwargs):
+        self.refreshable_credentials = Session().get_credentials()
+        AWS4Auth.__init__(self, access_id=kwargs.pop("access_id", "_"), secret_key=kwargs.pop("secret_key", "_"), region=region, service=service, **kwargs)
+
+    def auth_flow(self, request):
+        self.refresh_credentials()
+        yield super().auth_flow(request)
+
+    def refresh_credentials(self):
+        credentials = self.refreshable_credentials.get_frozen_credentials()
+        self.access_id = credentials.access_key
+        self.secret_key = credentials.secret_key
+        self.security_token = credentials.token
+
+
+aws = AWS4BotoAuth(region="eu-west-1")
+with httpx.Client() as client:
+    client.get('http://s3-eu-west-1.amazonaws.com', auth=aws)
+```
+
 ## API key in header
 
 You can send an API key inside the header of your request using `httpx_auth.HeaderApiKey`.
