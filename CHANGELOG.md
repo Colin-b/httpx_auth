@@ -5,12 +5,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [0.21.0] - 2024-02-19
 ### Added
 - Publicly expose `httpx_auth.SupportMultiAuth`, allowing multiple authentication support for every `httpx` authentication class that exists.
 - Publicly expose `httpx_auth.TokenMemoryCache`, allowing to create custom Oauth2 token cache based on this default implementation.
 - You can now provide your own HTML success (`success_html`) and failure (`failure_html`) display via the new `OAuth2.display` shared setting. Refer to documentation for more details.
 - Support for refresh tokens in the Resource Owner Password Credentials flow.
 - Support for refresh tokens in the Authorization code (with and without PKCE) flow.
+- Thanks to the new `redirect_uri_domain` parameter on Authorization code (with and without PKCE) and Implicit flows, you can now provide the [FQDN](https://en.wikipedia.org/wiki/Fully_qualified_domain_name) to use in the `redirect_uri` when `localhost` (the default) is not allowed.
 
 ### Changed
 - Except for `httpx_auth.testing`, only direct access via `httpx_auth.` was considered publicly exposed. This is now explicit, as inner packages are now using private prefix (`_`).
@@ -242,7 +245,8 @@ Note that a few changes were made:
 ### Added
 - Placeholder for port of requests_auth to httpx
 
-[Unreleased]: https://github.com/Colin-b/httpx_auth/compare/v0.20.0...HEAD
+[Unreleased]: https://github.com/Colin-b/httpx_auth/compare/v0.21.0...HEAD
+[0.21.0]: https://github.com/Colin-b/httpx_auth/compare/v0.20.0...v0.21.0
 [0.20.0]: https://github.com/Colin-b/httpx_auth/compare/v0.19.0...v0.20.0
 [0.19.0]: https://github.com/Colin-b/httpx_auth/compare/v0.18.0...v0.19.0
 [0.18.0]: https://github.com/Colin-b/httpx_auth/compare/v0.17.0...v0.18.0

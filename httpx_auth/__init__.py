@@ -4,7 +4,8 @@ from httpx_auth._authentication import (
     QueryApiKey,
     SupportMultiAuth,
 )
-from httpx_auth._oauth2.common import OAuth2, DisplaySettings
+from httpx_auth._oauth2.browser import DisplaySettings
+from httpx_auth._oauth2.common import OAuth2
 from httpx_auth._oauth2.authorization_code import (
     OAuth2AuthorizationCode,
     OktaAuthorizationCode,

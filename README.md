@@ -5,7 +5,7 @@
 <a href="https://github.com/Colin-b/httpx_auth/actions"><img alt="Build status" src="https://github.com/Colin-b/httpx_auth/workflows/Release/badge.svg"></a>
 <a href="https://github.com/Colin-b/httpx_auth/actions"><img alt="Coverage" src="https://img.shields.io/badge/coverage-100%25-brightgreen"></a>
 <a href="https://github.com/psf/black"><img alt="Code style: black" src="https://img.shields.io/badge/code%20style-black-000000.svg"></a>
-<a href="https://github.com/Colin-b/httpx_auth/actions"><img alt="Number of tests" src="https://img.shields.io/badge/tests-763 passed-blue"></a>
+<a href="https://github.com/Colin-b/httpx_auth/actions"><img alt="Number of tests" src="https://img.shields.io/badge/tests-775 passed-blue"></a>
 <a href="https://pypi.org/project/httpx-auth/"><img alt="Number of downloads" src="https://img.shields.io/pypi/dm/httpx_auth"></a>
 </p>
 
@@ -74,22 +74,23 @@ Note:
 
 #### Parameters
 
-| Name                    | Description                | Mandatory | Default value |
-|:------------------------|:---------------------------|:----------|:--------------|
-| `authorization_url`     | OAuth 2 authorization URL. | Mandatory |               |
-| `token_url`             | OAuth 2 token URL.         | Mandatory |               |
-| `redirect_uri_endpoint` | Custom endpoint that will be used as redirect_uri the following way: http://localhost:<redirect_uri_port>/<redirect_uri_endpoint>. | Optional | ''             |
-| `redirect_uri_port`     | The port on which the server listening for the OAuth 2 code will be started. | Optional | 5000 |
-| `timeout`               | Maximum amount of seconds to wait for a code or a token to be received once requested. | Optional | 60 |
-| `header_name`           | Name of the header field used to send token. | Optional | Authorization |
-| `header_value`          | Format used to send the token value. "{token}" must be present as it will be replaced by the actual token. | Optional | Bearer {token} |
-| `response_type`         | Value of the response_type query parameter if not already provided in authorization URL. | Optional | code |
-| `token_field_name`      | Field name containing the token. | Optional | access_token |
-| `early_expiry`          | Number of seconds before actual token expiry where token will be considered as expired. Used to ensure token will not expire between the time of retrieval and the time the request reaches the actual server. Set it to 0 to deactivate this feature and use the same token until actual expiry. | Optional  | 30.0  |
-| `code_field_name`       | Field name containing the code. | Optional | code |
-| `username`              | User name in case basic authentication should be used to retrieve token. | Optional |  |
-| `password`              | User password in case basic authentication should be used to retrieve token. | Optional |  |
-| `client`                | `httpx.Client` instance that will be used to request the token. Use it to provide a custom proxying rule for instance. | Optional |  |
+| Name                    | Description                                                                                                                                                                                                                                                                                       | Mandatory  | Default value  |
+|:------------------------|:--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|:-----------|:---------------|
+| `authorization_url`     | OAuth 2 authorization URL.                                                                                                                                                                                                                                                                        | Mandatory  |                |
+| `token_url`             | OAuth 2 token URL.                                                                                                                                                                                                                                                                                | Mandatory  |                |
+| `redirect_uri_domain`   | [FQDN](https://en.wikipedia.org/wiki/Fully_qualified_domain_name) to use in the redirect_uri when localhost is not allowed.                                                                                                                                                                       | Optional   | localhost      |
+| `redirect_uri_endpoint` | Custom endpoint that will be used as redirect_uri the following way: http://<redirect_uri_domain>:<redirect_uri_port>/<redirect_uri_endpoint>.                                                                                                                                                    | Optional   | ''             |
+| `redirect_uri_port`     | The port on which the server listening for the OAuth 2 code will be started.                                                                                                                                                                                                                      | Optional   | 5000           |
+| `timeout`               | Maximum amount of seconds to wait for a code or a token to be received once requested.                                                                                                                                                                                                            | Optional   | 60             |
+| `header_name`           | Name of the header field used to send token.                                                                                                                                                                                                                                                      | Optional   | Authorization  |
+| `header_value`          | Format used to send the token value. "{token}" must be present as it will be replaced by the actual token.                                                                                                                                                                                        | Optional   | Bearer {token} |
+| `response_type`         | Value of the response_type query parameter if not already provided in authorization URL.                                                                                                                                                                                                          | Optional   | code           |
+| `token_field_name`      | Field name containing the token.                                                                                                                                                                                                                                                                  | Optional   | access_token   |
+| `early_expiry`          | Number of seconds before actual token expiry where token will be considered as expired. Used to ensure token will not expire between the time of retrieval and the time the request reaches the actual server. Set it to 0 to deactivate this feature and use the same token until actual expiry. | Optional   | 30.0           |
+| `code_field_name`       | Field name containing the code.                                                                                                                                                                                                                                                                   | Optional   | code           |
+| `username`              | User name in case basic authentication should be used to retrieve token.                                                                                                                                                                                                                          | Optional   |                |
+| `password`              | User password in case basic authentication should be used to retrieve token.                                                                                                                                                                                                                      | Optional   |                |
+| `client`                | `httpx.Client` instance that will be used to request the token. Use it to provide a custom proxying rule for instance.                                                                                                                                                                            | Optional   |                |
 
 Any other parameter will be put as query parameter in the authorization URL and as body parameters in the token URL.        
 
@@ -139,7 +140,8 @@ Note:
 | `nonce`                 | Refer to [OpenID ID Token specifications][3] for more details. | Optional | Newly generated Universal Unique Identifier. |
 | `scope`                 | Scope parameter sent in query. Can also be a list of scopes. | Optional | openid |
 | `authorization_server`  | Okta authorization server. | Optional | 'default' |
-| `redirect_uri_endpoint` | Custom endpoint that will be used as redirect_uri the following way: http://localhost:<redirect_uri_port>/<redirect_uri_endpoint>. | Optional | ''             |
+| `redirect_uri_domain`   | [FQDN](https://en.wikipedia.org/wiki/Fully_qualified_domain_name) to use in the redirect_uri when localhost is not allowed.                                                                                                                                                                       | Optional   | localhost      |
+| `redirect_uri_endpoint` | Custom endpoint that will be used as redirect_uri the following way: http://<redirect_uri_domain>:<redirect_uri_port>/<redirect_uri_endpoint>.                                                                                                                                                    | Optional   | ''             |
 | `redirect_uri_port`     | The port on which the server listening for the OAuth 2 token will be started. | Optional | 5000 |
 | `timeout`               | Maximum amount of seconds to wait for a token to be received once requested. | Optional | 60 |
 | `header_name`           | Name of the header field used to send token. | Optional | Authorization |
@@ -185,7 +187,8 @@ Note:
 | `token_field_name`      | Field name containing the token. | Optional  | access_token                                 |
 | `early_expiry`          | Number of seconds before actual token expiry where token will be considered as expired. Used to ensure token will not expire between the time of retrieval and the time the request reaches the actual server. Set it to 0 to deactivate this feature and use the same token until actual expiry. | Optional  | 30.0                                         |
 | `nonce`                 | Refer to [OpenID ID Token specifications][3] for more details. | Optional  | Newly generated Universal Unique Identifier. |
-| `redirect_uri_endpoint` | Custom endpoint that will be used as redirect_uri the following way: http://localhost:<redirect_uri_port>/<redirect_uri_endpoint>. | Optional  | ''                                           |
+| `redirect_uri_domain`   | [FQDN](https://en.wikipedia.org/wiki/Fully_qualified_domain_name) to use in the redirect_uri when localhost is not allowed.                                                                                                                                                                       | Optional   | localhost      |
+| `redirect_uri_endpoint` | Custom endpoint that will be used as redirect_uri the following way: http://<redirect_uri_domain>:<redirect_uri_port>/<redirect_uri_endpoint>.                                                                                                                                                    | Optional   | ''             |
 | `redirect_uri_port`     | The port on which the server listening for the OAuth 2 token will be started. | Optional  | 5000                                         |
 | `timeout`               | Maximum amount of seconds to wait for a token to be received once requested. | Optional  | 60                                           |
 | `header_name`           | Name of the header field used to send token. | Optional  | Authorization                                |
@@ -218,7 +221,8 @@ Note:
 |:------------------------|:---------------------------|:----------|:--------------|
 | `authorization_url`     | OAuth 2 authorization URL. | Mandatory |               |
 | `token_url`             | OAuth 2 token URL.         | Mandatory |               |
-| `redirect_uri_endpoint` | Custom endpoint that will be used as redirect_uri the following way: http://localhost:<redirect_uri_port>/<redirect_uri_endpoint>. | Optional | ''             |
+| `redirect_uri_domain`   | [FQDN](https://en.wikipedia.org/wiki/Fully_qualified_domain_name) to use in the redirect_uri when localhost is not allowed.                                                                                                                                                                       | Optional   | localhost      |
+| `redirect_uri_endpoint` | Custom endpoint that will be used as redirect_uri the following way: http://<redirect_uri_domain>:<redirect_uri_port>/<redirect_uri_endpoint>.                                                                                                                                                    | Optional   | ''             |
 | `redirect_uri_port`     | The port on which the server listening for the OAuth 2 code will be started. | Optional | 5000 |
 | `timeout`               | Maximum amount of seconds to wait for a code or a token to be received once requested. | Optional | 60 |
 | `header_name`           | Name of the header field used to send token. | Optional | Authorization |
@@ -278,7 +282,8 @@ Note:
 | `nonce`                 | Refer to [OpenID ID Token specifications][3] for more details. | Optional | Newly generated Universal Unique Identifier. |
 | `scope`                 | Scope parameter sent in query. Can also be a list of scopes. | Optional | openid |
 | `authorization_server`  | Okta authorization server. | Optional | 'default' |
-| `redirect_uri_endpoint` | Custom endpoint that will be used as redirect_uri the following way: http://localhost:<redirect_uri_port>/<redirect_uri_endpoint>. | Optional | ''             |
+| `redirect_uri_domain`   | [FQDN](https://en.wikipedia.org/wiki/Fully_qualified_domain_name) to use in the redirect_uri when localhost is not allowed.                                                                                                                                                                       | Optional   | localhost      |
+| `redirect_uri_endpoint` | Custom endpoint that will be used as redirect_uri the following way: http://<redirect_uri_domain>:<redirect_uri_port>/<redirect_uri_endpoint>.                                                                                                                                                    | Optional   | ''             |
 | `redirect_uri_port`     | The port on which the server listening for the OAuth 2 token will be started. | Optional | 5000 |
 | `timeout`               | Maximum amount of seconds to wait for a token to be received once requested. | Optional | 60 |
 | `header_name`           | Name of the header field used to send token. | Optional | Authorization |
@@ -477,7 +482,8 @@ Note:
 | `response_type`         | Value of the response_type query parameter if not already provided in authorization URL. | Optional | token |
 | `token_field_name`      | Field name containing the token. | Optional | id_token if response_type is id_token, otherwise access_token |
 | `early_expiry`          | Number of seconds before actual token expiry where token will be considered as expired. Used to ensure token will not expire between the time of retrieval and the time the request reaches the actual server. Set it to 0 to deactivate this feature and use the same token until actual expiry. | Optional  | 30.0  |
-| `redirect_uri_endpoint` | Custom endpoint that will be used as redirect_uri the following way: http://localhost:<redirect_uri_port>/<redirect_uri_endpoint>. | Optional | ''             |
+| `redirect_uri_domain`   | [FQDN](https://en.wikipedia.org/wiki/Fully_qualified_domain_name) to use in the redirect_uri when localhost is not allowed.                                                                                                                                                                       | Optional   | localhost      |
+| `redirect_uri_endpoint` | Custom endpoint that will be used as redirect_uri the following way: http://<redirect_uri_domain>:<redirect_uri_port>/<redirect_uri_endpoint>.                                                                                                                                                    | Optional   | ''             |
 | `redirect_uri_port`     | The port on which the server listening for the OAuth 2 token will be started. | Optional | 5000 |
 | `timeout`               | Maximum amount of seconds to wait for a token to be received once requested. | Optional | 60 |
 | `header_name`           | Name of the header field used to send token. | Optional | Authorization |
@@ -531,7 +537,8 @@ You can retrieve Microsoft Azure Active Directory application information thanks
 | `token_field_name`      | Field name containing the token. | Optional | access_token |
 | `early_expiry`          | Number of seconds before actual token expiry where token will be considered as expired. Used to ensure token will not expire between the time of retrieval and the time the request reaches the actual server. Set it to 0 to deactivate this feature and use the same token until actual expiry. | Optional  | 30.0  |
 | `nonce`                 | Refer to [OpenID ID Token specifications][3] for more details | Optional | Newly generated Universal Unique Identifier. |
-| `redirect_uri_endpoint` | Custom endpoint that will be used as redirect_uri the following way: http://localhost:<redirect_uri_port>/<redirect_uri_endpoint>. | Optional | ''             |
+| `redirect_uri_domain`   | [FQDN](https://en.wikipedia.org/wiki/Fully_qualified_domain_name) to use in the redirect_uri when localhost is not allowed.                                                                                                                                                                       | Optional   | localhost      |
+| `redirect_uri_endpoint` | Custom endpoint that will be used as redirect_uri the following way: http://<redirect_uri_domain>:<redirect_uri_port>/<redirect_uri_endpoint>.                                                                                                                                                    | Optional   | ''             |
 | `redirect_uri_port`     | The port on which the server listening for the OAuth 2 token will be started. | Optional | 5000 |
 | `timeout`               | Maximum amount of seconds to wait for a token to be received once requested. | Optional | 60 |
 | `header_name`           | Name of the header field used to send token. | Optional | Authorization |
@@ -577,7 +584,8 @@ You can retrieve Microsoft Azure Active Directory application information thanks
 | `token_field_name`      | Field name containing the token. | Optional | id_token |
 | `early_expiry`          | Number of seconds before actual token expiry where token will be considered as expired. Used to ensure token will not expire between the time of retrieval and the time the request reaches the actual server. Set it to 0 to deactivate this feature and use the same token until actual expiry. | Optional  | 30.0  |
 | `nonce`                 | Refer to [OpenID ID Token specifications][3] for more details | Optional | Newly generated Universal Unique Identifier. |
-| `redirect_uri_endpoint` | Custom endpoint that will be used as redirect_uri the following way: http://localhost:<redirect_uri_port>/<redirect_uri_endpoint>. | Optional | ''             |
+| `redirect_uri_domain`   | [FQDN](https://en.wikipedia.org/wiki/Fully_qualified_domain_name) to use in the redirect_uri when localhost is not allowed.                                                                                                                                                                       | Optional   | localhost      |
+| `redirect_uri_endpoint` | Custom endpoint that will be used as redirect_uri the following way: http://<redirect_uri_domain>:<redirect_uri_port>/<redirect_uri_endpoint>.                                                                                                                                                    | Optional   | ''             |
 | `redirect_uri_port`     | The port on which the server listening for the OAuth 2 token will be started. | Optional | 5000 |
 | `timeout`               | Maximum amount of seconds to wait for a token to be received once requested. | Optional | 60 |
 | `header_name`           | Name of the header field used to send token. | Optional | Authorization |
@@ -623,7 +631,8 @@ Note:
 | `nonce`                 | Refer to [OpenID ID Token specifications][3] for more details. | Optional | Newly generated Universal Unique Identifier. |
 | `scope`                 | Scope parameter sent in query. Can also be a list of scopes. | Optional | ['openid', 'profile', 'email'] |
 | `authorization_server`  | Okta authorization server. | Optional | 'default' |
-| `redirect_uri_endpoint` | Custom endpoint that will be used as redirect_uri the following way: http://localhost:<redirect_uri_port>/<redirect_uri_endpoint>. | Optional | ''             |
+| `redirect_uri_domain`   | [FQDN](https://en.wikipedia.org/wiki/Fully_qualified_domain_name) to use in the redirect_uri when localhost is not allowed.                                                                                                                                                                       | Optional   | localhost      |
+| `redirect_uri_endpoint` | Custom endpoint that will be used as redirect_uri the following way: http://<redirect_uri_domain>:<redirect_uri_port>/<redirect_uri_endpoint>.                                                                                                                                                    | Optional   | ''             |
 | `redirect_uri_port`     | The port on which the server listening for the OAuth 2 token will be started. | Optional | 5000 |
 | `timeout`               | Maximum amount of seconds to wait for a token to be received once requested. | Optional | 60 |
 | `header_name`           | Name of the header field used to send token. | Optional | Authorization |
@@ -669,7 +678,8 @@ Note:
 | `nonce`                 | Refer to [OpenID ID Token specifications][3] for more details. | Optional | Newly generated Universal Unique Identifier. |
 | `scope`                 | Scope parameter sent in query. Can also be a list of scopes. | Optional | ['openid', 'profile', 'email'] |
 | `authorization_server`  | Okta authorization server. | Optional | 'default' |
-| `redirect_uri_endpoint` | Custom endpoint that will be used as redirect_uri the following way: http://localhost:<redirect_uri_port>/<redirect_uri_endpoint>. | Optional | ''             |
+| `redirect_uri_domain`   | [FQDN](https://en.wikipedia.org/wiki/Fully_qualified_domain_name) to use in the redirect_uri when localhost is not allowed.                                                                                                                                                                       | Optional   | localhost      |
+| `redirect_uri_endpoint` | Custom endpoint that will be used as redirect_uri the following way: http://<redirect_uri_domain>:<redirect_uri_port>/<redirect_uri_endpoint>.                                                                                                                                                    | Optional   | ''             |
 | `redirect_uri_port`     | The port on which the server listening for the OAuth 2 token will be started. | Optional | 5000 |
 | `timeout`               | Maximum amount of seconds to wait for a token to be received once requested. | Optional | 60 |
 | `header_name`           | Name of the header field used to send token. | Optional | Authorization |

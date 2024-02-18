@@ -49,6 +49,45 @@ async def test_oauth2_authorization_code_flow_uses_provided_client(
 
 
 @pytest.mark.asyncio
+async def test_oauth2_authorization_code_flow_uses_redirect_uri_domain(
+    token_cache, httpx_mock: HTTPXMock, browser_mock: BrowserMock
+):
+    auth = httpx_auth.OAuth2AuthorizationCode(
+        "https://provide_code",
+        "https://provide_access_token",
+        redirect_uri_domain="localhost.mycompany.com",
+    )
+    tab = browser_mock.add_response(
+        opened_url="https://provide_code?response_type=code&state=ce9c755b41b5e3c5b64c70598715d5de271023a53f39a67a70215d265d11d2bfb6ef6e9c701701e998e69cbdbf2cee29fd51d2a950aa05f59a20cf4a646099d5&redirect_uri=http%3A%2F%2Flocalhost.mycompany.com%3A5000%2F",
+        reply_url="http://localhost:5000#code=SplxlOBeZQQYbYS6WxSbIA&state=ce9c755b41b5e3c5b64c70598715d5de271023a53f39a67a70215d265d11d2bfb6ef6e9c701701e998e69cbdbf2cee29fd51d2a950aa05f59a20cf4a646099d5",
+    )
+    httpx_mock.add_response(
+        method="POST",
+        url="https://provide_access_token",
+        json={
+            "access_token": "2YotnFZFEjr1zCsicMWpAA",
+            "token_type": "example",
+            "expires_in": 3600,
+            "refresh_token": "tGzv3JOkF0XG5Qx2TlKWIA",
+            "example_parameter": "example_value",
+        },
+        match_content=b"grant_type=authorization_code&redirect_uri=http%3A%2F%2Flocalhost.mycompany.com%3A5000%2F&response_type=code&code=SplxlOBeZQQYbYS6WxSbIA",
+    )
+
+    httpx_mock.add_response(
+        url="https://authorized_only",
+        method="GET",
+        match_headers={
+            "Authorization": "Bearer 2YotnFZFEjr1zCsicMWpAA",
+        },
+    )
+    async with httpx.AsyncClient() as client:
+        await client.get("https://authorized_only", auth=auth)
+
+    tab.assert_success()
+
+
+@pytest.mark.asyncio
 async def test_oauth2_authorization_code_flow_uses_custom_success(
     token_cache, httpx_mock: HTTPXMock, browser_mock: BrowserMock, monkeypatch
 ):
