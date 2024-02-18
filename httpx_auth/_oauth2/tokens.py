@@ -49,8 +49,8 @@ class TokenMemoryCache:
 
     def __init__(self):
         self.tokens = {}
-        self.forbid_concurrent_cache_access = threading.Lock()
-        self.forbid_concurrent_missing_token_function_call = threading.Lock()
+        self._forbid_concurrent_cache_access = threading.Lock()
+        self._forbid_concurrent_missing_token_function_call = threading.Lock()
 
     def _add_bearer_token(self, key: str, token: str) -> None:
         """
@@ -90,7 +90,7 @@ class TokenMemoryCache:
         :param token: value
         :param expiry: UTC timestamp of expiry
         """
-        with self.forbid_concurrent_cache_access:
+        with self._forbid_concurrent_cache_access:
             self.tokens[key] = token, expiry
             self._save_tokens()
             logger.debug(
@@ -120,7 +120,7 @@ class TokenMemoryCache:
         :raise AuthenticationFailed: in case token cannot be retrieved.
         """
         logger.debug(f'Retrieving token with "{key}" key.')
-        with self.forbid_concurrent_cache_access:
+        with self._forbid_concurrent_cache_access:
             self._load_tokens()
             if key in self.tokens:
                 bearer, expiry = self.tokens[key]
@@ -136,7 +136,7 @@ class TokenMemoryCache:
 
         logger.debug("Token cannot be found in cache.")
         if on_missing_token is not None:
-            with self.forbid_concurrent_missing_token_function_call:
+            with self._forbid_concurrent_missing_token_function_call:
                 new_token = on_missing_token(**on_missing_token_kwargs)
                 if len(new_token) == 2:  # Bearer token
                     state, token = new_token
@@ -148,7 +148,7 @@ class TokenMemoryCache:
                     logger.warning(
                         f"Using a token received on another key than expected. Expecting {key} but was {state}."
                     )
-            with self.forbid_concurrent_cache_access:
+            with self._forbid_concurrent_cache_access:
                 if state in self.tokens:
                     bearer, expiry = self.tokens[state]
                     logger.debug(
@@ -164,7 +164,7 @@ class TokenMemoryCache:
 
     def clear(self) -> None:
         """Remove tokens from the cache."""
-        with self.forbid_concurrent_cache_access:
+        with self._forbid_concurrent_cache_access:
             logger.debug("Clearing token cache.")
             self.tokens = {}
             self._clear()
@@ -186,34 +186,34 @@ class JsonTokenFileCache(TokenMemoryCache):
 
     def __init__(self, tokens_path: Union[str, Path]):
         TokenMemoryCache.__init__(self)
-        self._tokens_path = tokens_path
+        self._tokens_path = Path(tokens_path)
         self._last_save_time = 0
         self._load_tokens()
 
     def _clear(self) -> None:
         self._last_save_time = 0
         try:
-            os.remove(self._tokens_path)
+            self._tokens_path.unlink(missing_ok=True)
         except:
             logger.debug("Cannot remove tokens file.")
 
     def _save_tokens(self) -> None:
         try:
-            with open(self._tokens_path, "w") as tokens_cache_file:
+            with self._tokens_path.open(mode="w") as tokens_cache_file:
                 json.dump(self.tokens, tokens_cache_file)
             self._last_save_time = os.path.getmtime(self._tokens_path)
         except:
             logger.exception("Cannot save tokens.")
 
     def _load_tokens(self) -> None:
-        if not os.path.exists(self._tokens_path):
+        if not self._tokens_path.exists():
             logger.debug("No token loaded. Token cache does not exists.")
             return
         try:
             last_modification_time = os.path.getmtime(self._tokens_path)
             if last_modification_time > self._last_save_time:
                 self._last_save_time = last_modification_time
-                with open(self._tokens_path, "r") as tokens_cache_file:
+                with self._tokens_path.open(mode="r") as tokens_cache_file:
                     self.tokens = json.load(tokens_cache_file)
         except:
             logger.exception("Cannot load tokens.")

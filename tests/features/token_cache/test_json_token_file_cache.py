@@ -8,8 +8,8 @@ import httpx_auth._oauth2.tokens
 
 
 @pytest.fixture
-def token_cache(request):
-    _token_cache = httpx_auth.JsonTokenFileCache(request.node.name + ".cache")
+def token_cache(tmp_path):
+    _token_cache = httpx_auth.JsonTokenFileCache(tmp_path / "my_tokens.cache")
     yield _token_cache
     _token_cache.clear()
 
@@ -36,7 +36,7 @@ def test_add_bearer_tokens(token_cache):
     assert token_cache.get_token("key2") == token2
 
 
-def test_save_bearer_tokens(token_cache, request):
+def test_save_bearer_tokens(token_cache, tmp_path):
     expiry_in_1_hour = datetime.datetime.now(
         datetime.timezone.utc
     ) + datetime.timedelta(hours=1)
@@ -49,12 +49,12 @@ def test_save_bearer_tokens(token_cache, request):
     token2 = jwt.encode({"exp": expiry_in_2_hour}, "secret")
     token_cache._add_bearer_token("key2", token2)
 
-    same_cache = httpx_auth.JsonTokenFileCache(request.node.name + ".cache")
+    same_cache = httpx_auth.JsonTokenFileCache(tmp_path / "my_tokens.cache")
     assert same_cache.get_token("key1") == token1
     assert same_cache.get_token("key2") == token2
 
 
-def test_save_bearer_token_exception_handling(token_cache, request, monkeypatch):
+def test_save_bearer_token_exception_handling(token_cache, tmp_path, monkeypatch):
     def failing_dump(*args):
         raise Exception("Failure")
 
@@ -68,7 +68,7 @@ def test_save_bearer_token_exception_handling(token_cache, request, monkeypatch)
     # Assert that the exception is not thrown
     token_cache._add_bearer_token("key1", token1)
 
-    same_cache = httpx_auth.JsonTokenFileCache(request.node.name + ".cache")
+    same_cache = httpx_auth.JsonTokenFileCache(tmp_path / "my_tokens.cache")
     with pytest.raises(httpx_auth.AuthenticationFailed) as exception_info:
         same_cache.get_token("key1")
     assert str(exception_info.value) == "User was not authenticated."
