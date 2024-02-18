@@ -16,7 +16,7 @@ from httpx_auth._errors import (
 logger = logging.getLogger(__name__)
 
 
-def _decode_base64(base64_encoded_string: str) -> str:
+def decode_base64(base64_encoded_string: str) -> str:
     """
     Decode base64, padding being optional.
 
@@ -29,13 +29,13 @@ def _decode_base64(base64_encoded_string: str) -> str:
     return base64.b64decode(base64_encoded_string).decode("unicode_escape")
 
 
-def _is_expired(expiry: float, early_expiry: float) -> bool:
+def is_expired(expiry: float, early_expiry: float) -> bool:
     return datetime.datetime.fromtimestamp(
         expiry - early_expiry, datetime.timezone.utc
     ) < datetime.datetime.now(datetime.timezone.utc)
 
 
-def _to_expiry(expires_in: Union[int, str]) -> float:
+def to_expiry(expires_in: Union[int, str]) -> float:
     expiry = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(
         seconds=int(expires_in)
     )
@@ -64,7 +64,7 @@ class TokenMemoryCache:
             raise InvalidToken(token)
 
         header, body, other = token.split(".")
-        body = json.loads(_decode_base64(body))
+        body = json.loads(decode_base64(body))
         expiry = body.get("exp")
         if not expiry:
             raise TokenExpiryNotProvided(expiry)
@@ -81,7 +81,7 @@ class TokenMemoryCache:
         :param expires_in: Number of seconds before token expiry
         :raise InvalidToken: In case token is invalid.
         """
-        self._add_token(key, token, _to_expiry(expires_in))
+        self._add_token(key, token, to_expiry(expires_in))
 
     def _add_token(self, key: str, token: str, expiry: float) -> None:
         """
@@ -124,7 +124,7 @@ class TokenMemoryCache:
             self._load_tokens()
             if key in self.tokens:
                 bearer, expiry = self.tokens[key]
-                if _is_expired(expiry, early_expiry):
+                if is_expired(expiry, early_expiry):
                     logger.debug(f'Authentication token with "{key}" key is expired.')
                     del self.tokens[key]
                 else:

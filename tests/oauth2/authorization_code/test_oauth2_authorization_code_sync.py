@@ -6,7 +6,7 @@ import httpx
 
 import httpx_auth
 from httpx_auth.testing import BrowserMock, browser_mock, token_cache
-from httpx_auth._oauth2.tokens import _to_expiry
+from httpx_auth._oauth2.tokens import to_expiry
 
 
 def test_oauth2_authorization_code_flow_uses_provided_client(
@@ -236,7 +236,7 @@ def test_oauth2_authorization_code_flow_get_code_is_expired_after_30_seconds_by_
     token_cache._add_token(
         key="ce9c755b41b5e3c5b64c70598715d5de271023a53f39a67a70215d265d11d2bfb6ef6e9c701701e998e69cbdbf2cee29fd51d2a950aa05f59a20cf4a646099d5",
         token="2YotnFZFEjr1zCsicMWpAA",
-        expiry=_to_expiry(expires_in=29),
+        expiry=to_expiry(expires_in=29),
     )
     # Meaning a new one will be requested
     tab = browser_mock.add_response(
@@ -279,7 +279,7 @@ def test_oauth2_authorization_code_flow_get_code_custom_expiry(
     token_cache._add_token(
         key="ce9c755b41b5e3c5b64c70598715d5de271023a53f39a67a70215d265d11d2bfb6ef6e9c701701e998e69cbdbf2cee29fd51d2a950aa05f59a20cf4a646099d5",
         token="2YotnFZFEjr1zCsicMWpAA",
-        expiry=_to_expiry(expires_in=29),
+        expiry=to_expiry(expires_in=29),
     )
     httpx_mock.add_response(
         url="https://authorized_only",

@@ -4,7 +4,7 @@ import httpx
 
 import httpx_auth
 from httpx_auth.testing import BrowserMock, browser_mock, token_cache
-from httpx_auth._oauth2.tokens import _to_expiry
+from httpx_auth._oauth2.tokens import to_expiry
 import httpx_auth._oauth2.authorization_code_pkce
 
 
@@ -173,7 +173,7 @@ def test_oauth2_pkce_flow_get_code_is_expired_after_30_seconds_by_default(
     token_cache._add_token(
         key="5264d11c8b268ccf911ce564ca42fd75cea68c4a3c1ec3ac1ab20243891ab7cd5250ad4c2d002017c6e8ac2ba34954293baa5e0e4fd00bb9ffd4a39c45f1960b",
         token="2YotnFZFEjr1zCsicMWpAA",
-        expiry=_to_expiry(expires_in=29),
+        expiry=to_expiry(expires_in=29),
     )
     # Meaning a new one will be requested
     tab = browser_mock.add_response(
@@ -221,7 +221,7 @@ def test_oauth2_pkce_flow_get_code_custom_expiry(
     token_cache._add_token(
         key="5264d11c8b268ccf911ce564ca42fd75cea68c4a3c1ec3ac1ab20243891ab7cd5250ad4c2d002017c6e8ac2ba34954293baa5e0e4fd00bb9ffd4a39c45f1960b",
         token="2YotnFZFEjr1zCsicMWpAA",
-        expiry=_to_expiry(expires_in=29),
+        expiry=to_expiry(expires_in=29),
     )
     httpx_mock.add_response(
         url="https://authorized_only",

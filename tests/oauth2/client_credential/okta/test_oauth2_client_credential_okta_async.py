@@ -4,7 +4,7 @@ import httpx
 
 import httpx_auth
 from httpx_auth.testing import token_cache
-from httpx_auth._oauth2.tokens import _to_expiry
+from httpx_auth._oauth2.tokens import to_expiry
 
 
 @pytest.mark.asyncio
@@ -87,7 +87,7 @@ async def test_okta_client_credentials_flow_token_is_expired_after_30_seconds_by
     token_cache._add_token(
         key="7830dd38bb95d4ac6273bd1a208c3db2097ac2715c6d3fb646ef3ccd48877109dd4cba292cef535559747cf6c4f497bf0804994dfb1c31bb293d2774889c2cfb",
         token="2YotnFZFEjr1zCsicMWpAA",
-        expiry=_to_expiry(expires_in=29),
+        expiry=to_expiry(expires_in=29),
     )
     # Meaning a new one will be requested
     httpx_mock.add_response(
@@ -129,7 +129,7 @@ async def test_okta_client_credentials_flow_token_custom_expiry(
     token_cache._add_token(
         key="7830dd38bb95d4ac6273bd1a208c3db2097ac2715c6d3fb646ef3ccd48877109dd4cba292cef535559747cf6c4f497bf0804994dfb1c31bb293d2774889c2cfb",
         token="2YotnFZFEjr1zCsicMWpAA",
-        expiry=_to_expiry(expires_in=29),
+        expiry=to_expiry(expires_in=29),
     )
     httpx_mock.add_response(
         url="https://authorized_only",

@@ -7,7 +7,7 @@ from pytest_httpx import HTTPXMock
 
 from httpx_auth.testing import BrowserMock, create_token, token_cache, browser_mock
 import httpx_auth
-from httpx_auth._oauth2.tokens import _to_expiry
+from httpx_auth._oauth2.tokens import to_expiry
 
 
 @pytest.mark.asyncio
@@ -232,7 +232,7 @@ async def test_oauth2_implicit_flow_post_token_is_expired_after_30_seconds_by_de
     token_cache._add_token(
         key="bee505cb6ceb14b9f6ac3573cd700b3b3e965004078d7bb57c7b92df01e448c992a7a46b4804164fc998ea166ece3f3d5849ca2405c4a548f43b915b0677231c",
         token=create_token(expiry_in_29_seconds),
-        expiry=_to_expiry(expires_in=29),
+        expiry=to_expiry(expires_in=29),
     )
     # Meaning a new one will be requested
     expiry_in_1_hour = datetime.datetime.now(
@@ -271,7 +271,7 @@ async def test_oauth2_implicit_flow_post_token_custom_expiry(
     token_cache._add_token(
         key="bee505cb6ceb14b9f6ac3573cd700b3b3e965004078d7bb57c7b92df01e448c992a7a46b4804164fc998ea166ece3f3d5849ca2405c4a548f43b915b0677231c",
         token=create_token(expiry_in_29_seconds),
-        expiry=_to_expiry(expires_in=29),
+        expiry=to_expiry(expires_in=29),
     )
     httpx_mock.add_response(
         url="https://authorized_only",
