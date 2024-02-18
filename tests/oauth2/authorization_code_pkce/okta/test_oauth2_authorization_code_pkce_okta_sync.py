@@ -5,16 +5,12 @@ import httpx
 import httpx_auth
 from httpx_auth.testing import BrowserMock, browser_mock, token_cache
 from httpx_auth._oauth2.tokens import to_expiry
-import httpx_auth._oauth2.authorization_code_pkce
 
 
 def test_oauth2_pkce_flow_uses_provided_client(
-    token_cache, httpx_mock: HTTPXMock, monkeypatch, browser_mock: BrowserMock
+    token_cache, httpx_mock: HTTPXMock, browser_mock: BrowserMock
 ):
     client = httpx.Client(headers={"x-test": "Test value"})
-    monkeypatch.setattr(
-        httpx_auth._oauth2.authorization_code_pkce.os, "urandom", lambda x: b"1" * 63
-    )
     auth = httpx_auth.OktaAuthorizationCodePKCE(
         "testserver.okta-emea.com",
         "54239d18-c68c-4c47-8bdd-ce71ea1d50cd",
@@ -52,11 +48,8 @@ def test_oauth2_pkce_flow_uses_provided_client(
 
 
 def test_oauth2_pkce_flow_uses_custom_success(
-    token_cache, httpx_mock: HTTPXMock, monkeypatch, browser_mock: BrowserMock
+    token_cache, httpx_mock: HTTPXMock, browser_mock: BrowserMock
 ):
-    monkeypatch.setattr(
-        httpx_auth._oauth2.authorization_code_pkce.os, "urandom", lambda x: b"1" * 63
-    )
     auth = httpx_auth.OktaAuthorizationCodePKCE(
         "testserver.okta-emea.com",
         "54239d18-c68c-4c47-8bdd-ce71ea1d50cd",
@@ -96,11 +89,8 @@ def test_oauth2_pkce_flow_uses_custom_success(
 
 
 def test_oauth2_pkce_flow_uses_custom_failure(
-    token_cache, httpx_mock: HTTPXMock, monkeypatch, browser_mock: BrowserMock
+    token_cache, httpx_mock: HTTPXMock, browser_mock: BrowserMock
 ):
-    monkeypatch.setattr(
-        httpx_auth._oauth2.authorization_code_pkce.os, "urandom", lambda x: b"1" * 63
-    )
     auth = httpx_auth.OktaAuthorizationCodePKCE(
         "testserver.okta-emea.com",
         "54239d18-c68c-4c47-8bdd-ce71ea1d50cd",
@@ -122,11 +112,8 @@ def test_oauth2_pkce_flow_uses_custom_failure(
 
 
 def test_oauth2_pkce_flow_get_code_is_sent_in_authorization_header_by_default(
-    token_cache, httpx_mock: HTTPXMock, monkeypatch, browser_mock: BrowserMock
+    token_cache, httpx_mock: HTTPXMock, browser_mock: BrowserMock
 ):
-    monkeypatch.setattr(
-        httpx_auth._oauth2.authorization_code_pkce.os, "urandom", lambda x: b"1" * 63
-    )
     auth = httpx_auth.OktaAuthorizationCodePKCE(
         "testserver.okta-emea.com", "54239d18-c68c-4c47-8bdd-ce71ea1d50cd"
     )
@@ -161,11 +148,8 @@ def test_oauth2_pkce_flow_get_code_is_sent_in_authorization_header_by_default(
 
 
 def test_oauth2_pkce_flow_get_code_is_expired_after_30_seconds_by_default(
-    token_cache, httpx_mock: HTTPXMock, monkeypatch, browser_mock: BrowserMock
+    token_cache, httpx_mock: HTTPXMock, browser_mock: BrowserMock
 ):
-    monkeypatch.setattr(
-        httpx_auth._oauth2.authorization_code_pkce.os, "urandom", lambda x: b"1" * 63
-    )
     auth = httpx_auth.OktaAuthorizationCodePKCE(
         "testserver.okta-emea.com", "54239d18-c68c-4c47-8bdd-ce71ea1d50cd"
     )
@@ -207,11 +191,8 @@ def test_oauth2_pkce_flow_get_code_is_expired_after_30_seconds_by_default(
 
 
 def test_oauth2_pkce_flow_get_code_custom_expiry(
-    token_cache, httpx_mock: HTTPXMock, monkeypatch, browser_mock: BrowserMock
+    token_cache, httpx_mock: HTTPXMock, browser_mock: BrowserMock
 ):
-    monkeypatch.setattr(
-        httpx_auth._oauth2.authorization_code_pkce.os, "urandom", lambda x: b"1" * 63
-    )
     auth = httpx_auth.OktaAuthorizationCodePKCE(
         "testserver.okta-emea.com",
         "54239d18-c68c-4c47-8bdd-ce71ea1d50cd",
@@ -235,12 +216,173 @@ def test_oauth2_pkce_flow_get_code_custom_expiry(
         client.get("https://authorized_only", auth=auth)
 
 
-def test_expires_in_sent_as_str(
-    token_cache, httpx_mock: HTTPXMock, monkeypatch, browser_mock: BrowserMock
+def test_oauth2_authorization_code_flow_refresh_token(
+    token_cache, httpx_mock: HTTPXMock, browser_mock: BrowserMock
 ):
-    monkeypatch.setattr(
-        httpx_auth._oauth2.authorization_code_pkce.os, "urandom", lambda x: b"1" * 63
+    auth = httpx_auth.OktaAuthorizationCodePKCE(
+        "testserver.okta-emea.com", "54239d18-c68c-4c47-8bdd-ce71ea1d50cd"
     )
+    tab = browser_mock.add_response(
+        opened_url="https://testserver.okta-emea.com/oauth2/default/v1/authorize?client_id=54239d18-c68c-4c47-8bdd-ce71ea1d50cd&scope=openid&response_type=code&state=5264d11c8b268ccf911ce564ca42fd75cea68c4a3c1ec3ac1ab20243891ab7cd5250ad4c2d002017c6e8ac2ba34954293baa5e0e4fd00bb9ffd4a39c45f1960b&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F&code_challenge=5C_ph_KZ3DstYUc965SiqmKAA-ShvKF4Ut7daKd3fjc&code_challenge_method=S256",
+        reply_url="http://localhost:5000#code=SplxlOBeZQQYbYS6WxSbIA&state=5264d11c8b268ccf911ce564ca42fd75cea68c4a3c1ec3ac1ab20243891ab7cd5250ad4c2d002017c6e8ac2ba34954293baa5e0e4fd00bb9ffd4a39c45f1960b",
+    )
+    httpx_mock.add_response(
+        method="POST",
+        url="https://testserver.okta-emea.com/oauth2/default/v1/token",
+        json={
+            "access_token": "2YotnFZFEjr1zCsicMWpAA",
+            "token_type": "example",
+            "expires_in": "0",
+            "refresh_token": "tGzv3JOkF0XG5Qx2TlKWIA",
+            "example_parameter": "example_value",
+        },
+        match_content=b"code_verifier=MTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTEx&grant_type=authorization_code&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F&client_id=54239d18-c68c-4c47-8bdd-ce71ea1d50cd&scope=openid&response_type=code&code=SplxlOBeZQQYbYS6WxSbIA",
+    )
+    httpx_mock.add_response(
+        url="https://authorized_only",
+        method="GET",
+        match_headers={
+            "Authorization": "Bearer 2YotnFZFEjr1zCsicMWpAA",
+        },
+    )
+
+    with httpx.Client() as client:
+        client.get("https://authorized_only", auth=auth)
+
+    tab.assert_success()
+
+    # response for refresh token grant
+    httpx_mock.add_response(
+        method="POST",
+        url="https://testserver.okta-emea.com/oauth2/default/v1/token",
+        json={
+            "access_token": "rVR7Syg5bjZtZYjbZIW",
+            "token_type": "example",
+            "expires_in": 3600,
+            "refresh_token": "tGzv3JOkF0XG5Qx2TlKWIA",
+            "example_parameter": "example_value",
+        },
+        match_content=b"grant_type=refresh_token&client_id=54239d18-c68c-4c47-8bdd-ce71ea1d50cd&scope=openid&response_type=code&refresh_token=tGzv3JOkF0XG5Qx2TlKWIA",
+    )
+    httpx_mock.add_response(
+        url="https://authorized_only",
+        method="GET",
+        match_headers={
+            "Authorization": "Bearer rVR7Syg5bjZtZYjbZIW",
+        },
+    )
+
+    with httpx.Client() as client:
+        client.get("https://authorized_only", auth=auth)
+
+
+def test_oauth2_authorization_code_flow_refresh_token_invalid(
+    token_cache, httpx_mock: HTTPXMock, browser_mock: BrowserMock
+):
+    auth = httpx_auth.OktaAuthorizationCodePKCE(
+        "testserver.okta-emea.com", "54239d18-c68c-4c47-8bdd-ce71ea1d50cd"
+    )
+    tab = browser_mock.add_response(
+        opened_url="https://testserver.okta-emea.com/oauth2/default/v1/authorize?client_id=54239d18-c68c-4c47-8bdd-ce71ea1d50cd&scope=openid&response_type=code&state=5264d11c8b268ccf911ce564ca42fd75cea68c4a3c1ec3ac1ab20243891ab7cd5250ad4c2d002017c6e8ac2ba34954293baa5e0e4fd00bb9ffd4a39c45f1960b&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F&code_challenge=5C_ph_KZ3DstYUc965SiqmKAA-ShvKF4Ut7daKd3fjc&code_challenge_method=S256",
+        reply_url="http://localhost:5000#code=SplxlOBeZQQYbYS6WxSbIA&state=5264d11c8b268ccf911ce564ca42fd75cea68c4a3c1ec3ac1ab20243891ab7cd5250ad4c2d002017c6e8ac2ba34954293baa5e0e4fd00bb9ffd4a39c45f1960b",
+    )
+    httpx_mock.add_response(
+        method="POST",
+        url="https://testserver.okta-emea.com/oauth2/default/v1/token",
+        json={
+            "access_token": "2YotnFZFEjr1zCsicMWpAA",
+            "token_type": "example",
+            "expires_in": "0",
+            "refresh_token": "tGzv3JOkF0XG5Qx2TlKWIA",
+            "example_parameter": "example_value",
+        },
+        match_content=b"code_verifier=MTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTEx&grant_type=authorization_code&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F&client_id=54239d18-c68c-4c47-8bdd-ce71ea1d50cd&scope=openid&response_type=code&code=SplxlOBeZQQYbYS6WxSbIA",
+    )
+    httpx_mock.add_response(
+        url="https://authorized_only",
+        method="GET",
+        match_headers={
+            "Authorization": "Bearer 2YotnFZFEjr1zCsicMWpAA",
+        },
+    )
+
+    with httpx.Client() as client:
+        client.get("https://authorized_only", auth=auth)
+
+    tab.assert_success()
+
+    # response for refresh token grant
+    httpx_mock.add_response(
+        method="POST",
+        url="https://testserver.okta-emea.com/oauth2/default/v1/token",
+        json={"error": "invalid_request"},
+        status_code=400,
+        match_content=b"grant_type=refresh_token&client_id=54239d18-c68c-4c47-8bdd-ce71ea1d50cd&scope=openid&response_type=code&refresh_token=tGzv3JOkF0XG5Qx2TlKWIA",
+    )
+
+    # initialize tab again because a thread can only be started once
+    tab = browser_mock.add_response(
+        opened_url="https://testserver.okta-emea.com/oauth2/default/v1/authorize?client_id=54239d18-c68c-4c47-8bdd-ce71ea1d50cd&scope=openid&response_type=code&state=5264d11c8b268ccf911ce564ca42fd75cea68c4a3c1ec3ac1ab20243891ab7cd5250ad4c2d002017c6e8ac2ba34954293baa5e0e4fd00bb9ffd4a39c45f1960b&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F&code_challenge=5C_ph_KZ3DstYUc965SiqmKAA-ShvKF4Ut7daKd3fjc&code_challenge_method=S256",
+        reply_url="http://localhost:5000#code=SplxlOBeZQQYbYS6WxSbIA&state=5264d11c8b268ccf911ce564ca42fd75cea68c4a3c1ec3ac1ab20243891ab7cd5250ad4c2d002017c6e8ac2ba34954293baa5e0e4fd00bb9ffd4a39c45f1960b",
+    )
+
+    httpx_mock.add_response(
+        url="https://authorized_only",
+        method="GET",
+        match_headers={
+            "Authorization": "Bearer 2YotnFZFEjr1zCsicMWpAA",
+        },
+    )
+
+    with httpx.Client() as client:
+        client.get("https://authorized_only", auth=auth)
+
+    tab.assert_success()
+
+
+def test_oauth2_authorization_code_flow_refresh_token_access_token_not_expired(
+    token_cache, httpx_mock: HTTPXMock, browser_mock: BrowserMock
+):
+    auth = httpx_auth.OktaAuthorizationCodePKCE(
+        "testserver.okta-emea.com", "54239d18-c68c-4c47-8bdd-ce71ea1d50cd"
+    )
+    tab = browser_mock.add_response(
+        opened_url="https://testserver.okta-emea.com/oauth2/default/v1/authorize?client_id=54239d18-c68c-4c47-8bdd-ce71ea1d50cd&scope=openid&response_type=code&state=5264d11c8b268ccf911ce564ca42fd75cea68c4a3c1ec3ac1ab20243891ab7cd5250ad4c2d002017c6e8ac2ba34954293baa5e0e4fd00bb9ffd4a39c45f1960b&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F&code_challenge=5C_ph_KZ3DstYUc965SiqmKAA-ShvKF4Ut7daKd3fjc&code_challenge_method=S256",
+        reply_url="http://localhost:5000#code=SplxlOBeZQQYbYS6WxSbIA&state=5264d11c8b268ccf911ce564ca42fd75cea68c4a3c1ec3ac1ab20243891ab7cd5250ad4c2d002017c6e8ac2ba34954293baa5e0e4fd00bb9ffd4a39c45f1960b",
+    )
+    httpx_mock.add_response(
+        method="POST",
+        url="https://testserver.okta-emea.com/oauth2/default/v1/token",
+        json={
+            "access_token": "2YotnFZFEjr1zCsicMWpAA",
+            "token_type": "example",
+            "expires_in": 3600,
+            "refresh_token": "tGzv3JOkF0XG5Qx2TlKWIA",
+            "example_parameter": "example_value",
+        },
+        match_content=b"code_verifier=MTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTEx&grant_type=authorization_code&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F&client_id=54239d18-c68c-4c47-8bdd-ce71ea1d50cd&scope=openid&response_type=code&code=SplxlOBeZQQYbYS6WxSbIA",
+    )
+    httpx_mock.add_response(
+        url="https://authorized_only",
+        method="GET",
+        match_headers={
+            "Authorization": "Bearer 2YotnFZFEjr1zCsicMWpAA",
+        },
+    )
+
+    with httpx.Client() as client:
+        client.get("https://authorized_only", auth=auth)
+
+    tab.assert_success()
+
+    # expect Bearer token to remain the same
+    with httpx.Client() as client:
+        client.get("https://authorized_only", auth=auth)
+
+
+def test_expires_in_sent_as_str(
+    token_cache, httpx_mock: HTTPXMock, browser_mock: BrowserMock
+):
     auth = httpx_auth.OktaAuthorizationCodePKCE(
         "testserver.okta-emea.com", "54239d18-c68c-4c47-8bdd-ce71ea1d50cd"
     )
@@ -275,11 +417,8 @@ def test_expires_in_sent_as_str(
 
 
 def test_with_invalid_grant_request_no_json(
-    token_cache, httpx_mock: HTTPXMock, monkeypatch, browser_mock: BrowserMock
+    token_cache, httpx_mock: HTTPXMock, browser_mock: BrowserMock
 ):
-    monkeypatch.setattr(
-        httpx_auth._oauth2.authorization_code_pkce.os, "urandom", lambda x: b"1" * 63
-    )
     auth = httpx_auth.OktaAuthorizationCodePKCE(
         "testserver.okta-emea.com", "54239d18-c68c-4c47-8bdd-ce71ea1d50cd"
     )
@@ -302,11 +441,8 @@ def test_with_invalid_grant_request_no_json(
 
 
 def test_with_invalid_grant_request_invalid_request_error(
-    token_cache, httpx_mock: HTTPXMock, monkeypatch, browser_mock: BrowserMock
+    token_cache, httpx_mock: HTTPXMock, browser_mock: BrowserMock
 ):
-    monkeypatch.setattr(
-        httpx_auth._oauth2.authorization_code_pkce.os, "urandom", lambda x: b"1" * 63
-    )
     auth = httpx_auth.OktaAuthorizationCodePKCE(
         "testserver.okta-emea.com", "54239d18-c68c-4c47-8bdd-ce71ea1d50cd"
     )
@@ -336,11 +472,8 @@ def test_with_invalid_grant_request_invalid_request_error(
 
 
 def test_with_invalid_grant_request_invalid_request_error_and_error_description(
-    token_cache, httpx_mock: HTTPXMock, monkeypatch, browser_mock: BrowserMock
+    token_cache, httpx_mock: HTTPXMock, browser_mock: BrowserMock
 ):
-    monkeypatch.setattr(
-        httpx_auth._oauth2.authorization_code_pkce.os, "urandom", lambda x: b"1" * 63
-    )
     auth = httpx_auth.OktaAuthorizationCodePKCE(
         "testserver.okta-emea.com", "54239d18-c68c-4c47-8bdd-ce71ea1d50cd"
     )
@@ -364,11 +497,8 @@ def test_with_invalid_grant_request_invalid_request_error_and_error_description(
 
 
 def test_with_invalid_grant_request_invalid_request_error_and_error_description_and_uri(
-    token_cache, httpx_mock: HTTPXMock, monkeypatch, browser_mock: BrowserMock
+    token_cache, httpx_mock: HTTPXMock, browser_mock: BrowserMock
 ):
-    monkeypatch.setattr(
-        httpx_auth._oauth2.authorization_code_pkce.os, "urandom", lambda x: b"1" * 63
-    )
     auth = httpx_auth.OktaAuthorizationCodePKCE(
         "testserver.okta-emea.com", "54239d18-c68c-4c47-8bdd-ce71ea1d50cd"
     )
@@ -399,11 +529,8 @@ def test_with_invalid_grant_request_invalid_request_error_and_error_description_
 
 
 def test_with_invalid_grant_request_invalid_request_error_and_error_description_and_uri_and_other_fields(
-    token_cache, httpx_mock: HTTPXMock, monkeypatch, browser_mock: BrowserMock
+    token_cache, httpx_mock: HTTPXMock, browser_mock: BrowserMock
 ):
-    monkeypatch.setattr(
-        httpx_auth._oauth2.authorization_code_pkce.os, "urandom", lambda x: b"1" * 63
-    )
     auth = httpx_auth.OktaAuthorizationCodePKCE(
         "testserver.okta-emea.com", "54239d18-c68c-4c47-8bdd-ce71ea1d50cd"
     )
@@ -435,11 +562,8 @@ def test_with_invalid_grant_request_invalid_request_error_and_error_description_
 
 
 def test_with_invalid_grant_request_without_error(
-    token_cache, httpx_mock: HTTPXMock, monkeypatch, browser_mock: BrowserMock
+    token_cache, httpx_mock: HTTPXMock, browser_mock: BrowserMock
 ):
-    monkeypatch.setattr(
-        httpx_auth._oauth2.authorization_code_pkce.os, "urandom", lambda x: b"1" * 63
-    )
     auth = httpx_auth.OktaAuthorizationCodePKCE(
         "testserver.okta-emea.com", "54239d18-c68c-4c47-8bdd-ce71ea1d50cd"
     )
@@ -464,11 +588,8 @@ def test_with_invalid_grant_request_without_error(
 
 
 def test_with_invalid_grant_request_invalid_client_error(
-    token_cache, httpx_mock: HTTPXMock, monkeypatch, browser_mock: BrowserMock
+    token_cache, httpx_mock: HTTPXMock, browser_mock: BrowserMock
 ):
-    monkeypatch.setattr(
-        httpx_auth._oauth2.authorization_code_pkce.os, "urandom", lambda x: b"1" * 63
-    )
     auth = httpx_auth.OktaAuthorizationCodePKCE(
         "testserver.okta-emea.com", "54239d18-c68c-4c47-8bdd-ce71ea1d50cd"
     )
@@ -502,11 +623,8 @@ def test_with_invalid_grant_request_invalid_client_error(
 
 
 def test_with_invalid_grant_request_invalid_grant_error(
-    token_cache, httpx_mock: HTTPXMock, monkeypatch, browser_mock: BrowserMock
+    token_cache, httpx_mock: HTTPXMock, browser_mock: BrowserMock
 ):
-    monkeypatch.setattr(
-        httpx_auth._oauth2.authorization_code_pkce.os, "urandom", lambda x: b"1" * 63
-    )
     auth = httpx_auth.OktaAuthorizationCodePKCE(
         "testserver.okta-emea.com", "54239d18-c68c-4c47-8bdd-ce71ea1d50cd"
     )
@@ -536,11 +654,8 @@ def test_with_invalid_grant_request_invalid_grant_error(
 
 
 def test_with_invalid_grant_request_unauthorized_client_error(
-    token_cache, httpx_mock: HTTPXMock, monkeypatch, browser_mock: BrowserMock
+    token_cache, httpx_mock: HTTPXMock, browser_mock: BrowserMock
 ):
-    monkeypatch.setattr(
-        httpx_auth._oauth2.authorization_code_pkce.os, "urandom", lambda x: b"1" * 63
-    )
     auth = httpx_auth.OktaAuthorizationCodePKCE(
         "testserver.okta-emea.com", "54239d18-c68c-4c47-8bdd-ce71ea1d50cd"
     )
@@ -568,11 +683,8 @@ def test_with_invalid_grant_request_unauthorized_client_error(
 
 
 def test_with_invalid_grant_request_unsupported_grant_type_error(
-    token_cache, httpx_mock: HTTPXMock, monkeypatch, browser_mock: BrowserMock
+    token_cache, httpx_mock: HTTPXMock, browser_mock: BrowserMock
 ):
-    monkeypatch.setattr(
-        httpx_auth._oauth2.authorization_code_pkce.os, "urandom", lambda x: b"1" * 63
-    )
     auth = httpx_auth.OktaAuthorizationCodePKCE(
         "testserver.okta-emea.com", "54239d18-c68c-4c47-8bdd-ce71ea1d50cd"
     )
@@ -600,11 +712,8 @@ def test_with_invalid_grant_request_unsupported_grant_type_error(
 
 
 def test_with_invalid_grant_request_invalid_scope_error(
-    token_cache, httpx_mock: HTTPXMock, monkeypatch, browser_mock: BrowserMock
+    token_cache, httpx_mock: HTTPXMock, browser_mock: BrowserMock
 ):
-    monkeypatch.setattr(
-        httpx_auth._oauth2.authorization_code_pkce.os, "urandom", lambda x: b"1" * 63
-    )
     auth = httpx_auth.OktaAuthorizationCodePKCE(
         "testserver.okta-emea.com", "54239d18-c68c-4c47-8bdd-ce71ea1d50cd"
     )
@@ -632,11 +741,8 @@ def test_with_invalid_grant_request_invalid_scope_error(
 
 
 def test_with_invalid_token_request_invalid_request_error(
-    token_cache, httpx_mock: HTTPXMock, monkeypatch, browser_mock: BrowserMock
+    token_cache, httpx_mock: HTTPXMock, browser_mock: BrowserMock
 ):
-    monkeypatch.setattr(
-        httpx_auth._oauth2.authorization_code_pkce.os, "urandom", lambda x: b"1" * 63
-    )
     auth = httpx_auth.OktaAuthorizationCodePKCE(
         "testserver.okta-emea.com", "54239d18-c68c-4c47-8bdd-ce71ea1d50cd"
     )
@@ -659,11 +765,8 @@ def test_with_invalid_token_request_invalid_request_error(
 
 
 def test_with_invalid_token_request_invalid_request_error_and_error_description(
-    token_cache, httpx_mock: HTTPXMock, monkeypatch, browser_mock: BrowserMock
+    token_cache, httpx_mock: HTTPXMock, browser_mock: BrowserMock
 ):
-    monkeypatch.setattr(
-        httpx_auth._oauth2.authorization_code_pkce.os, "urandom", lambda x: b"1" * 63
-    )
     auth = httpx_auth.OktaAuthorizationCodePKCE(
         "testserver.okta-emea.com", "54239d18-c68c-4c47-8bdd-ce71ea1d50cd"
     )
@@ -681,11 +784,8 @@ def test_with_invalid_token_request_invalid_request_error_and_error_description(
 
 
 def test_with_invalid_token_request_invalid_request_error_and_error_description_and_uri(
-    token_cache, httpx_mock: HTTPXMock, monkeypatch, browser_mock: BrowserMock
+    token_cache, httpx_mock: HTTPXMock, browser_mock: BrowserMock
 ):
-    monkeypatch.setattr(
-        httpx_auth._oauth2.authorization_code_pkce.os, "urandom", lambda x: b"1" * 63
-    )
     auth = httpx_auth.OktaAuthorizationCodePKCE(
         "testserver.okta-emea.com", "54239d18-c68c-4c47-8bdd-ce71ea1d50cd"
     )
@@ -708,11 +808,8 @@ def test_with_invalid_token_request_invalid_request_error_and_error_description_
 
 
 def test_with_invalid_token_request_invalid_request_error_and_error_description_and_uri_and_other_fields(
-    token_cache, httpx_mock: HTTPXMock, monkeypatch, browser_mock: BrowserMock
+    token_cache, httpx_mock: HTTPXMock, browser_mock: BrowserMock
 ):
-    monkeypatch.setattr(
-        httpx_auth._oauth2.authorization_code_pkce.os, "urandom", lambda x: b"1" * 63
-    )
     auth = httpx_auth.OktaAuthorizationCodePKCE(
         "testserver.okta-emea.com", "54239d18-c68c-4c47-8bdd-ce71ea1d50cd"
     )
@@ -735,11 +832,8 @@ def test_with_invalid_token_request_invalid_request_error_and_error_description_
 
 
 def test_with_invalid_token_request_unauthorized_client_error(
-    token_cache, httpx_mock: HTTPXMock, monkeypatch, browser_mock: BrowserMock
+    token_cache, httpx_mock: HTTPXMock, browser_mock: BrowserMock
 ):
-    monkeypatch.setattr(
-        httpx_auth._oauth2.authorization_code_pkce.os, "urandom", lambda x: b"1" * 63
-    )
     auth = httpx_auth.OktaAuthorizationCodePKCE(
         "testserver.okta-emea.com", "54239d18-c68c-4c47-8bdd-ce71ea1d50cd"
     )
@@ -762,11 +856,8 @@ def test_with_invalid_token_request_unauthorized_client_error(
 
 
 def test_with_invalid_token_request_access_denied_error(
-    token_cache, httpx_mock: HTTPXMock, monkeypatch, browser_mock: BrowserMock
+    token_cache, httpx_mock: HTTPXMock, browser_mock: BrowserMock
 ):
-    monkeypatch.setattr(
-        httpx_auth._oauth2.authorization_code_pkce.os, "urandom", lambda x: b"1" * 63
-    )
     auth = httpx_auth.OktaAuthorizationCodePKCE(
         "testserver.okta-emea.com", "54239d18-c68c-4c47-8bdd-ce71ea1d50cd"
     )
@@ -789,11 +880,8 @@ def test_with_invalid_token_request_access_denied_error(
 
 
 def test_with_invalid_token_request_unsupported_response_type_error(
-    token_cache, httpx_mock: HTTPXMock, monkeypatch, browser_mock: BrowserMock
+    token_cache, httpx_mock: HTTPXMock, browser_mock: BrowserMock
 ):
-    monkeypatch.setattr(
-        httpx_auth._oauth2.authorization_code_pkce.os, "urandom", lambda x: b"1" * 63
-    )
     auth = httpx_auth.OktaAuthorizationCodePKCE(
         "testserver.okta-emea.com", "54239d18-c68c-4c47-8bdd-ce71ea1d50cd"
     )
@@ -816,11 +904,8 @@ def test_with_invalid_token_request_unsupported_response_type_error(
 
 
 def test_with_invalid_token_request_invalid_scope_error(
-    token_cache, httpx_mock: HTTPXMock, monkeypatch, browser_mock: BrowserMock
+    token_cache, httpx_mock: HTTPXMock, browser_mock: BrowserMock
 ):
-    monkeypatch.setattr(
-        httpx_auth._oauth2.authorization_code_pkce.os, "urandom", lambda x: b"1" * 63
-    )
     auth = httpx_auth.OktaAuthorizationCodePKCE(
         "testserver.okta-emea.com", "54239d18-c68c-4c47-8bdd-ce71ea1d50cd"
     )
@@ -843,11 +928,8 @@ def test_with_invalid_token_request_invalid_scope_error(
 
 
 def test_with_invalid_token_request_server_error_error(
-    token_cache, httpx_mock: HTTPXMock, monkeypatch, browser_mock: BrowserMock
+    token_cache, httpx_mock: HTTPXMock, browser_mock: BrowserMock
 ):
-    monkeypatch.setattr(
-        httpx_auth._oauth2.authorization_code_pkce.os, "urandom", lambda x: b"1" * 63
-    )
     auth = httpx_auth.OktaAuthorizationCodePKCE(
         "testserver.okta-emea.com", "54239d18-c68c-4c47-8bdd-ce71ea1d50cd"
     )
@@ -870,11 +952,8 @@ def test_with_invalid_token_request_server_error_error(
 
 
 def test_with_invalid_token_request_temporarily_unavailable_error(
-    token_cache, httpx_mock: HTTPXMock, monkeypatch, browser_mock: BrowserMock
+    token_cache, httpx_mock: HTTPXMock, browser_mock: BrowserMock
 ):
-    monkeypatch.setattr(
-        httpx_auth._oauth2.authorization_code_pkce.os, "urandom", lambda x: b"1" * 63
-    )
     auth = httpx_auth.OktaAuthorizationCodePKCE(
         "testserver.okta-emea.com", "54239d18-c68c-4c47-8bdd-ce71ea1d50cd"
     )
