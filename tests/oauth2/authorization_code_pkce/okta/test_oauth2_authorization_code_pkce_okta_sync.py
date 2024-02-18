@@ -51,6 +51,78 @@ def test_oauth2_pkce_flow_uses_provided_client(
     tab.assert_success()
 
 
+def test_oauth2_pkce_flow_uses_custom_success_template(
+    token_cache, httpx_mock: HTTPXMock, monkeypatch, browser_mock: BrowserMock
+):
+    monkeypatch.setattr(
+        httpx_auth._oauth2.authorization_code_pkce.os, "urandom", lambda x: b"1" * 63
+    )
+    auth = httpx_auth.OktaAuthorizationCodePKCE(
+        "testserver.okta-emea.com",
+        "54239d18-c68c-4c47-8bdd-ce71ea1d50cd",
+    )
+    httpx_auth.OAuth2.display.success_template = (
+        "<body><div>SUCCESS: {display_time}</div></body>"
+    )
+    tab = browser_mock.add_response(
+        opened_url="https://testserver.okta-emea.com/oauth2/default/v1/authorize?client_id=54239d18-c68c-4c47-8bdd-ce71ea1d50cd&scope=openid&response_type=code&state=5264d11c8b268ccf911ce564ca42fd75cea68c4a3c1ec3ac1ab20243891ab7cd5250ad4c2d002017c6e8ac2ba34954293baa5e0e4fd00bb9ffd4a39c45f1960b&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F&code_challenge=5C_ph_KZ3DstYUc965SiqmKAA-ShvKF4Ut7daKd3fjc&code_challenge_method=S256",
+        reply_url="http://localhost:5000#code=SplxlOBeZQQYbYS6WxSbIA&state=5264d11c8b268ccf911ce564ca42fd75cea68c4a3c1ec3ac1ab20243891ab7cd5250ad4c2d002017c6e8ac2ba34954293baa5e0e4fd00bb9ffd4a39c45f1960b",
+        success_template="<body><div>SUCCESS: {display_time}</div></body>",
+    )
+    httpx_mock.add_response(
+        method="POST",
+        url="https://testserver.okta-emea.com/oauth2/default/v1/token",
+        json={
+            "access_token": "2YotnFZFEjr1zCsicMWpAA",
+            "token_type": "example",
+            "expires_in": 3600,
+            "refresh_token": "tGzv3JOkF0XG5Qx2TlKWIA",
+            "example_parameter": "example_value",
+        },
+        match_content=b"code_verifier=MTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTEx&grant_type=authorization_code&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F&client_id=54239d18-c68c-4c47-8bdd-ce71ea1d50cd&scope=openid&response_type=code&code=SplxlOBeZQQYbYS6WxSbIA",
+    )
+    httpx_mock.add_response(
+        url="https://authorized_only",
+        method="GET",
+        match_headers={
+            "Authorization": "Bearer 2YotnFZFEjr1zCsicMWpAA",
+        },
+    )
+
+    with httpx.Client() as client:
+        client.get("https://authorized_only", auth=auth)
+
+    tab.assert_success()
+
+
+def test_oauth2_pkce_flow_uses_custom_failure_template(
+    token_cache, httpx_mock: HTTPXMock, monkeypatch, browser_mock: BrowserMock
+):
+    monkeypatch.setattr(
+        httpx_auth._oauth2.authorization_code_pkce.os, "urandom", lambda x: b"1" * 63
+    )
+    auth = httpx_auth.OktaAuthorizationCodePKCE(
+        "testserver.okta-emea.com",
+        "54239d18-c68c-4c47-8bdd-ce71ea1d50cd",
+    )
+    httpx_auth.OAuth2.display.failure_template = (
+        "FAILURE: {display_time}\n{information}"
+    )
+    tab = browser_mock.add_response(
+        opened_url="https://testserver.okta-emea.com/oauth2/default/v1/authorize?client_id=54239d18-c68c-4c47-8bdd-ce71ea1d50cd&scope=openid&response_type=code&state=5264d11c8b268ccf911ce564ca42fd75cea68c4a3c1ec3ac1ab20243891ab7cd5250ad4c2d002017c6e8ac2ba34954293baa5e0e4fd00bb9ffd4a39c45f1960b&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F&code_challenge=5C_ph_KZ3DstYUc965SiqmKAA-ShvKF4Ut7daKd3fjc&code_challenge_method=S256",
+        reply_url="http://localhost:5000#error=invalid_request",
+        failure_template="FAILURE: {display_time}\n{information}",
+    )
+
+    with httpx.Client() as client:
+        with pytest.raises(httpx_auth.InvalidGrantRequest):
+            client.get("https://authorized_only", auth=auth)
+
+    tab.assert_failure(
+        "invalid_request: The request is missing a required parameter, includes an invalid parameter value, includes a parameter more than once, or is otherwise malformed."
+    )
+
+
 def test_oauth2_pkce_flow_get_code_is_sent_in_authorization_header_by_default(
     token_cache, httpx_mock: HTTPXMock, monkeypatch, browser_mock: BrowserMock
 ):
