@@ -4,14 +4,14 @@ from typing import Generator
 
 import httpx
 
-from httpx_auth._oauth2 import authentication_responses_server
 from httpx_auth._authentication import SupportMultiAuth
+from httpx_auth._oauth2 import authentication_responses_server
+from httpx_auth._oauth2.browser import BrowserAuth
 from httpx_auth._oauth2.common import (
     OAuth2,
     _add_parameters,
     _pop_parameter,
     _get_query_parameter,
-    BrowserAuth,
 )
 
 
