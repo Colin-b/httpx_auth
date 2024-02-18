@@ -116,7 +116,7 @@ class OAuth2ResourceOwnerPasswordCredentials(httpx.Auth, SupportMultiAuth):
             else (self.state, token)
         )
 
-    def refresh_token(self, refresh_token: str):
+    def refresh_token(self, refresh_token: str) -> tuple:
         client = self.client or httpx.Client()
         self._configure_client(client)
         try:

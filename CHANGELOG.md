@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Publicly expose `httpx_auth.TokenMemoryCache`, allowing to create custom Oauth2 token cache based on this default implementation.
 - You can now provide your own HTML success (`success_html`) and failure (`failure_html`) display via the new `OAuth2.display` shared setting. Refer to documentation for more details.
 - Support for refresh tokens in the Resource Owner Password Credentials flow.
+- Support for refresh tokens in the Authorization code flow.
 
 ### Changed
 - Except for `httpx_auth.testing`, only direct access via `httpx_auth.` was considered publicly exposed. This is now explicit, as inner packages are now using private prefix (`_`).
