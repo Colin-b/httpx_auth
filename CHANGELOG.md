@@ -12,7 +12,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Except for `httpx_auth.testing`, only direct access via `httpx_auth.` was considered publicly exposed. This is now explicit, as inner packages are now using private prefix (`_`).
   If you were relying on some classes or functions that are now internal, feel free to open an issue.
-- Browser display settings have been moved to a shared setting, see documentation for more information on `OAuth2.display`. As a result the following classes no longer expose `success_display_time` and `failure_display_time` parameters.
+- Browser display settings have been moved to a shared setting, see documentation for more information on `httpx_auth.OAuth2.display`.
+  The failure page will be displayed for 10 seconds by default instead of 5 seconds previously.
+  As a result the following classes no longer expose `success_display_time` and `failure_display_time` parameters.
   - `httpx_auth.OAuth2AuthorizationCode`.
   - `httpx_auth.OktaAuthorizationCode`.
   - `httpx_auth.WakaTimeAuthorizationCode`.
@@ -23,12 +25,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `httpx_auth.AzureActiveDirectoryImplicitIdToken`.
   - `httpx_auth.OktaImplicit`.
   - `httpx_auth.OktaImplicitIdToken`.
-- The authentication success and failure displayed in the browser were revamped to be more user-friendly. `httpx_auth.testing` was modified to accomodate this change:
+- The authentication success and failure displayed in the browser were revamped to be more user-friendly. `httpx_auth.testing` was modified to accommodate this change:
   - `tab.assert_success` `expected_message` parameter was removed.
   - `tab.assert_failure` `expected_message` parameter should not be prefixed with `Unable to properly perform authentication: ` anymore and `\n` in the message should be replaced with `<br>`.
 
 ### Added
-- You can now provide your own HTML success (`success_template`) and failure (`failure_template`) display via the new `OAuth2.display` shared setting. Refer to documentation for more details.
+- You can now provide your own HTML success (`success_html`) and failure (`failure_html`) display via the new `OAuth2.display` shared setting. Refer to documentation for more details.
 
 ## [0.20.0] - 2024-02-12
 ### Fixed

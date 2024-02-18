@@ -47,20 +47,20 @@ def test_oauth2_authorization_code_flow_uses_provided_client(
     tab.assert_success()
 
 
-def test_oauth2_authorization_code_flow_uses_custom_success_template(
+def test_oauth2_authorization_code_flow_uses_custom_success(
     token_cache, httpx_mock: HTTPXMock, browser_mock: BrowserMock
 ):
     auth = httpx_auth.OktaAuthorizationCode(
         "testserver.okta-emea.com",
         "54239d18-c68c-4c47-8bdd-ce71ea1d50cd",
     )
-    httpx_auth.OAuth2.display.success_template = (
+    httpx_auth.OAuth2.display.success_html = (
         "<body><div>SUCCESS: {display_time}</div></body>"
     )
     tab = browser_mock.add_response(
         opened_url="https://testserver.okta-emea.com/oauth2/default/v1/authorize?client_id=54239d18-c68c-4c47-8bdd-ce71ea1d50cd&scope=openid&response_type=code&state=5264d11c8b268ccf911ce564ca42fd75cea68c4a3c1ec3ac1ab20243891ab7cd5250ad4c2d002017c6e8ac2ba34954293baa5e0e4fd00bb9ffd4a39c45f1960b&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F",
         reply_url="http://localhost:5000#code=SplxlOBeZQQYbYS6WxSbIA&state=5264d11c8b268ccf911ce564ca42fd75cea68c4a3c1ec3ac1ab20243891ab7cd5250ad4c2d002017c6e8ac2ba34954293baa5e0e4fd00bb9ffd4a39c45f1960b",
-        success_template="<body><div>SUCCESS: {display_time}</div></body>",
+        displayed_html="<body><div>SUCCESS: {display_time}</div></body>",
     )
     httpx_mock.add_response(
         method="POST",
@@ -88,20 +88,18 @@ def test_oauth2_authorization_code_flow_uses_custom_success_template(
     tab.assert_success()
 
 
-def test_oauth2_authorization_code_flow_uses_custom_failure_template(
+def test_oauth2_authorization_code_flow_uses_custom_failure(
     token_cache, httpx_mock: HTTPXMock, browser_mock: BrowserMock
 ):
     auth = httpx_auth.OktaAuthorizationCode(
         "testserver.okta-emea.com",
         "54239d18-c68c-4c47-8bdd-ce71ea1d50cd",
     )
-    httpx_auth.OAuth2.display.failure_template = (
-        "FAILURE: {display_time}\n{information}"
-    )
+    httpx_auth.OAuth2.display.failure_html = "FAILURE: {display_time}\n{information}"
     tab = browser_mock.add_response(
         opened_url="https://testserver.okta-emea.com/oauth2/default/v1/authorize?client_id=54239d18-c68c-4c47-8bdd-ce71ea1d50cd&scope=openid&response_type=code&state=5264d11c8b268ccf911ce564ca42fd75cea68c4a3c1ec3ac1ab20243891ab7cd5250ad4c2d002017c6e8ac2ba34954293baa5e0e4fd00bb9ffd4a39c45f1960b&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F",
         reply_url="http://localhost:5000#error=invalid_request",
-        failure_template="FAILURE: {display_time}\n{information}",
+        displayed_html="FAILURE: {display_time}\n{information}",
     )
 
     with httpx.Client() as client:

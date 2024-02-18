@@ -42,7 +42,7 @@ def test_oauth2_authorization_code_flow_uses_provided_client(
     tab.assert_success()
 
 
-def test_oauth2_authorization_code_flow_uses_custom_success_template(
+def test_oauth2_authorization_code_flow_uses_custom_success(
     token_cache, httpx_mock: HTTPXMock, browser_mock: BrowserMock
 ):
     auth = httpx_auth.WakaTimeAuthorizationCode(
@@ -50,13 +50,13 @@ def test_oauth2_authorization_code_flow_uses_custom_success_template(
         "waka_sec_0c4MBGeR9LN74LzV5uelF9SgeQ32CqfeWpIuieneBbsL57dAAlqqJWDiVDJOlsSx61pVwHMKlsb3uMvU",
         scope="email",
     )
-    httpx_auth.OAuth2.display.success_template = (
+    httpx_auth.OAuth2.display.success_html = (
         "<body><div>SUCCESS: {display_time}</div></body>"
     )
     tab = browser_mock.add_response(
         opened_url="https://wakatime.com/oauth/authorize?client_id=jPJQV0op6Pu3b66MWDi8b1wD&client_secret=waka_sec_0c4MBGeR9LN74LzV5uelF9SgeQ32CqfeWpIuieneBbsL57dAAlqqJWDiVDJOlsSx61pVwHMKlsb3uMvU&scope=email&response_type=code&state=5d0adb208bdbecaf5cfb6de0bf4ba0aea52986f3fc5ea7bc30c4b2db449c17e5c9d15f9a3926476cdaf1c72e9f73c7cfdc624dde0187c38d8c6b04532770df2a&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F",
         reply_url="http://localhost:5000#code=SplxlOBeZQQYbYS6WxSbIA&state=5d0adb208bdbecaf5cfb6de0bf4ba0aea52986f3fc5ea7bc30c4b2db449c17e5c9d15f9a3926476cdaf1c72e9f73c7cfdc624dde0187c38d8c6b04532770df2a",
-        success_template="<body><div>SUCCESS: {display_time}</div></body>",
+        displayed_html="<body><div>SUCCESS: {display_time}</div></body>",
     )
     httpx_mock.add_response(
         method="POST",
@@ -78,7 +78,7 @@ def test_oauth2_authorization_code_flow_uses_custom_success_template(
     tab.assert_success()
 
 
-def test_oauth2_authorization_code_flow_uses_custom_failure_template(
+def test_oauth2_authorization_code_flow_uses_custom_failure(
     token_cache, httpx_mock: HTTPXMock, browser_mock: BrowserMock
 ):
     auth = httpx_auth.WakaTimeAuthorizationCode(
@@ -86,13 +86,11 @@ def test_oauth2_authorization_code_flow_uses_custom_failure_template(
         "waka_sec_0c4MBGeR9LN74LzV5uelF9SgeQ32CqfeWpIuieneBbsL57dAAlqqJWDiVDJOlsSx61pVwHMKlsb3uMvU",
         scope="email",
     )
-    httpx_auth.OAuth2.display.failure_template = (
-        "FAILURE: {display_time}\n{information}"
-    )
+    httpx_auth.OAuth2.display.failure_html = "FAILURE: {display_time}\n{information}"
     tab = browser_mock.add_response(
         opened_url="https://wakatime.com/oauth/authorize?client_id=jPJQV0op6Pu3b66MWDi8b1wD&client_secret=waka_sec_0c4MBGeR9LN74LzV5uelF9SgeQ32CqfeWpIuieneBbsL57dAAlqqJWDiVDJOlsSx61pVwHMKlsb3uMvU&scope=email&response_type=code&state=5d0adb208bdbecaf5cfb6de0bf4ba0aea52986f3fc5ea7bc30c4b2db449c17e5c9d15f9a3926476cdaf1c72e9f73c7cfdc624dde0187c38d8c6b04532770df2a&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F",
         reply_url="http://localhost:5000#error=invalid_request",
-        failure_template="FAILURE: {display_time}\n{information}",
+        displayed_html="FAILURE: {display_time}\n{information}",
     )
 
     with httpx.Client() as client:

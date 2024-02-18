@@ -178,31 +178,31 @@ p {{
         self,
         *,
         success_display_time: int = 1,
-        success_template: str = None,
-        failure_display_time: int = 5000,
-        failure_template: str = None,
+        success_html: str = None,
+        failure_display_time: int = 10_000,
+        failure_html: str = None,
     ):
         """
         :param success_display_time: In case a code/token is successfully received,
         this is the maximum amount of milliseconds the success page will be displayed in your browser.
         Display the page for 1 millisecond by default.
-        :param success_template: In case a code or token is successfully received,
+        :param success_html: In case a code or token is successfully received,
         this is the success page that will be displayed in your browser.
         `{display_time}` is expected in this content.
         :param failure_display_time: In case received code/token is not valid,
         this is the maximum amount of milliseconds the failure page will be displayed in your browser.
-        Display the page for 5 seconds by default.
-        :param failure_template: In case received code or token is not valid,
+        Display the page for 10 seconds by default.
+        :param failure_html: In case received code or token is not valid,
         this is the failure page that will be displayed in your browser.
         `{information}` and `{display_time}` are expected in this content.
         """
         # Time is expressed in milliseconds
         self.success_display_time = success_display_time
-        self.success_template = success_template or self._default_success
+        self.success_html = success_html or self._default_success
 
         # Time is expressed in milliseconds
         self.failure_display_time = failure_display_time
-        self.failure_template = failure_template or self._default_failure
+        self.failure_html = failure_html or self._default_failure
 
 
 class OAuth2:

@@ -27,14 +27,13 @@ class Tab(threading.Thread):
         self,
         reply_url: str,
         data: str,
-        success_template: str | None = None,
-        failure_template: str | None = None,
+        displayed_html: str | None = None,
     ):
         self.reply_url = reply_url
         self.data = data.encode() if data is not None else None
         self.checked = False
-        self.success_template = (
-            success_template
+        self.success_html = (
+            displayed_html
             or """<!DOCTYPE html>
 <html lang="en">
     <head>
@@ -114,8 +113,8 @@ p {{
     </body>
 </html>"""
         )
-        self.failure_template = (
-            failure_template
+        self.failure_html = (
+            displayed_html
             or """<!DOCTYPE html>
 <html lang="en">
     <head>
@@ -228,12 +227,12 @@ p {{
 
     def assert_success(self, timeout: int = 1):
         self.join()
-        assert self.content == self.success_template.format(display_time=timeout)
+        assert self.content == self.success_html.format(display_time=timeout)
         self.checked = True
 
     def assert_failure(self, expected_message: str, timeout: int = 5000):
         self.join()
-        assert self.content == self.failure_template.format(
+        assert self.content == self.failure_html.format(
             display_time=timeout, information=expected_message
         )
         self.checked = True
@@ -255,22 +254,15 @@ class BrowserMock:
         opened_url: str,
         reply_url: str | None,
         data: str | None = None,
-        success_template: str | None = None,
-        failure_template: str | None = None,
+        displayed_html: str | None = None,
     ) -> Tab:
         """
         :param opened_url: URL opened by httpx_auth
         :param reply_url: The URL to send a response to, None to simulate the fact that there is no redirect.
         :param data: Body of the POST response to be sent. None to send a GET request.
-        :param success_template: Success template
-        :param failure_template: Failure template
+        :param displayed_html: Expected success/failure page.
         """
-        tab = Tab(
-            reply_url,
-            data,
-            success_template,
-            failure_template,
-        )
+        tab = Tab(reply_url, data, displayed_html)
         self.tabs[opened_url] = tab
         return tab
 

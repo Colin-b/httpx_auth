@@ -47,20 +47,20 @@ def test_oauth2_authorization_code_flow_uses_provided_client(
     tab.assert_success()
 
 
-def test_oauth2_authorization_code_flow_uses_custom_success_template(
+def test_oauth2_authorization_code_flow_uses_custom_success(
     token_cache, httpx_mock: HTTPXMock, browser_mock: BrowserMock, monkeypatch
 ):
     auth = httpx_auth.OAuth2AuthorizationCode(
         "https://provide_code",
         "https://provide_access_token",
     )
-    httpx_auth.OAuth2.display.success_template = (
+    httpx_auth.OAuth2.display.success_html = (
         "<body><div>SUCCESS: {display_time}</div></body>"
     )
     tab = browser_mock.add_response(
         opened_url="https://provide_code?response_type=code&state=ce9c755b41b5e3c5b64c70598715d5de271023a53f39a67a70215d265d11d2bfb6ef6e9c701701e998e69cbdbf2cee29fd51d2a950aa05f59a20cf4a646099d5&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F",
         reply_url="http://localhost:5000#code=SplxlOBeZQQYbYS6WxSbIA&state=ce9c755b41b5e3c5b64c70598715d5de271023a53f39a67a70215d265d11d2bfb6ef6e9c701701e998e69cbdbf2cee29fd51d2a950aa05f59a20cf4a646099d5",
-        success_template="<body><div>SUCCESS: {display_time}</div></body>",
+        displayed_html="<body><div>SUCCESS: {display_time}</div></body>",
     )
     httpx_mock.add_response(
         method="POST",
@@ -88,20 +88,18 @@ def test_oauth2_authorization_code_flow_uses_custom_success_template(
     tab.assert_success()
 
 
-def test_with_invalid_request_error_uses_custom_failure_template(
+def test_with_invalid_request_error_uses_custom_failure(
     token_cache, browser_mock: BrowserMock
 ):
     auth = httpx_auth.OAuth2AuthorizationCode(
         "https://provide_code",
         "https://provide_access_token",
     )
-    httpx_auth.OAuth2.display.failure_template = (
-        "FAILURE: {display_time}\n{information}"
-    )
+    httpx_auth.OAuth2.display.failure_html = "FAILURE: {display_time}\n{information}"
     tab = browser_mock.add_response(
         opened_url="https://provide_code?response_type=code&state=ce9c755b41b5e3c5b64c70598715d5de271023a53f39a67a70215d265d11d2bfb6ef6e9c701701e998e69cbdbf2cee29fd51d2a950aa05f59a20cf4a646099d5&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F",
         reply_url="http://localhost:5000#error=invalid_request",
-        failure_template="FAILURE: {display_time}\n{information}",
+        displayed_html="FAILURE: {display_time}\n{information}",
     )
 
     with httpx.Client() as client:

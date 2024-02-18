@@ -40,7 +40,7 @@ class OAuth2ResponseHandler(BaseHTTPRequestHandler):
             self.server.request_error = e
             logger.exception("Unable to properly perform authentication.")
             self.send_html(
-                OAuth2.display.failure_template.format(
+                OAuth2.display.failure_html.format(
                     display_time=OAuth2.display.failure_display_time,
                     information=str(e).replace("\n", "<br>"),
                 )
@@ -55,7 +55,7 @@ class OAuth2ResponseHandler(BaseHTTPRequestHandler):
             self.server.request_error = e
             logger.exception("Unable to properly perform authentication.")
             self.send_html(
-                OAuth2.display.failure_template.format(
+                OAuth2.display.failure_html.format(
                     display_time=OAuth2.display.failure_display_time,
                     information=str(e).replace("\n", "<br>"),
                 )
@@ -82,7 +82,7 @@ class OAuth2ResponseHandler(BaseHTTPRequestHandler):
         state = states[0]
         self.server.grant = state, grant
         self.send_html(
-            OAuth2.display.success_template.format(
+            OAuth2.display.success_html.format(
                 display_time=OAuth2.display.success_display_time
             )
         )

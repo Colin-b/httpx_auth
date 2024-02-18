@@ -710,12 +710,12 @@ OAuth2.display = DisplaySettings()
 
 The following parameters can be provided to `DisplaySettings`:
 
-| Name                    | Description                                                                                                                                                               | Default value |
-|:------------------------|:--------------------------------------------------------------------------------------------------------------------------------------------------------------------------|:--------------|
-| `success_display_time`  | In case a code or token is successfully received, this is the maximum amount of milliseconds the success page will be displayed in your browser.                          | 1             |
-| `success_template`      | In case a code or token is successfully received, this is the success page that will be displayed in your browser. `{display_time}` is expected in this content.          |               |
-| `failure_display_time`  | In case received code or token is not valid, this is the maximum amount of milliseconds the failure page will be displayed in your browser.                               | 5000          |
-| `failure_template`      | In case received code or token is not valid, this is the failure page that will be displayed in your browser. `{information}` and `{display_time}` are expected in this content. |               |
+| Name                   | Description                                                                                                                                                                      | Default value |
+|:-----------------------|:---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|:--------------|
+| `success_display_time` | In case a code or token is successfully received, this is the maximum amount of milliseconds the success page will be displayed in your browser.                                 | 1             |
+| `success_html`         | In case a code or token is successfully received, this is the success page that will be displayed in your browser. `{display_time}` is expected in this content.                 |               |
+| `failure_display_time` | In case received code or token is not valid, this is the maximum amount of milliseconds the failure page will be displayed in your browser.                                      | 10_000        |
+| `failure_html`         | In case received code or token is not valid, this is the failure page that will be displayed in your browser. `{information}` and `{display_time}` are expected in this content. |               |
 
 ## AWS Signature v4
 
@@ -858,18 +858,20 @@ def test_something(token_cache_mock):
 ```
 
 Use this fixture to mock authentication success for any of the following classes:
- * OAuth2AuthorizationCodePKCE
- * OktaAuthorizationCodePKCE
- * OAuth2Implicit
- * OktaImplicit
- * OktaImplicitIdToken
- * AzureActiveDirectoryImplicit
- * AzureActiveDirectoryImplicitIdToken
- * OAuth2AuthorizationCode
- * OktaAuthorizationCode
- * OAuth2ClientCredentials
- * OktaClientCredentials
- * OAuth2ResourceOwnerPasswordCredentials,
+ * `OAuth2AuthorizationCodePKCE`
+ * `OktaAuthorizationCodePKCE`
+ * `OAuth2Implicit`
+ * `OktaImplicit`
+ * `OktaImplicitIdToken`
+ * `AzureActiveDirectoryImplicit`
+ * `AzureActiveDirectoryImplicitIdToken`
+ * `OAuth2AuthorizationCode`
+ * `OktaAuthorizationCode`
+ * `WakaTimeAuthorizationCode`
+ * `OAuth2ClientCredentials`
+ * `OktaClientCredentials`
+ * `OAuth2ResourceOwnerPasswordCredentials`
+ * `OktaResourceOwnerPasswordCredentials`
 
 By default, an access token with value `2YotnFZFEjr1zCsicMWpAA` is generated.
 

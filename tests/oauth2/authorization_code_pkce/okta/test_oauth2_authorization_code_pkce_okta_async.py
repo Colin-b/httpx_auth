@@ -53,7 +53,7 @@ async def test_oauth2_pkce_flow_uses_provided_client(
 
 
 @pytest.mark.asyncio
-async def test_oauth2_pkce_flow_uses_custom_success_template(
+async def test_oauth2_pkce_flow_uses_custom_success(
     token_cache, httpx_mock: HTTPXMock, monkeypatch, browser_mock: BrowserMock
 ):
     monkeypatch.setattr(
@@ -63,13 +63,13 @@ async def test_oauth2_pkce_flow_uses_custom_success_template(
         "testserver.okta-emea.com",
         "54239d18-c68c-4c47-8bdd-ce71ea1d50cd",
     )
-    httpx_auth.OAuth2.display.success_template = (
+    httpx_auth.OAuth2.display.success_html = (
         "<body><div>SUCCESS: {display_time}</div></body>"
     )
     tab = browser_mock.add_response(
         opened_url="https://testserver.okta-emea.com/oauth2/default/v1/authorize?client_id=54239d18-c68c-4c47-8bdd-ce71ea1d50cd&scope=openid&response_type=code&state=5264d11c8b268ccf911ce564ca42fd75cea68c4a3c1ec3ac1ab20243891ab7cd5250ad4c2d002017c6e8ac2ba34954293baa5e0e4fd00bb9ffd4a39c45f1960b&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F&code_challenge=5C_ph_KZ3DstYUc965SiqmKAA-ShvKF4Ut7daKd3fjc&code_challenge_method=S256",
         reply_url="http://localhost:5000#code=SplxlOBeZQQYbYS6WxSbIA&state=5264d11c8b268ccf911ce564ca42fd75cea68c4a3c1ec3ac1ab20243891ab7cd5250ad4c2d002017c6e8ac2ba34954293baa5e0e4fd00bb9ffd4a39c45f1960b",
-        success_template="<body><div>SUCCESS: {display_time}</div></body>",
+        displayed_html="<body><div>SUCCESS: {display_time}</div></body>",
     )
     httpx_mock.add_response(
         method="POST",
@@ -98,7 +98,7 @@ async def test_oauth2_pkce_flow_uses_custom_success_template(
 
 
 @pytest.mark.asyncio
-async def test_oauth2_pkce_flow_uses_custom_failure_template(
+async def test_oauth2_pkce_flow_uses_custom_failure(
     token_cache, httpx_mock: HTTPXMock, monkeypatch, browser_mock: BrowserMock
 ):
     monkeypatch.setattr(
@@ -108,13 +108,11 @@ async def test_oauth2_pkce_flow_uses_custom_failure_template(
         "testserver.okta-emea.com",
         "54239d18-c68c-4c47-8bdd-ce71ea1d50cd",
     )
-    httpx_auth.OAuth2.display.failure_template = (
-        "FAILURE: {display_time}\n{information}"
-    )
+    httpx_auth.OAuth2.display.failure_html = "FAILURE: {display_time}\n{information}"
     tab = browser_mock.add_response(
         opened_url="https://testserver.okta-emea.com/oauth2/default/v1/authorize?client_id=54239d18-c68c-4c47-8bdd-ce71ea1d50cd&scope=openid&response_type=code&state=5264d11c8b268ccf911ce564ca42fd75cea68c4a3c1ec3ac1ab20243891ab7cd5250ad4c2d002017c6e8ac2ba34954293baa5e0e4fd00bb9ffd4a39c45f1960b&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F&code_challenge=5C_ph_KZ3DstYUc965SiqmKAA-ShvKF4Ut7daKd3fjc&code_challenge_method=S256",
         reply_url="http://localhost:5000#error=invalid_request",
-        failure_template="FAILURE: {display_time}\n{information}",
+        displayed_html="FAILURE: {display_time}\n{information}",
     )
 
     async with httpx.AsyncClient() as client:
