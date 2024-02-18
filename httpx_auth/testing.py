@@ -230,7 +230,7 @@ p {{
         assert self.content == self.success_html.format(display_time=timeout)
         self.checked = True
 
-    def assert_failure(self, expected_message: str, timeout: int = 5000):
+    def assert_failure(self, expected_message: str, timeout: int = 10_000):
         self.join()
         assert self.content == self.failure_html.format(
             display_time=timeout, information=expected_message
