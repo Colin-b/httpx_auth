@@ -45,7 +45,7 @@ testing = [
     # Used to generate test tokens
     "pyjwt==2.*",
     # Used to mock httpx
-    "pytest_httpx==0.28.*",
+    "pytest_httpx==0.29.*",
     # Used to mock date and time
     "time-machine==2.*",
     # Used to check coverage
