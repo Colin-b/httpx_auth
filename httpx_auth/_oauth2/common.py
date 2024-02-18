@@ -69,7 +69,7 @@ def _content_from_response(response: httpx.Response) -> dict:
 
 def request_new_grant_with_post(
     url: str, data, grant_name: str, client: httpx.Client
-) -> (str, int):
+) -> (str, int, str):
     response = client.post(url, data=data)
 
     if response.is_error:
@@ -80,7 +80,7 @@ def request_new_grant_with_post(
     token = content.get(grant_name)
     if not token:
         raise GrantNotProvided(grant_name, content)
-    return token, content.get("expires_in")
+    return token, content.get("expires_in"), content.get("refresh_token")
 
 
 class DisplaySettings:
