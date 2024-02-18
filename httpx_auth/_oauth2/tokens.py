@@ -162,7 +162,7 @@ class TokenMemoryCache:
                     if state in self.tokens:
                         bearer, expiry, refresh_token = self.tokens[state]
                         logger.debug(
-                            f"Using newly refreshed token, expiring on {datetime.datetime.utcfromtimestamp(expiry)} (UTC)."
+                            f"Using newly refreshed token, expiring on {datetime.datetime.fromtimestamp(expiry, datetime.timezone.utc)}."
                         )
                         return bearer
             except (InvalidGrantRequest, GrantNotProvided):
