@@ -6,6 +6,7 @@ import httpx
 
 import httpx_auth
 from httpx_auth.testing import token_cache
+from httpx_auth._oauth2.tokens import _to_expiry
 
 
 @pytest.mark.asyncio
@@ -200,7 +201,7 @@ async def test_oauth2_password_credentials_flow_token_is_expired_after_30_second
     token_cache._add_token(
         key="495327550ce1d88cfd1eb8f9975f319992a9635b9a7dfc932f90be05c20448d7509b68bd486c07efb32fc67a4e2c46d75eeaf2dad39711a626492a9e3e469c82",
         token="2YotnFZFEjr1zCsicMWpAA",
-        expiry=httpx_auth.oauth2_tokens._to_expiry(expires_in=29),
+        expiry=_to_expiry(expires_in=29),
     )
     # Meaning a new one will be requested
     httpx_mock.add_response(
@@ -241,7 +242,7 @@ async def test_oauth2_password_credentials_flow_token_custom_expiry(
     token_cache._add_token(
         key="495327550ce1d88cfd1eb8f9975f319992a9635b9a7dfc932f90be05c20448d7509b68bd486c07efb32fc67a4e2c46d75eeaf2dad39711a626492a9e3e469c82",
         token="2YotnFZFEjr1zCsicMWpAA",
-        expiry=httpx_auth.oauth2_tokens._to_expiry(expires_in=29),
+        expiry=_to_expiry(expires_in=29),
     )
     httpx_mock.add_response(
         url="https://authorized_only",

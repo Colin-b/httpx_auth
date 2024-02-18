@@ -1,26 +1,37 @@
-from httpx_auth.authentication import (
+from httpx_auth._authentication import (
     Basic,
     HeaderApiKey,
     QueryApiKey,
-    OAuth2,
+    SupportMultiAuth,
+)
+from httpx_auth._oauth2.common import OAuth2, DisplaySettings
+from httpx_auth._oauth2.authorization_code import (
+    OAuth2AuthorizationCode,
+    OktaAuthorizationCode,
+    WakaTimeAuthorizationCode,
+)
+from httpx_auth._oauth2.authorization_code_pkce import (
     OAuth2AuthorizationCodePKCE,
     OktaAuthorizationCodePKCE,
+)
+from httpx_auth._oauth2.client_credentials import (
+    OAuth2ClientCredentials,
+    OktaClientCredentials,
+)
+from httpx_auth._oauth2.implicit import (
     OAuth2Implicit,
     OktaImplicit,
     OktaImplicitIdToken,
     AzureActiveDirectoryImplicit,
     AzureActiveDirectoryImplicitIdToken,
-    OAuth2AuthorizationCode,
-    OktaAuthorizationCode,
-    OAuth2ClientCredentials,
-    OktaClientCredentials,
+)
+from httpx_auth._oauth2.resource_owner_password import (
     OAuth2ResourceOwnerPasswordCredentials,
     OktaResourceOwnerPasswordCredentials,
-    WakaTimeAuthorizationCode,
 )
-from httpx_auth.oauth2_tokens import JsonTokenFileCache
-from httpx_auth.aws import AWS4Auth
-from httpx_auth.errors import (
+from httpx_auth._oauth2.tokens import JsonTokenFileCache, TokenMemoryCache
+from httpx_auth._aws import AWS4Auth
+from httpx_auth._errors import (
     GrantNotProvided,
     TimeoutOccurred,
     AuthenticationFailed,
@@ -36,6 +47,7 @@ __all__ = [
     "HeaderApiKey",
     "QueryApiKey",
     "OAuth2",
+    "DisplaySettings",
     "OAuth2AuthorizationCodePKCE",
     "OktaAuthorizationCodePKCE",
     "OAuth2Implicit",
@@ -50,7 +62,9 @@ __all__ = [
     "OAuth2ResourceOwnerPasswordCredentials",
     "OktaResourceOwnerPasswordCredentials",
     "WakaTimeAuthorizationCode",
+    "SupportMultiAuth",
     "JsonTokenFileCache",
+    "TokenMemoryCache",
     "AWS4Auth",
     "GrantNotProvided",
     "TimeoutOccurred",

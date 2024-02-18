@@ -5,6 +5,34 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Added
+- Publicly expose `httpx_auth.SupportMultiAuth`, allowing multiple authentication support for every `httpx` authentication class that exists.
+- Publicly expose `httpx_auth.TokenMemoryCache`, allowing to create custom Oauth2 token cache based on this default implementation.
+- You can now provide your own HTML success (`success_html`) and failure (`failure_html`) display via the new `OAuth2.display` shared setting. Refer to documentation for more details.
+
+### Changed
+- Except for `httpx_auth.testing`, only direct access via `httpx_auth.` was considered publicly exposed. This is now explicit, as inner packages are now using private prefix (`_`).
+  If you were relying on some classes or functions that are now internal, feel free to open an issue.
+- Browser display settings have been moved to a shared setting, see documentation for more information on `httpx_auth.OAuth2.display`.
+  The failure page will be displayed for 10 seconds by default instead of 5 seconds previously.
+  As a result the following classes no longer expose `success_display_time` and `failure_display_time` parameters.
+  - `httpx_auth.OAuth2AuthorizationCode`.
+  - `httpx_auth.OktaAuthorizationCode`.
+  - `httpx_auth.WakaTimeAuthorizationCode`.
+  - `httpx_auth.OAuth2AuthorizationCodePKCE`.
+  - `httpx_auth.OktaAuthorizationCodePKCE`.
+  - `httpx_auth.OAuth2Implicit`.
+  - `httpx_auth.AzureActiveDirectoryImplicit`.
+  - `httpx_auth.AzureActiveDirectoryImplicitIdToken`.
+  - `httpx_auth.OktaImplicit`.
+  - `httpx_auth.OktaImplicitIdToken`.
+- The authentication success and failure displayed in the browser were revamped to be more user-friendly. `httpx_auth.testing` was modified to accommodate this change:
+  - `tab.assert_success` `expected_message` parameter was removed.
+  - `tab.assert_failure` `expected_message` parameter should not be prefixed with `Unable to properly perform authentication: ` anymore and `\n` in the message should be replaced with `<br>`.
+
+### Fixed
+- `httpx_auth.OktaClientCredentials` `scope` parameter is now mandatory and does not default to `openid` anymore.
+- `httpx_auth.OktaClientCredentials` will now display a more user-friendly error message in case Okta instance is not provided.
 
 ## [0.20.0] - 2024-02-12
 ### Fixed
