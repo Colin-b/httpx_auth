@@ -67,6 +67,35 @@ def test_oauth2_implicit_flow_token_is_not_reused_if_a_url_parameter_is_changing
     tab2.assert_success()
 
 
+def test_oauth2_implicit_flow_uses_redirect_uri_domain(
+    token_cache, httpx_mock: HTTPXMock, browser_mock: BrowserMock
+):
+    auth = httpx_auth.OAuth2Implicit(
+        "https://provide_token", redirect_uri_domain="localhost.mycompany.com"
+    )
+    expiry_in_1_hour = datetime.datetime.now(
+        datetime.timezone.utc
+    ) + datetime.timedelta(hours=1)
+    token = create_token(expiry_in_1_hour)
+    tab = browser_mock.add_response(
+        opened_url="https://provide_token?response_type=token&state=bee505cb6ceb14b9f6ac3573cd700b3b3e965004078d7bb57c7b92df01e448c992a7a46b4804164fc998ea166ece3f3d5849ca2405c4a548f43b915b0677231c&redirect_uri=http%3A%2F%2Flocalhost.mycompany.com%3A5000%2F",
+        reply_url="http://localhost:5000",
+        data=f"access_token={token}&state=bee505cb6ceb14b9f6ac3573cd700b3b3e965004078d7bb57c7b92df01e448c992a7a46b4804164fc998ea166ece3f3d5849ca2405c4a548f43b915b0677231c",
+    )
+    httpx_mock.add_response(
+        url="https://authorized_only",
+        method="GET",
+        match_headers={
+            "Authorization": f"Bearer {token}",
+        },
+    )
+
+    with httpx.Client() as client:
+        client.get("https://authorized_only", auth=auth)
+
+    tab.assert_success()
+
+
 def test_oauth2_implicit_flow_uses_custom_success(
     token_cache, httpx_mock: HTTPXMock, browser_mock: BrowserMock
 ):
