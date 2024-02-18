@@ -68,6 +68,50 @@ def test_oauth2_password_credentials_flow_is_able_to_reuse_client(
             "access_token": "2YotnFZFEjr1zCsicMWpAA",
             "token_type": "example",
             "expires_in": 10,
+            "example_parameter": "example_value",
+        },
+        match_content=b"grant_type=password&username=test_user&password=test_pwd&scope=openid",
+        match_headers={
+            "x-test": "Test value",
+            "Authorization": "Basic dGVzdF91c2VyMjp0ZXN0X3B3ZDI=",
+        },
+    )
+    httpx_mock.add_response(
+        url="https://authorized_only",
+        method="GET",
+        match_headers={
+            "Authorization": "Bearer 2YotnFZFEjr1zCsicMWpAA",
+        },
+    )
+
+    with httpx.Client() as client:
+        client.get("https://authorized_only", auth=auth)
+
+    time.sleep(10)
+
+    with httpx.Client() as client:
+        client.get("https://authorized_only", auth=auth)
+
+
+def test_oauth2_password_credentials_flow_is_able_to_reuse_client_with_token_refresh(
+    token_cache, httpx_mock: HTTPXMock
+):
+    client = httpx.Client(headers={"x-test": "Test value"})
+    auth = httpx_auth.OktaResourceOwnerPasswordCredentials(
+        "testserver.okta-emea.com",
+        username="test_user",
+        password="test_pwd",
+        client_id="test_user2",
+        client_secret="test_pwd2",
+        client=client,
+    )
+    httpx_mock.add_response(
+        method="POST",
+        url="https://testserver.okta-emea.com/oauth2/default/v1/token",
+        json={
+            "access_token": "2YotnFZFEjr1zCsicMWpAA",
+            "token_type": "example",
+            "expires_in": 10,
             "refresh_token": "tGzv3JOkF0XG5Qx2TlKWIA",
             "example_parameter": "example_value",
         },
@@ -89,6 +133,30 @@ def test_oauth2_password_credentials_flow_is_able_to_reuse_client(
         client.get("https://authorized_only", auth=auth)
 
     time.sleep(10)
+
+    httpx_mock.add_response(
+        method="POST",
+        url="https://testserver.okta-emea.com/oauth2/default/v1/token",
+        json={
+            "access_token": "rVR7Syg5bjZtZYjbZIW",
+            "token_type": "example",
+            "expires_in": 3600,
+            "refresh_token": "tGzv3JOkF0XG5Qx2TlKWIA",
+            "example_parameter": "example_value",
+        },
+        match_content=b"grant_type=refresh_token&scope=openid&refresh_token=tGzv3JOkF0XG5Qx2TlKWIA",
+        match_headers={
+            "x-test": "Test value",
+            "Authorization": "Basic dGVzdF91c2VyMjp0ZXN0X3B3ZDI=",
+        },
+    )
+    httpx_mock.add_response(
+        url="https://authorized_only",
+        method="GET",
+        match_headers={
+            "Authorization": "Bearer rVR7Syg5bjZtZYjbZIW",
+        },
+    )
 
     with httpx.Client() as client:
         client.get("https://authorized_only", auth=auth)
