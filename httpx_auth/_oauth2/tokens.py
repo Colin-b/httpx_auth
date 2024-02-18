@@ -51,7 +51,7 @@ class TokenMemoryCache:
         self.forbid_concurrent_cache_access = threading.Lock()
         self.forbid_concurrent_missing_token_function_call = threading.Lock()
 
-    def _add_bearer_token(self, key: str, token: str):
+    def _add_bearer_token(self, key: str, token: str) -> None:
         """
         Set the bearer token and save it
         :param key: key identifier of the token
@@ -70,7 +70,9 @@ class TokenMemoryCache:
 
         self._add_token(key, token, expiry)
 
-    def _add_access_token(self, key: str, token: str, expires_in: Union[int, str]):
+    def _add_access_token(
+        self, key: str, token: str, expires_in: Union[int, str]
+    ) -> None:
         """
         Set the bearer token and save it
         :param key: key identifier of the token
@@ -80,7 +82,7 @@ class TokenMemoryCache:
         """
         self._add_token(key, token, _to_expiry(expires_in))
 
-    def _add_token(self, key: str, token: str, expiry: float):
+    def _add_token(self, key: str, token: str, expiry: float) -> None:
         """
         Set the bearer token and save it
         :param key: key identifier of the token
@@ -159,20 +161,20 @@ class TokenMemoryCache:
         )
         raise AuthenticationFailed()
 
-    def clear(self):
+    def clear(self) -> None:
         """Remove tokens from the cache."""
         with self.forbid_concurrent_cache_access:
             logger.debug("Clearing token cache.")
             self.tokens = {}
             self._clear()
 
-    def _save_tokens(self):
+    def _save_tokens(self) -> None:
         pass
 
-    def _load_tokens(self):
+    def _load_tokens(self) -> None:
         pass
 
-    def _clear(self):
+    def _clear(self) -> None:
         pass
 
 
@@ -187,14 +189,14 @@ class JsonTokenFileCache(TokenMemoryCache):
         self.last_save_time = 0
         self._load_tokens()
 
-    def _clear(self):
+    def _clear(self) -> None:
         self.last_save_time = 0
         try:
             os.remove(self.tokens_path)
         except:
             logger.debug("Cannot remove tokens file.")
 
-    def _save_tokens(self):
+    def _save_tokens(self) -> None:
         try:
             with open(self.tokens_path, "w") as tokens_cache_file:
                 json.dump(self.tokens, tokens_cache_file)
@@ -202,7 +204,7 @@ class JsonTokenFileCache(TokenMemoryCache):
         except:
             logger.exception("Cannot save tokens.")
 
-    def _load_tokens(self):
+    def _load_tokens(self) -> None:
         if not os.path.exists(self.tokens_path):
             logger.debug("No token loaded. Token cache does not exists.")
             return
