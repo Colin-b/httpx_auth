@@ -5,12 +5,14 @@ import datetime
 import threading
 import logging
 from pathlib import Path
-from typing import Union
+from typing import Union, Optional
 
 from httpx_auth._errors import (
     InvalidToken,
     TokenExpiryNotProvided,
     AuthenticationFailed,
+    InvalidGrantRequest,
+    GrantNotProvided,
 )
 
 logger = logging.getLogger(__name__)
@@ -72,7 +74,11 @@ class TokenMemoryCache:
         self._add_token(key, token, expiry)
 
     def _add_access_token(
-        self, key: str, token: str, expires_in: Union[int, str]
+        self,
+        key: str,
+        token: str,
+        expires_in: Union[int, str],
+        refresh_token: Optional[str] = None,
     ) -> None:
         """
         Set the bearer token and save it
@@ -81,17 +87,20 @@ class TokenMemoryCache:
         :param expires_in: Number of seconds before token expiry
         :raise InvalidToken: In case token is invalid.
         """
-        self._add_token(key, token, to_expiry(expires_in))
+        self._add_token(key, token, to_expiry(expires_in), refresh_token)
 
-    def _add_token(self, key: str, token: str, expiry: float) -> None:
+    def _add_token(
+        self, key: str, token: str, expiry: float, refresh_token: Optional[str] = None
+    ) -> None:
         """
         Set the bearer token and save it
         :param key: key identifier of the token
         :param token: value
         :param expiry: UTC timestamp of expiry
+        :param refresh_token: refresh token value
         """
         with self._forbid_concurrent_cache_access:
-            self.tokens[key] = token, expiry
+            self.tokens[key] = token, expiry, refresh_token
             self._save_tokens()
             logger.debug(
                 "Inserting token expiring on"
@@ -104,6 +113,7 @@ class TokenMemoryCache:
         *,
         early_expiry: float = 30.0,
         on_missing_token=None,
+        on_expired_token=None,
         **on_missing_token_kwargs,
     ) -> str:
         """
@@ -115,15 +125,21 @@ class TokenMemoryCache:
         This is the number of seconds to subtract to the actual token expiry. Token will be considered as
         expired 30 seconds before real expiry by default.
         :param on_missing_token: function to call when token is expired or missing (returning token and expiry tuple)
-        :param on_missing_token_kwargs: arguments of the function (key-value arguments)
+        :param on_expired_token: function to call to refresh the token when it is expired
+        :param on_missing_token_kwargs: arguments of the on_missing_token function (key-value arguments)
         :return: the token
         :raise AuthenticationFailed: in case token cannot be retrieved.
         """
         logger.debug(f'Retrieving token with "{key}" key.')
+        refresh_token = None
         with self._forbid_concurrent_cache_access:
             self._load_tokens()
             if key in self.tokens:
-                bearer, expiry = self.tokens[key]
+                token = self.tokens[key]
+                if len(token) == 2:  # No refresh token
+                    bearer, expiry = token
+                else:
+                    bearer, expiry, refresh_token = token
                 if is_expired(expiry, early_expiry):
                     logger.debug(f'Authentication token with "{key}" key is expired.')
                     del self.tokens[key]
@@ -134,6 +150,24 @@ class TokenMemoryCache:
                     )
                     return bearer
 
+        if refresh_token is not None and on_expired_token is not None:
+            try:
+                with self._forbid_concurrent_missing_token_function_call:
+                    state, token, expires_in, refresh_token = on_expired_token(
+                        refresh_token
+                    )
+                    self._add_access_token(state, token, expires_in, refresh_token)
+                    logger.debug(f"Refreshed token with key {key}.")
+                with self._forbid_concurrent_cache_access:
+                    if state in self.tokens:
+                        bearer, expiry, refresh_token = self.tokens[state]
+                        logger.debug(
+                            f"Using newly refreshed token, expiring on {datetime.datetime.utcfromtimestamp(expiry)} (UTC)."
+                        )
+                        return bearer
+            except (InvalidGrantRequest, GrantNotProvided):
+                logger.debug("Failed to refresh token.")
+
         logger.debug("Token cannot be found in cache.")
         if on_missing_token is not None:
             with self._forbid_concurrent_missing_token_function_call:
@@ -141,16 +175,19 @@ class TokenMemoryCache:
                 if len(new_token) == 2:  # Bearer token
                     state, token = new_token
                     self._add_bearer_token(state, token)
-                else:  # Access Token
+                elif len(new_token) == 3:  # Access token
                     state, token, expires_in = new_token
                     self._add_access_token(state, token, expires_in)
+                else:  # Access Token and Refresh token
+                    state, token, expires_in, refresh_token = new_token
+                    self._add_access_token(state, token, expires_in, refresh_token)
                 if key != state:
                     logger.warning(
                         f"Using a token received on another key than expected. Expecting {key} but was {state}."
                     )
             with self._forbid_concurrent_cache_access:
                 if state in self.tokens:
-                    bearer, expiry = self.tokens[state]
+                    bearer, expiry, refresh_token = self.tokens[state]
                     logger.debug(
                         "Using newly received authentication, expiring on"
                         f" {datetime.datetime.fromtimestamp(expiry, datetime.timezone.utc)}."
