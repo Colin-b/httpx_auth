@@ -38,6 +38,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - `httpx_auth.OktaClientCredentials` `scope` parameter is now mandatory and does not default to `openid` anymore.
 - `httpx_auth.OktaClientCredentials` will now display a more user-friendly error message in case Okta instance is not provided.
+- `DEBUG` logs will not display tokens anymore.
 
 ## [0.20.0] - 2024-02-12
 ### Fixed

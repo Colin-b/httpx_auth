@@ -104,7 +104,7 @@ class TokenMemoryCache:
             self._save_tokens()
             logger.debug(
                 "Inserting token expiring on"
-                f' {datetime.datetime.fromtimestamp(expiry, datetime.timezone.utc)} with "{key}" key: {token}'
+                f' {datetime.datetime.fromtimestamp(expiry, datetime.timezone.utc)} with "{key}" key.'
             )
 
     def get_token(
@@ -195,7 +195,7 @@ class TokenMemoryCache:
                     return bearer
 
         logger.debug(
-            f"User was not authenticated: key {key} cannot be found in {self.tokens}."
+            f"User was not authenticated: key {key} cannot be found in {list(self.tokens)}."
         )
         raise AuthenticationFailed()
 
