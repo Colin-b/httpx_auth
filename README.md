@@ -689,7 +689,7 @@ To avoid asking for a new token every new request, a token cache is used.
 
 Default cache is in memory, but it is also possible to use a physical cache.
 
-You need to provide the location of your token cache file. It can be a full or relative path.
+You need to provide the location of your token cache file. It can be a full or relative path (`str` or `pathlib.Path`).
 
 If the file already exists it will be used, if the file do not exist it will be created.
 

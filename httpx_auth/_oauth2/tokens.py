@@ -4,6 +4,7 @@ import os
 import datetime
 import threading
 import logging
+from pathlib import Path
 from typing import Union
 
 from httpx_auth._errors import (
@@ -183,7 +184,7 @@ class JsonTokenFileCache(TokenMemoryCache):
     Class to manage tokens using a cache file.
     """
 
-    def __init__(self, tokens_path: str):
+    def __init__(self, tokens_path: Union[str, Path]):
         TokenMemoryCache.__init__(self)
         self.tokens_path = tokens_path
         self.last_save_time = 0
