@@ -14,7 +14,11 @@ async def test_okta_client_credentials_flow_uses_provided_client(
     # TODO Add support for AsyncClient
     client = httpx.Client(headers={"x-test": "Test value"})
     auth = httpx_auth.OktaClientCredentials(
-        "test_okta", client_id="test_user", client_secret="test_pwd", client=client
+        "test_okta",
+        client_id="test_user",
+        client_secret="test_pwd",
+        scope="dummy",
+        client=client,
     )
     httpx_mock.add_response(
         method="POST",
@@ -27,6 +31,7 @@ async def test_okta_client_credentials_flow_uses_provided_client(
             "example_parameter": "example_value",
         },
         match_headers={"x-test": "Test value"},
+        match_content=b"grant_type=client_credentials&scope=dummy",
     )
     httpx_mock.add_response(
         url="https://authorized_only",
@@ -45,7 +50,7 @@ async def test_okta_client_credentials_flow_token_is_sent_in_authorization_heade
     token_cache, httpx_mock: HTTPXMock
 ):
     auth = httpx_auth.OktaClientCredentials(
-        "test_okta", client_id="test_user", client_secret="test_pwd"
+        "test_okta", client_id="test_user", client_secret="test_pwd", scope="dummy"
     )
     httpx_mock.add_response(
         method="POST",
@@ -57,6 +62,7 @@ async def test_okta_client_credentials_flow_token_is_sent_in_authorization_heade
             "refresh_token": "tGzv3JOkF0XG5Qx2TlKWIA",
             "example_parameter": "example_value",
         },
+        match_content=b"grant_type=client_credentials&scope=dummy",
     )
     httpx_mock.add_response(
         url="https://authorized_only",
@@ -75,11 +81,11 @@ async def test_okta_client_credentials_flow_token_is_expired_after_30_seconds_by
     token_cache, httpx_mock: HTTPXMock
 ):
     auth = httpx_auth.OktaClientCredentials(
-        "test_okta", client_id="test_user", client_secret="test_pwd"
+        "test_okta", client_id="test_user", client_secret="test_pwd", scope="dummy"
     )
     # Add a token that expires in 29 seconds, so should be considered as expired when issuing the request
     token_cache._add_token(
-        key="f0d25aa4e496c6615328e776bb981dabe53fa77768a0a58eaf6d54215c598d80e57ffc7926fd96ec6a6a872942cb684a473e36233b593fb760d3eb6dc22ae550",
+        key="7830dd38bb95d4ac6273bd1a208c3db2097ac2715c6d3fb646ef3ccd48877109dd4cba292cef535559747cf6c4f497bf0804994dfb1c31bb293d2774889c2cfb",
         token="2YotnFZFEjr1zCsicMWpAA",
         expiry=_to_expiry(expires_in=29),
     )
@@ -94,6 +100,7 @@ async def test_okta_client_credentials_flow_token_is_expired_after_30_seconds_by
             "refresh_token": "tGzv3JOkF0XG5Qx2TlKWIA",
             "example_parameter": "example_value",
         },
+        match_content=b"grant_type=client_credentials&scope=dummy",
     )
     httpx_mock.add_response(
         url="https://authorized_only",
@@ -112,11 +119,15 @@ async def test_okta_client_credentials_flow_token_custom_expiry(
     token_cache, httpx_mock: HTTPXMock
 ):
     auth = httpx_auth.OktaClientCredentials(
-        "test_okta", client_id="test_user", client_secret="test_pwd", early_expiry=28
+        "test_okta",
+        client_id="test_user",
+        client_secret="test_pwd",
+        scope="dummy",
+        early_expiry=28,
     )
     # Add a token that expires in 29 seconds, so should be considered as not expired when issuing the request
     token_cache._add_token(
-        key="f0d25aa4e496c6615328e776bb981dabe53fa77768a0a58eaf6d54215c598d80e57ffc7926fd96ec6a6a872942cb684a473e36233b593fb760d3eb6dc22ae550",
+        key="7830dd38bb95d4ac6273bd1a208c3db2097ac2715c6d3fb646ef3ccd48877109dd4cba292cef535559747cf6c4f497bf0804994dfb1c31bb293d2774889c2cfb",
         token="2YotnFZFEjr1zCsicMWpAA",
         expiry=_to_expiry(expires_in=29),
     )
@@ -135,7 +146,7 @@ async def test_okta_client_credentials_flow_token_custom_expiry(
 @pytest.mark.asyncio
 async def test_expires_in_sent_as_str(token_cache, httpx_mock: HTTPXMock):
     auth = httpx_auth.OktaClientCredentials(
-        "test_okta", client_id="test_user", client_secret="test_pwd"
+        "test_okta", client_id="test_user", client_secret="test_pwd", scope="dummy"
     )
     httpx_mock.add_response(
         method="POST",
@@ -147,6 +158,7 @@ async def test_expires_in_sent_as_str(token_cache, httpx_mock: HTTPXMock):
             "refresh_token": "tGzv3JOkF0XG5Qx2TlKWIA",
             "example_parameter": "example_value",
         },
+        match_content=b"grant_type=client_credentials&scope=dummy",
     )
     httpx_mock.add_response(
         url="https://authorized_only",

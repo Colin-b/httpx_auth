@@ -416,7 +416,7 @@ If the one you are looking for is not yet supported, feel free to [ask for its i
 
 ##### Okta (OAuth2 Client Credentials)
 
-[Okta Client Credentials Grant](https://developer.okta.com/docs/guides/implement-client-creds/overview/) providing access tokens is supported.
+[Okta Client Credentials Grant](https://developer.okta.com/docs/guides/implement-grant-type/clientcreds/main/) providing access tokens is supported.
 
 Use `httpx_auth.OktaClientCredentials` to configure this kind of authentication.
 
@@ -425,7 +425,7 @@ import httpx
 from httpx_auth import OktaClientCredentials
 
 
-okta = OktaClientCredentials(instance='testserver.okta-emea.com', client_id='54239d18-c68c-4c47-8bdd-ce71ea1d50cd', client_secret="secret")
+okta = OktaClientCredentials(instance='testserver.okta-emea.com', client_id='54239d18-c68c-4c47-8bdd-ce71ea1d50cd', client_secret="secret", scope=["scope1", "scope2"])
 with httpx.Client() as client:
     client.get('https://www.example.com', auth=okta)
 ```
@@ -440,14 +440,14 @@ Note:
 | `instance`              | Okta instance (like "testserver.okta-emea.com"). | Mandatory |               |
 | `client_id`             | Okta Application Identifier (formatted as an Universal Unique Identifier). | Mandatory |               |
 | `client_secret`         | Resource owner password.                     | Mandatory |               |
-| `authorization_server`  | Okta authorization server. | Optional | 'default' |
-| `timeout`               | Maximum amount of seconds to wait for a token to be received once requested. | Optional | 60 |
-| `header_name`           | Name of the header field used to send token. | Optional | Authorization |
-| `header_value`          | Format used to send the token value. "{token}" must be present as it will be replaced by the actual token. | Optional | Bearer {token} |
-| `scope`                 | Scope parameter sent in query. Can also be a list of scopes. | Optional | openid |
-| `token_field_name`      | Field name containing the token. | Optional | access_token |
+| `scope`                 | Scope parameter sent in query. Can also be a list of scopes. | Mandatory |  |
+| `authorization_server`  | Okta authorization server. | Optional  | 'default' |
+| `timeout`               | Maximum amount of seconds to wait for a token to be received once requested. | Optional  | 60 |
+| `header_name`           | Name of the header field used to send token. | Optional  | Authorization |
+| `header_value`          | Format used to send the token value. "{token}" must be present as it will be replaced by the actual token. | Optional  | Bearer {token} |
+| `token_field_name`      | Field name containing the token. | Optional  | access_token |
 | `early_expiry`          | Number of seconds before actual token expiry where token will be considered as expired. Used to ensure token will not expire between the time of retrieval and the time the request reaches the actual server. Set it to 0 to deactivate this feature and use the same token until actual expiry. | Optional  | 30.0  |
-| `client`                | `httpx.Client` instance that will be used to request the token. Use it to provide a custom proxying rule for instance. | Optional |  |
+| `client`                | `httpx.Client` instance that will be used to request the token. Use it to provide a custom proxying rule for instance. | Optional  |  |
 
 Any other parameter will be put as query parameter in the token URL.        
 

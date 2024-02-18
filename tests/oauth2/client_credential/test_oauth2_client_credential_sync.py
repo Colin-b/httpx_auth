@@ -30,6 +30,7 @@ def test_oauth2_client_credentials_flow_uses_provided_client(
             "example_parameter": "example_value",
         },
         match_headers={"x-test": "Test value"},
+        match_content=b"grant_type=client_credentials",
     )
     httpx_mock.add_response(
         url="https://authorized_only",
@@ -64,6 +65,7 @@ def test_oauth2_client_credentials_flow_is_able_to_reuse_client(
             "example_parameter": "example_value",
         },
         match_headers={"x-test": "Test value"},
+        match_content=b"grant_type=client_credentials",
     )
     httpx_mock.add_response(
         url="https://authorized_only",
@@ -98,6 +100,7 @@ def test_oauth2_client_credentials_flow_token_is_sent_in_authorization_header_by
             "refresh_token": "tGzv3JOkF0XG5Qx2TlKWIA",
             "example_parameter": "example_value",
         },
+        match_content=b"grant_type=client_credentials",
     )
     httpx_mock.add_response(
         url="https://authorized_only",
@@ -134,6 +137,7 @@ def test_oauth2_client_credentials_flow_token_is_expired_after_30_seconds_by_def
             "refresh_token": "tGzv3JOkF0XG5Qx2TlKWIA",
             "example_parameter": "example_value",
         },
+        match_content=b"grant_type=client_credentials",
     )
     httpx_mock.add_response(
         url="https://authorized_only",
@@ -188,6 +192,7 @@ def test_expires_in_sent_as_str(token_cache, httpx_mock: HTTPXMock):
             "refresh_token": "tGzv3JOkF0XG5Qx2TlKWIA",
             "example_parameter": "example_value",
         },
+        match_content=b"grant_type=client_credentials",
     )
     httpx_mock.add_response(
         url="https://authorized_only",
@@ -210,6 +215,7 @@ def test_with_invalid_grant_request_no_json(token_cache, httpx_mock: HTTPXMock):
         url="https://provide_access_token",
         text="failure",
         status_code=400,
+        match_content=b"grant_type=client_credentials",
     )
     with httpx.Client() as client:
         with pytest.raises(httpx_auth.InvalidGrantRequest, match="failure"):
@@ -227,6 +233,7 @@ def test_with_invalid_grant_request_invalid_request_error(
         url="https://provide_access_token",
         json={"error": "invalid_request"},
         status_code=400,
+        match_content=b"grant_type=client_credentials",
     )
 
     with httpx.Client() as client:
@@ -253,6 +260,7 @@ def test_with_invalid_grant_request_invalid_request_error_and_error_description(
         url="https://provide_access_token",
         json={"error": "invalid_request", "error_description": "desc of the error"},
         status_code=400,
+        match_content=b"grant_type=client_credentials",
     )
 
     with httpx.Client() as client:
@@ -277,6 +285,7 @@ def test_with_invalid_grant_request_invalid_request_error_and_error_description_
             "error_uri": "https://test_url",
         },
         status_code=400,
+        match_content=b"grant_type=client_credentials",
     )
 
     with httpx.Client() as client:
@@ -305,6 +314,7 @@ def test_with_invalid_grant_request_invalid_request_error_and_error_description_
             "other": "other info",
         },
         status_code=400,
+        match_content=b"grant_type=client_credentials",
     )
 
     with httpx.Client() as client:
@@ -326,6 +336,7 @@ def test_with_invalid_grant_request_without_error(token_cache, httpx_mock: HTTPX
         url="https://provide_access_token",
         json={"other": "other info"},
         status_code=400,
+        match_content=b"grant_type=client_credentials",
     )
 
     with httpx.Client() as client:
@@ -346,6 +357,7 @@ def test_with_invalid_grant_request_invalid_client_error(
         url="https://provide_access_token",
         json={"error": "invalid_client"},
         status_code=400,
+        match_content=b"grant_type=client_credentials",
     )
 
     with httpx.Client() as client:
@@ -376,6 +388,7 @@ def test_with_invalid_grant_request_invalid_grant_error(
         url="https://provide_access_token",
         json={"error": "invalid_grant"},
         status_code=400,
+        match_content=b"grant_type=client_credentials",
     )
 
     with httpx.Client() as client:
@@ -402,6 +415,7 @@ def test_with_invalid_grant_request_unauthorized_client_error(
         url="https://provide_access_token",
         json={"error": "unauthorized_client"},
         status_code=400,
+        match_content=b"grant_type=client_credentials",
     )
 
     with httpx.Client() as client:
@@ -426,6 +440,7 @@ def test_with_invalid_grant_request_unsupported_grant_type_error(
         url="https://provide_access_token",
         json={"error": "unsupported_grant_type"},
         status_code=400,
+        match_content=b"grant_type=client_credentials",
     )
 
     with httpx.Client() as client:
@@ -450,6 +465,7 @@ def test_with_invalid_grant_request_invalid_scope_error(
         url="https://provide_access_token",
         json={"error": "invalid_scope"},
         status_code=400,
+        match_content=b"grant_type=client_credentials",
     )
 
     with httpx.Client() as client:
