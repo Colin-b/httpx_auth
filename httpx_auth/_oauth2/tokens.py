@@ -186,34 +186,34 @@ class JsonTokenFileCache(TokenMemoryCache):
 
     def __init__(self, tokens_path: Union[str, Path]):
         TokenMemoryCache.__init__(self)
-        self.tokens_path = tokens_path
-        self.last_save_time = 0
+        self._tokens_path = tokens_path
+        self._last_save_time = 0
         self._load_tokens()
 
     def _clear(self) -> None:
-        self.last_save_time = 0
+        self._last_save_time = 0
         try:
-            os.remove(self.tokens_path)
+            os.remove(self._tokens_path)
         except:
             logger.debug("Cannot remove tokens file.")
 
     def _save_tokens(self) -> None:
         try:
-            with open(self.tokens_path, "w") as tokens_cache_file:
+            with open(self._tokens_path, "w") as tokens_cache_file:
                 json.dump(self.tokens, tokens_cache_file)
-            self.last_save_time = os.path.getmtime(self.tokens_path)
+            self._last_save_time = os.path.getmtime(self._tokens_path)
         except:
             logger.exception("Cannot save tokens.")
 
     def _load_tokens(self) -> None:
-        if not os.path.exists(self.tokens_path):
+        if not os.path.exists(self._tokens_path):
             logger.debug("No token loaded. Token cache does not exists.")
             return
         try:
-            last_modification_time = os.path.getmtime(self.tokens_path)
-            if last_modification_time > self.last_save_time:
-                self.last_save_time = last_modification_time
-                with open(self.tokens_path, "r") as tokens_cache_file:
+            last_modification_time = os.path.getmtime(self._tokens_path)
+            if last_modification_time > self._last_save_time:
+                self._last_save_time = last_modification_time
+                with open(self._tokens_path, "r") as tokens_cache_file:
                     self.tokens = json.load(tokens_cache_file)
         except:
             logger.exception("Cannot load tokens.")

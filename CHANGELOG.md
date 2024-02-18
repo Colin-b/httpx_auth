@@ -29,6 +29,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The authentication success and failure displayed in the browser were revamped to be more user-friendly. `httpx_auth.testing` was modified to accommodate this change:
   - `tab.assert_success` `expected_message` parameter was removed.
   - `tab.assert_failure` `expected_message` parameter should not be prefixed with `Unable to properly perform authentication: ` anymore and `\n` in the message should be replaced with `<br>`.
+- `httpx_auth.JsonTokenFileCache` does not expose `tokens_path` or `last_save_time` attributes anymore and is also allowing `pathlib.Path` instances as cache location.
 
 ### Fixed
 - `httpx_auth.OktaClientCredentials` `scope` parameter is now mandatory and does not default to `openid` anymore.
