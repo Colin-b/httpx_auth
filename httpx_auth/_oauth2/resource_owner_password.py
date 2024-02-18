@@ -76,6 +76,12 @@ class OAuth2ResourceOwnerPasswordCredentials(httpx.Auth, SupportMultiAuth):
             self.data["scope"] = " ".join(scope) if isinstance(scope, list) else scope
         self.data.update(kwargs)
 
+        # As described in https://tools.ietf.org/html/rfc6749#section-6
+        self.refresh_data = {"grant_type": "refresh_token"}
+        if scope:
+            self.refresh_data["scope"] = self.data["scope"]
+        self.refresh_data.update(kwargs)
+
         all_parameters_in_url = _add_parameters(self.token_url, self.data)
         self.state = sha512(all_parameters_in_url.encode("unicode_escape")).hexdigest()
 
@@ -86,6 +92,7 @@ class OAuth2ResourceOwnerPasswordCredentials(httpx.Auth, SupportMultiAuth):
             self.state,
             early_expiry=self.early_expiry,
             on_missing_token=self.request_new_token,
+            on_expired_token=self.refresh_token,
         )
         request.headers[self.header_name] = self.header_value.format(token=token)
         yield request
@@ -95,7 +102,7 @@ class OAuth2ResourceOwnerPasswordCredentials(httpx.Auth, SupportMultiAuth):
         self._configure_client(client)
         try:
             # As described in https://tools.ietf.org/html/rfc6749#section-4.3.3
-            token, expires_in = request_new_grant_with_post(
+            token, expires_in, refresh_token = request_new_grant_with_post(
                 self.token_url, self.data, self.token_field_name, client
             )
         finally:
@@ -103,7 +110,29 @@ class OAuth2ResourceOwnerPasswordCredentials(httpx.Auth, SupportMultiAuth):
             if self.client is None:
                 client.close()
         # Handle both Access and Bearer tokens
-        return (self.state, token, expires_in) if expires_in else (self.state, token)
+        return (
+            (self.state, token, expires_in, refresh_token)
+            if expires_in
+            else (self.state, token)
+        )
+
+    def refresh_token(self, refresh_token: str) -> tuple:
+        client = self.client or httpx.Client()
+        self._configure_client(client)
+        try:
+            # As described in https://tools.ietf.org/html/rfc6749#section-6
+            self.refresh_data["refresh_token"] = refresh_token
+            token, expires_in, refresh_token = request_new_grant_with_post(
+                self.token_url,
+                self.refresh_data,
+                self.token_field_name,
+                client,
+            )
+        finally:
+            # Close client only if it was created by this module
+            if self.client is None:
+                client.close()
+        return self.state, token, expires_in, refresh_token
 
     def _configure_client(self, client: httpx.Client):
         if self.client_auth:

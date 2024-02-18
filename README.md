@@ -5,7 +5,7 @@
 <a href="https://github.com/Colin-b/httpx_auth/actions"><img alt="Build status" src="https://github.com/Colin-b/httpx_auth/workflows/Release/badge.svg"></a>
 <a href="https://github.com/Colin-b/httpx_auth/actions"><img alt="Coverage" src="https://img.shields.io/badge/coverage-100%25-brightgreen"></a>
 <a href="https://github.com/psf/black"><img alt="Code style: black" src="https://img.shields.io/badge/code%20style-black-000000.svg"></a>
-<a href="https://github.com/Colin-b/httpx_auth/actions"><img alt="Number of tests" src="https://img.shields.io/badge/tests-683 passed-blue"></a>
+<a href="https://github.com/Colin-b/httpx_auth/actions"><img alt="Number of tests" src="https://img.shields.io/badge/tests-763 passed-blue"></a>
 <a href="https://pypi.org/project/httpx-auth/"><img alt="Number of downloads" src="https://img.shields.io/pypi/dm/httpx_auth"></a>
 </p>
 
@@ -689,7 +689,7 @@ To avoid asking for a new token every new request, a token cache is used.
 
 Default cache is in memory, but it is also possible to use a physical cache.
 
-You need to provide the location of your token cache file. It can be a full or relative path.
+You need to provide the location of your token cache file. It can be a full or relative path (`str` or `pathlib.Path`).
 
 If the file already exists it will be used, if the file do not exist it will be created.
 

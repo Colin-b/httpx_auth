@@ -88,7 +88,7 @@ class OAuth2ClientCredentials(httpx.Auth, SupportMultiAuth):
         self._configure_client(client)
         try:
             # As described in https://tools.ietf.org/html/rfc6749#section-4.4.3
-            token, expires_in = request_new_grant_with_post(
+            token, expires_in, _ = request_new_grant_with_post(
                 self.token_url, self.data, self.token_field_name, client
             )
         finally:

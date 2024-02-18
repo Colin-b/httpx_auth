@@ -1,6 +1,6 @@
-from __future__ import annotations
 import urllib.request
 import threading
+from typing import Optional
 from urllib.parse import urlsplit
 import datetime
 
@@ -10,7 +10,7 @@ import httpx_auth
 import httpx_auth._oauth2.authentication_responses_server
 
 
-def create_token(expiry: datetime.datetime | None) -> str:
+def create_token(expiry: Optional[datetime.datetime]) -> str:
     import jwt  # Consider jwt an optional dependency for testing
 
     return jwt.encode({"exp": expiry}, "secret") if expiry else jwt.encode({}, "secret")
@@ -23,11 +23,19 @@ def token_cache() -> httpx_auth.TokenMemoryCache:
 
 
 class Tab(threading.Thread):
+    """
+    Simulate a Web Browser tab by sending HTTP requests the way it would.
+    This allows to:
+      * run tests without the need for a browser to be installed
+      * run tests faster as no browser needs to be started
+      * assert the content sent to the browser
+    """
+
     def __init__(
         self,
         reply_url: str,
         data: str,
-        displayed_html: str | None = None,
+        displayed_html: Optional[str] = None,
     ):
         self.reply_url = reply_url
         self.data = data.encode() if data is not None else None
@@ -201,7 +209,9 @@ p {{
             self.checked = True
             return
 
+        # Simulate a browser tab by first requesting a favicon
         self._request_favicon()
+        # Simulate a browser tab token redirect to the reply URL
         self.content = self._simulate_redirect().decode()
 
     def _request_favicon(self):
@@ -211,6 +221,7 @@ p {{
 
     def _simulate_redirect(self) -> bytes:
         content = urllib.request.urlopen(self.reply_url, data=self.data).read()
+        # Simulate Javascript execution by the browser
         if (
             content
             == b'<html><body><script>\n        var new_url = window.location.href.replace("#","?");\n        if (new_url.indexOf("?") !== -1) {\n            new_url += "&httpx_auth_redirect=1";\n        } else {\n            new_url += "?httpx_auth_redirect=1";\n        }\n        window.location.replace(new_url)\n        </script></body></html>'
@@ -219,7 +230,9 @@ p {{
         return content
 
     def _simulate_httpx_auth_redirect(self) -> bytes:
+        # Replace fragment by query parameter as requested by Javascript
         reply_url = self.reply_url.replace("#", "?")
+        # Add requests_auth_redirect query parameter as requested by Javascript
         reply_url += (
             "&httpx_auth_redirect=1" if "?" in reply_url else "?httpx_auth_redirect=1"
         )
@@ -252,9 +265,9 @@ class BrowserMock:
     def add_response(
         self,
         opened_url: str,
-        reply_url: str | None,
-        data: str | None = None,
-        displayed_html: str | None = None,
+        reply_url: Optional[str],
+        data: Optional[str] = None,
+        displayed_html: Optional[str] = None,
     ) -> Tab:
         """
         :param opened_url: URL opened by httpx_auth
