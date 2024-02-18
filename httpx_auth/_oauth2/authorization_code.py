@@ -31,6 +31,7 @@ class OAuth2AuthorizationCode(httpx.Auth, SupportMultiAuth, BrowserAuth):
         """
         :param authorization_url: OAuth 2 authorization URL.
         :param token_url: OAuth 2 token URL.
+        :param redirect_uri_domain: FQDN to use in the redirect_uri when localhost (default) is not allowed.
         :param redirect_uri_endpoint: Custom endpoint that will be used as redirect_uri the following way:
         http://localhost:<redirect_uri_port>/<redirect_uri_endpoint>. Default value is to redirect on / (root).
         :param redirect_uri_port: The port on which the server listening for the OAuth 2 code will be started.
@@ -212,6 +213,7 @@ class OktaAuthorizationCode(OAuth2AuthorizationCode):
         default by default.
         :param scope: Scope parameter sent in query. Can also be a list of scopes.
         Request 'openid' by default.
+        :param redirect_uri_domain: FQDN to use in the redirect_uri when localhost (default) is not allowed.
         :param redirect_uri_endpoint: Custom endpoint that will be used as redirect_uri the following way:
         http://localhost:<redirect_uri_port>/<redirect_uri_endpoint>. Default value is to redirect on / (root).
         :param redirect_uri_port: The port on which the server listening for the OAuth 2 token will be started.
@@ -267,6 +269,7 @@ class WakaTimeAuthorizationCode(OAuth2AuthorizationCode):
         reaches the actual server. Set it to 0 to deactivate this feature and use the same token until actual expiry.
         :param nonce: Refer to http://openid.net/specs/openid-connect-core-1_0.html#IDToken for more details
         (formatted as a Universal Unique Identifier - UUID). Use a newly generated UUID by default.
+        :param redirect_uri_domain: FQDN to use in the redirect_uri when localhost (default) is not allowed.
         :param redirect_uri_endpoint: Custom endpoint that will be used as redirect_uri the following way:
         http://localhost:<redirect_uri_port>/<redirect_uri_endpoint>. Default value is to redirect on / (root).
         :param redirect_uri_port: The port on which the server listening for the OAuth 2 token will be started.
