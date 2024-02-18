@@ -1,6 +1,6 @@
-from __future__ import annotations
 import urllib.request
 import threading
+from typing import Optional
 from urllib.parse import urlsplit
 import datetime
 
@@ -10,7 +10,7 @@ import httpx_auth
 import httpx_auth._oauth2.authentication_responses_server
 
 
-def create_token(expiry: datetime.datetime | None) -> str:
+def create_token(expiry: Optional[datetime.datetime]) -> str:
     import jwt  # Consider jwt an optional dependency for testing
 
     return jwt.encode({"exp": expiry}, "secret") if expiry else jwt.encode({}, "secret")
@@ -27,7 +27,7 @@ class Tab(threading.Thread):
         self,
         reply_url: str,
         data: str,
-        displayed_html: str | None = None,
+        displayed_html: Optional[str] = None,
     ):
         self.reply_url = reply_url
         self.data = data.encode() if data is not None else None
@@ -252,9 +252,9 @@ class BrowserMock:
     def add_response(
         self,
         opened_url: str,
-        reply_url: str | None,
-        data: str | None = None,
-        displayed_html: str | None = None,
+        reply_url: Optional[str],
+        data: Optional[str] = None,
+        displayed_html: Optional[str] = None,
     ) -> Tab:
         """
         :param opened_url: URL opened by httpx_auth

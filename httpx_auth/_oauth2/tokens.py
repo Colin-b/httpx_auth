@@ -70,7 +70,7 @@ class TokenMemoryCache:
 
         self._add_token(key, token, expiry)
 
-    def _add_access_token(self, key: str, token: str, expires_in: int):
+    def _add_access_token(self, key: str, token: str, expires_in: Union[int, str]):
         """
         Set the bearer token and save it
         :param key: key identifier of the token
