@@ -5,7 +5,7 @@
 <a href="https://github.com/Colin-b/httpx_auth/actions"><img alt="Build status" src="https://github.com/Colin-b/httpx_auth/workflows/Release/badge.svg"></a>
 <a href="https://github.com/Colin-b/httpx_auth/actions"><img alt="Coverage" src="https://img.shields.io/badge/coverage-100%25-brightgreen"></a>
 <a href="https://github.com/psf/black"><img alt="Code style: black" src="https://img.shields.io/badge/code%20style-black-000000.svg"></a>
-<a href="https://github.com/Colin-b/httpx_auth/actions"><img alt="Number of tests" src="https://img.shields.io/badge/tests-681 passed-blue"></a>
+<a href="https://github.com/Colin-b/httpx_auth/actions"><img alt="Number of tests" src="https://img.shields.io/badge/tests-775 passed-blue"></a>
 <a href="https://pypi.org/project/httpx-auth/"><img alt="Number of downloads" src="https://img.shields.io/pypi/dm/httpx_auth"></a>
 </p>
 
@@ -40,6 +40,7 @@ Provides authentication classes to be used with [`httpx`][1] [authentication par
     - [Okta (Access Token)](#okta-oauth2-implicit-access-token)
     - [Okta (ID token)](#okta-openid-connect-implicit-id-token)
   - [Managing token cache](#managing-token-cache)
+  - [Managing browser](#managing-the-web-browser)
 - [Amazon](#aws-signature-v4)
 - API key
   - [In header](#api-key-in-header)
@@ -67,26 +68,29 @@ with httpx.Client() as client:
     client.get('https://www.example.com', auth=OAuth2AuthorizationCode('https://www.authorization.url', 'https://www.token.url'))
 ```
 
+Note:
+* You can persist tokens thanks to [the token cache](#managing-token-cache).
+* You can tweak web browser interaction thanks to [the display settings](#managing-the-web-browser).
+
 #### Parameters
 
-| Name                    | Description                | Mandatory | Default value |
-|:------------------------|:---------------------------|:----------|:--------------|
-| `authorization_url`     | OAuth 2 authorization URL. | Mandatory |               |
-| `token_url`             | OAuth 2 token URL.         | Mandatory |               |
-| `redirect_uri_endpoint` | Custom endpoint that will be used as redirect_uri the following way: http://localhost:<redirect_uri_port>/<redirect_uri_endpoint>. | Optional | ''             |
-| `redirect_uri_port`     | The port on which the server listening for the OAuth 2 code will be started. | Optional | 5000 |
-| `timeout`               | Maximum amount of seconds to wait for a code or a token to be received once requested. | Optional | 60 |
-| `success_display_time`  | In case a code is successfully received, this is the maximum amount of milliseconds the success page will be displayed in your browser. | Optional | 1 |
-| `failure_display_time`  | In case received code is not valid, this is the maximum amount of milliseconds the failure page will be displayed in your browser. | Optional | 5000 |
-| `header_name`           | Name of the header field used to send token. | Optional | Authorization |
-| `header_value`          | Format used to send the token value. "{token}" must be present as it will be replaced by the actual token. | Optional | Bearer {token} |
-| `response_type`         | Value of the response_type query parameter if not already provided in authorization URL. | Optional | code |
-| `token_field_name`      | Field name containing the token. | Optional | access_token |
-| `early_expiry`          | Number of seconds before actual token expiry where token will be considered as expired. Used to ensure token will not expire between the time of retrieval and the time the request reaches the actual server. Set it to 0 to deactivate this feature and use the same token until actual expiry. | Optional  | 30.0  |
-| `code_field_name`       | Field name containing the code. | Optional | code |
-| `username`              | User name in case basic authentication should be used to retrieve token. | Optional |  |
-| `password`              | User password in case basic authentication should be used to retrieve token. | Optional |  |
-| `client`                | `httpx.Client` instance that will be used to request the token. Use it to provide a custom proxying rule for instance. | Optional |  |
+| Name                    | Description                                                                                                                                                                                                                                                                                       | Mandatory  | Default value  |
+|:------------------------|:--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|:-----------|:---------------|
+| `authorization_url`     | OAuth 2 authorization URL.                                                                                                                                                                                                                                                                        | Mandatory  |                |
+| `token_url`             | OAuth 2 token URL.                                                                                                                                                                                                                                                                                | Mandatory  |                |
+| `redirect_uri_domain`   | [FQDN](https://en.wikipedia.org/wiki/Fully_qualified_domain_name) to use in the redirect_uri when localhost is not allowed.                                                                                                                                                                       | Optional   | localhost      |
+| `redirect_uri_endpoint` | Custom endpoint that will be used as redirect_uri the following way: http://<redirect_uri_domain>:<redirect_uri_port>/<redirect_uri_endpoint>.                                                                                                                                                    | Optional   | ''             |
+| `redirect_uri_port`     | The port on which the server listening for the OAuth 2 code will be started.                                                                                                                                                                                                                      | Optional   | 5000           |
+| `timeout`               | Maximum amount of seconds to wait for a code or a token to be received once requested.                                                                                                                                                                                                            | Optional   | 60             |
+| `header_name`           | Name of the header field used to send token.                                                                                                                                                                                                                                                      | Optional   | Authorization  |
+| `header_value`          | Format used to send the token value. "{token}" must be present as it will be replaced by the actual token.                                                                                                                                                                                        | Optional   | Bearer {token} |
+| `response_type`         | Value of the response_type query parameter if not already provided in authorization URL.                                                                                                                                                                                                          | Optional   | code           |
+| `token_field_name`      | Field name containing the token.                                                                                                                                                                                                                                                                  | Optional   | access_token   |
+| `early_expiry`          | Number of seconds before actual token expiry where token will be considered as expired. Used to ensure token will not expire between the time of retrieval and the time the request reaches the actual server. Set it to 0 to deactivate this feature and use the same token until actual expiry. | Optional   | 30.0           |
+| `code_field_name`       | Field name containing the code.                                                                                                                                                                                                                                                                   | Optional   | code           |
+| `username`              | User name in case basic authentication should be used to retrieve token.                                                                                                                                                                                                                          | Optional   |                |
+| `password`              | User password in case basic authentication should be used to retrieve token.                                                                                                                                                                                                                      | Optional   |                |
+| `client`                | `httpx.Client` instance that will be used to request the token. Use it to provide a custom proxying rule for instance.                                                                                                                                                                            | Optional   |                |
 
 Any other parameter will be put as query parameter in the authorization URL and as body parameters in the token URL.        
 
@@ -120,6 +124,10 @@ with httpx.Client() as client:
     client.get('https://www.example.com', auth=okta)
 ```
 
+Note:
+* You can persist tokens thanks to [the token cache](#managing-token-cache).
+* You can tweak web browser interaction thanks to [the display settings](#managing-the-web-browser).
+
 ###### Parameters
 
 | Name                    | Description                | Mandatory | Default value |
@@ -132,11 +140,10 @@ with httpx.Client() as client:
 | `nonce`                 | Refer to [OpenID ID Token specifications][3] for more details. | Optional | Newly generated Universal Unique Identifier. |
 | `scope`                 | Scope parameter sent in query. Can also be a list of scopes. | Optional | openid |
 | `authorization_server`  | Okta authorization server. | Optional | 'default' |
-| `redirect_uri_endpoint` | Custom endpoint that will be used as redirect_uri the following way: http://localhost:<redirect_uri_port>/<redirect_uri_endpoint>. | Optional | ''             |
+| `redirect_uri_domain`   | [FQDN](https://en.wikipedia.org/wiki/Fully_qualified_domain_name) to use in the redirect_uri when localhost is not allowed.                                                                                                                                                                       | Optional   | localhost      |
+| `redirect_uri_endpoint` | Custom endpoint that will be used as redirect_uri the following way: http://<redirect_uri_domain>:<redirect_uri_port>/<redirect_uri_endpoint>.                                                                                                                                                    | Optional   | ''             |
 | `redirect_uri_port`     | The port on which the server listening for the OAuth 2 token will be started. | Optional | 5000 |
 | `timeout`               | Maximum amount of seconds to wait for a token to be received once requested. | Optional | 60 |
-| `success_display_time`  | In case a token is successfully received, this is the maximum amount of milliseconds the success page will be displayed in your browser. | Optional | 1 |
-| `failure_display_time`  | In case received token is not valid, this is the maximum amount of milliseconds the failure page will be displayed in your browser. | Optional | 5000 |
 | `header_name`           | Name of the header field used to send token. | Optional | Authorization |
 | `header_value`          | Format used to send the token value. "{token}" must be present as it will be replaced by the actual token. | Optional | Bearer {token} |
 | `client`                | `httpx.Client` instance that will be used to request the token. Use it to provide a custom proxying rule for instance. | Optional |  |
@@ -165,6 +172,10 @@ with httpx.Client() as client:
     client.get('https://wakatime.com/api/v1/users/current', auth=waka_time)
 ```
 
+Note:
+* You can persist tokens thanks to [the token cache](#managing-token-cache).
+* You can tweak web browser interaction thanks to [the display settings](#managing-the-web-browser).
+
 ###### Parameters
 
 | Name                    | Description                | Mandatory | Default value                                |
@@ -176,11 +187,10 @@ with httpx.Client() as client:
 | `token_field_name`      | Field name containing the token. | Optional  | access_token                                 |
 | `early_expiry`          | Number of seconds before actual token expiry where token will be considered as expired. Used to ensure token will not expire between the time of retrieval and the time the request reaches the actual server. Set it to 0 to deactivate this feature and use the same token until actual expiry. | Optional  | 30.0                                         |
 | `nonce`                 | Refer to [OpenID ID Token specifications][3] for more details. | Optional  | Newly generated Universal Unique Identifier. |
-| `redirect_uri_endpoint` | Custom endpoint that will be used as redirect_uri the following way: http://localhost:<redirect_uri_port>/<redirect_uri_endpoint>. | Optional  | ''                                           |
+| `redirect_uri_domain`   | [FQDN](https://en.wikipedia.org/wiki/Fully_qualified_domain_name) to use in the redirect_uri when localhost is not allowed.                                                                                                                                                                       | Optional   | localhost      |
+| `redirect_uri_endpoint` | Custom endpoint that will be used as redirect_uri the following way: http://<redirect_uri_domain>:<redirect_uri_port>/<redirect_uri_endpoint>.                                                                                                                                                    | Optional   | ''             |
 | `redirect_uri_port`     | The port on which the server listening for the OAuth 2 token will be started. | Optional  | 5000                                         |
 | `timeout`               | Maximum amount of seconds to wait for a token to be received once requested. | Optional  | 60                                           |
-| `success_display_time`  | In case a token is successfully received, this is the maximum amount of milliseconds the success page will be displayed in your browser. | Optional  | 1                                            |
-| `failure_display_time`  | In case received token is not valid, this is the maximum amount of milliseconds the failure page will be displayed in your browser. | Optional  | 5000                                         |
 | `header_name`           | Name of the header field used to send token. | Optional  | Authorization                                |
 | `header_value`          | Format used to send the token value. "{token}" must be present as it will be replaced by the actual token. | Optional  | Bearer {token}                               |
 | `client`                | `httpx.Client` instance that will be used to request the token. Use it to provide a custom proxying rule for instance. | Optional  |                                              |
@@ -201,17 +211,20 @@ with httpx.Client() as client:
     client.get('https://www.example.com', auth=OAuth2AuthorizationCodePKCE('https://www.authorization.url', 'https://www.token.url'))
 ```
 
+Note:
+* You can persist tokens thanks to [the token cache](#managing-token-cache).
+* You can tweak web browser interaction thanks to [the display settings](#managing-the-web-browser).
+
 #### Parameters 
 
 | Name                    | Description                | Mandatory | Default value |
 |:------------------------|:---------------------------|:----------|:--------------|
 | `authorization_url`     | OAuth 2 authorization URL. | Mandatory |               |
 | `token_url`             | OAuth 2 token URL.         | Mandatory |               |
-| `redirect_uri_endpoint` | Custom endpoint that will be used as redirect_uri the following way: http://localhost:<redirect_uri_port>/<redirect_uri_endpoint>. | Optional | ''             |
+| `redirect_uri_domain`   | [FQDN](https://en.wikipedia.org/wiki/Fully_qualified_domain_name) to use in the redirect_uri when localhost is not allowed.                                                                                                                                                                       | Optional   | localhost      |
+| `redirect_uri_endpoint` | Custom endpoint that will be used as redirect_uri the following way: http://<redirect_uri_domain>:<redirect_uri_port>/<redirect_uri_endpoint>.                                                                                                                                                    | Optional   | ''             |
 | `redirect_uri_port`     | The port on which the server listening for the OAuth 2 code will be started. | Optional | 5000 |
 | `timeout`               | Maximum amount of seconds to wait for a code or a token to be received once requested. | Optional | 60 |
-| `success_display_time`  | In case a code is successfully received, this is the maximum amount of milliseconds the success page will be displayed in your browser. | Optional | 1 |
-| `failure_display_time`  | In case received code is not valid, this is the maximum amount of milliseconds the failure page will be displayed in your browser. | Optional | 5000 |
 | `header_name`           | Name of the header field used to send token. | Optional | Authorization |
 | `header_value`          | Format used to send the token value. "{token}" must be present as it will be replaced by the actual token. | Optional | Bearer {token} |
 | `response_type`         | Value of the response_type query parameter if not already provided in authorization URL. | Optional | code |
@@ -252,6 +265,10 @@ with httpx.Client() as client:
     client.get('https://www.example.com', auth=okta)
 ```
 
+Note:
+* You can persist tokens thanks to [the token cache](#managing-token-cache).
+* You can tweak web browser interaction thanks to [the display settings](#managing-the-web-browser).
+
 ###### Parameters
 
 | Name                    | Description                | Mandatory | Default value |
@@ -265,11 +282,10 @@ with httpx.Client() as client:
 | `nonce`                 | Refer to [OpenID ID Token specifications][3] for more details. | Optional | Newly generated Universal Unique Identifier. |
 | `scope`                 | Scope parameter sent in query. Can also be a list of scopes. | Optional | openid |
 | `authorization_server`  | Okta authorization server. | Optional | 'default' |
-| `redirect_uri_endpoint` | Custom endpoint that will be used as redirect_uri the following way: http://localhost:<redirect_uri_port>/<redirect_uri_endpoint>. | Optional | ''             |
+| `redirect_uri_domain`   | [FQDN](https://en.wikipedia.org/wiki/Fully_qualified_domain_name) to use in the redirect_uri when localhost is not allowed.                                                                                                                                                                       | Optional   | localhost      |
+| `redirect_uri_endpoint` | Custom endpoint that will be used as redirect_uri the following way: http://<redirect_uri_domain>:<redirect_uri_port>/<redirect_uri_endpoint>.                                                                                                                                                    | Optional   | ''             |
 | `redirect_uri_port`     | The port on which the server listening for the OAuth 2 token will be started. | Optional | 5000 |
 | `timeout`               | Maximum amount of seconds to wait for a token to be received once requested. | Optional | 60 |
-| `success_display_time`  | In case a token is successfully received, this is the maximum amount of milliseconds the success page will be displayed in your browser. | Optional | 1 |
-| `failure_display_time`  | In case received token is not valid, this is the maximum amount of milliseconds the failure page will be displayed in your browser. | Optional | 5000 |
 | `header_name`           | Name of the header field used to send token. | Optional | Authorization |
 | `header_value`          | Format used to send the token value. "{token}" must be present as it will be replaced by the actual token. | Optional | Bearer {token} |
 | `client`                | `httpx.Client` instance that will be used to request the token. Use it to provide a custom proxying rule for instance. | Optional |  |
@@ -296,6 +312,9 @@ from httpx_auth import OAuth2ResourceOwnerPasswordCredentials
 with httpx.Client() as client:
     client.get('https://www.example.com', auth=OAuth2ResourceOwnerPasswordCredentials('https://www.token.url', 'user name', 'user password'))
 ```
+
+Note:
+* You can persist tokens thanks to [the token cache](#managing-token-cache).
 
 #### Parameters
 
@@ -337,6 +356,9 @@ with httpx.Client() as client:
     client.get('https://www.example.com', auth=okta)
 ```
 
+Note:
+* You can persist tokens thanks to [the token cache](#managing-token-cache).
+
 ###### Parameters
 
 | Name                    | Description                | Mandatory | Default value |
@@ -371,6 +393,9 @@ with httpx.Client() as client:
     client.get('https://www.example.com', auth=OAuth2ClientCredentials('https://www.token.url', client_id='id', client_secret='secret'))
 ```
 
+Note:
+* You can persist tokens thanks to [the token cache](#managing-token-cache).
+
 #### Parameters
 
 | Name               | Description                                  | Mandatory | Default value |
@@ -396,7 +421,7 @@ If the one you are looking for is not yet supported, feel free to [ask for its i
 
 ##### Okta (OAuth2 Client Credentials)
 
-[Okta Client Credentials Grant](https://developer.okta.com/docs/guides/implement-client-creds/overview/) providing access tokens is supported.
+[Okta Client Credentials Grant](https://developer.okta.com/docs/guides/implement-grant-type/clientcreds/main/) providing access tokens is supported.
 
 Use `httpx_auth.OktaClientCredentials` to configure this kind of authentication.
 
@@ -405,10 +430,13 @@ import httpx
 from httpx_auth import OktaClientCredentials
 
 
-okta = OktaClientCredentials(instance='testserver.okta-emea.com', client_id='54239d18-c68c-4c47-8bdd-ce71ea1d50cd', client_secret="secret")
+okta = OktaClientCredentials(instance='testserver.okta-emea.com', client_id='54239d18-c68c-4c47-8bdd-ce71ea1d50cd', client_secret="secret", scope=["scope1", "scope2"])
 with httpx.Client() as client:
     client.get('https://www.example.com', auth=okta)
 ```
+
+Note:
+* You can persist tokens thanks to [the token cache](#managing-token-cache).
 
 ###### Parameters
 
@@ -417,14 +445,14 @@ with httpx.Client() as client:
 | `instance`              | Okta instance (like "testserver.okta-emea.com"). | Mandatory |               |
 | `client_id`             | Okta Application Identifier (formatted as an Universal Unique Identifier). | Mandatory |               |
 | `client_secret`         | Resource owner password.                     | Mandatory |               |
-| `authorization_server`  | Okta authorization server. | Optional | 'default' |
-| `timeout`               | Maximum amount of seconds to wait for a token to be received once requested. | Optional | 60 |
-| `header_name`           | Name of the header field used to send token. | Optional | Authorization |
-| `header_value`          | Format used to send the token value. "{token}" must be present as it will be replaced by the actual token. | Optional | Bearer {token} |
-| `scope`                 | Scope parameter sent in query. Can also be a list of scopes. | Optional | openid |
-| `token_field_name`      | Field name containing the token. | Optional | access_token |
+| `scope`                 | Scope parameter sent in query. Can also be a list of scopes. | Mandatory |  |
+| `authorization_server`  | Okta authorization server. | Optional  | 'default' |
+| `timeout`               | Maximum amount of seconds to wait for a token to be received once requested. | Optional  | 60 |
+| `header_name`           | Name of the header field used to send token. | Optional  | Authorization |
+| `header_value`          | Format used to send the token value. "{token}" must be present as it will be replaced by the actual token. | Optional  | Bearer {token} |
+| `token_field_name`      | Field name containing the token. | Optional  | access_token |
 | `early_expiry`          | Number of seconds before actual token expiry where token will be considered as expired. Used to ensure token will not expire between the time of retrieval and the time the request reaches the actual server. Set it to 0 to deactivate this feature and use the same token until actual expiry. | Optional  | 30.0  |
-| `client`                | `httpx.Client` instance that will be used to request the token. Use it to provide a custom proxying rule for instance. | Optional |  |
+| `client`                | `httpx.Client` instance that will be used to request the token. Use it to provide a custom proxying rule for instance. | Optional  |  |
 
 Any other parameter will be put as query parameter in the token URL.        
 
@@ -442,6 +470,10 @@ with httpx.Client() as client:
     client.get('https://www.example.com', auth=OAuth2Implicit('https://www.authorization.url'))
 ```
 
+Note:
+* You can persist tokens thanks to [the token cache](#managing-token-cache).
+* You can tweak web browser interaction thanks to [the display settings](#managing-the-web-browser).
+
 #### Parameters
 
 | Name                    | Description                | Mandatory | Default value |
@@ -450,11 +482,10 @@ with httpx.Client() as client:
 | `response_type`         | Value of the response_type query parameter if not already provided in authorization URL. | Optional | token |
 | `token_field_name`      | Field name containing the token. | Optional | id_token if response_type is id_token, otherwise access_token |
 | `early_expiry`          | Number of seconds before actual token expiry where token will be considered as expired. Used to ensure token will not expire between the time of retrieval and the time the request reaches the actual server. Set it to 0 to deactivate this feature and use the same token until actual expiry. | Optional  | 30.0  |
-| `redirect_uri_endpoint` | Custom endpoint that will be used as redirect_uri the following way: http://localhost:<redirect_uri_port>/<redirect_uri_endpoint>. | Optional | ''             |
+| `redirect_uri_domain`   | [FQDN](https://en.wikipedia.org/wiki/Fully_qualified_domain_name) to use in the redirect_uri when localhost is not allowed.                                                                                                                                                                       | Optional   | localhost      |
+| `redirect_uri_endpoint` | Custom endpoint that will be used as redirect_uri the following way: http://<redirect_uri_domain>:<redirect_uri_port>/<redirect_uri_endpoint>.                                                                                                                                                    | Optional   | ''             |
 | `redirect_uri_port`     | The port on which the server listening for the OAuth 2 token will be started. | Optional | 5000 |
 | `timeout`               | Maximum amount of seconds to wait for a token to be received once requested. | Optional | 60 |
-| `success_display_time`  | In case a token is successfully received, this is the maximum amount of milliseconds the success page will be displayed in your browser. | Optional | 1 |
-| `failure_display_time`  | In case received token is not valid, this is the maximum amount of milliseconds the failure page will be displayed in your browser. | Optional | 5000 |
 | `header_name`           | Name of the header field used to send token. | Optional | Authorization |
 | `header_value`          | Format used to send the token value. "{token}" must be present as it will be replaced by the actual token. | Optional | Bearer {token} |
 
@@ -490,6 +521,10 @@ with httpx.Client() as client:
     client.get('https://www.example.com', auth=aad)
 ```
 
+Note:
+* You can persist tokens thanks to [the token cache](#managing-token-cache).
+* You can tweak web browser interaction thanks to [the display settings](#managing-the-web-browser).
+
 You can retrieve Microsoft Azure Active Directory application information thanks to the [application list on Azure portal](https://portal.azure.com/#blade/Microsoft_AAD_IAM/StartboardApplicationsMenuBlade/AllApps/menuId/).
 
 ###### Parameters
@@ -502,11 +537,10 @@ You can retrieve Microsoft Azure Active Directory application information thanks
 | `token_field_name`      | Field name containing the token. | Optional | access_token |
 | `early_expiry`          | Number of seconds before actual token expiry where token will be considered as expired. Used to ensure token will not expire between the time of retrieval and the time the request reaches the actual server. Set it to 0 to deactivate this feature and use the same token until actual expiry. | Optional  | 30.0  |
 | `nonce`                 | Refer to [OpenID ID Token specifications][3] for more details | Optional | Newly generated Universal Unique Identifier. |
-| `redirect_uri_endpoint` | Custom endpoint that will be used as redirect_uri the following way: http://localhost:<redirect_uri_port>/<redirect_uri_endpoint>. | Optional | ''             |
+| `redirect_uri_domain`   | [FQDN](https://en.wikipedia.org/wiki/Fully_qualified_domain_name) to use in the redirect_uri when localhost is not allowed.                                                                                                                                                                       | Optional   | localhost      |
+| `redirect_uri_endpoint` | Custom endpoint that will be used as redirect_uri the following way: http://<redirect_uri_domain>:<redirect_uri_port>/<redirect_uri_endpoint>.                                                                                                                                                    | Optional   | ''             |
 | `redirect_uri_port`     | The port on which the server listening for the OAuth 2 token will be started. | Optional | 5000 |
 | `timeout`               | Maximum amount of seconds to wait for a token to be received once requested. | Optional | 60 |
-| `success_display_time`  | In case a token is successfully received, this is the maximum amount of milliseconds the success page will be displayed in your browser. | Optional | 1 |
-| `failure_display_time`  | In case received token is not valid, this is the maximum amount of milliseconds the failure page will be displayed in your browser. | Optional | 5000 |
 | `header_name`           | Name of the header field used to send token. | Optional | Authorization |
 | `header_value`          | Format used to send the token value. "{token}" must be present as it will be replaced by the actual token. | Optional | Bearer {token} |
 
@@ -534,6 +568,10 @@ with httpx.Client() as client:
     client.get('https://www.example.com', auth=aad)
 ```
 
+Note:
+* You can persist tokens thanks to [the token cache](#managing-token-cache).
+* You can tweak web browser interaction thanks to [the display settings](#managing-the-web-browser).
+
 You can retrieve Microsoft Azure Active Directory application information thanks to the [application list on Azure portal](https://portal.azure.com/#blade/Microsoft_AAD_IAM/StartboardApplicationsMenuBlade/AllApps/menuId/).
 
 ###### Parameters
@@ -546,11 +584,10 @@ You can retrieve Microsoft Azure Active Directory application information thanks
 | `token_field_name`      | Field name containing the token. | Optional | id_token |
 | `early_expiry`          | Number of seconds before actual token expiry where token will be considered as expired. Used to ensure token will not expire between the time of retrieval and the time the request reaches the actual server. Set it to 0 to deactivate this feature and use the same token until actual expiry. | Optional  | 30.0  |
 | `nonce`                 | Refer to [OpenID ID Token specifications][3] for more details | Optional | Newly generated Universal Unique Identifier. |
-| `redirect_uri_endpoint` | Custom endpoint that will be used as redirect_uri the following way: http://localhost:<redirect_uri_port>/<redirect_uri_endpoint>. | Optional | ''             |
+| `redirect_uri_domain`   | [FQDN](https://en.wikipedia.org/wiki/Fully_qualified_domain_name) to use in the redirect_uri when localhost is not allowed.                                                                                                                                                                       | Optional   | localhost      |
+| `redirect_uri_endpoint` | Custom endpoint that will be used as redirect_uri the following way: http://<redirect_uri_domain>:<redirect_uri_port>/<redirect_uri_endpoint>.                                                                                                                                                    | Optional   | ''             |
 | `redirect_uri_port`     | The port on which the server listening for the OAuth 2 token will be started. | Optional | 5000 |
 | `timeout`               | Maximum amount of seconds to wait for a token to be received once requested. | Optional | 60 |
-| `success_display_time`  | In case a token is successfully received, this is the maximum amount of milliseconds the success page will be displayed in your browser. | Optional | 1 |
-| `failure_display_time`  | In case received token is not valid, this is the maximum amount of milliseconds the failure page will be displayed in your browser. | Optional | 5000 |
 | `header_name`           | Name of the header field used to send token. | Optional | Authorization |
 | `header_value`          | Format used to send the token value. "{token}" must be present as it will be replaced by the actual token. | Optional | Bearer {token} |
 
@@ -578,6 +615,10 @@ with httpx.Client() as client:
     client.get('https://www.example.com', auth=okta)
 ```
 
+Note:
+* You can persist tokens thanks to [the token cache](#managing-token-cache).
+* You can tweak web browser interaction thanks to [the display settings](#managing-the-web-browser).
+
 ###### Parameters
 
 | Name                    | Description                | Mandatory | Default value |
@@ -590,11 +631,10 @@ with httpx.Client() as client:
 | `nonce`                 | Refer to [OpenID ID Token specifications][3] for more details. | Optional | Newly generated Universal Unique Identifier. |
 | `scope`                 | Scope parameter sent in query. Can also be a list of scopes. | Optional | ['openid', 'profile', 'email'] |
 | `authorization_server`  | Okta authorization server. | Optional | 'default' |
-| `redirect_uri_endpoint` | Custom endpoint that will be used as redirect_uri the following way: http://localhost:<redirect_uri_port>/<redirect_uri_endpoint>. | Optional | ''             |
+| `redirect_uri_domain`   | [FQDN](https://en.wikipedia.org/wiki/Fully_qualified_domain_name) to use in the redirect_uri when localhost is not allowed.                                                                                                                                                                       | Optional   | localhost      |
+| `redirect_uri_endpoint` | Custom endpoint that will be used as redirect_uri the following way: http://<redirect_uri_domain>:<redirect_uri_port>/<redirect_uri_endpoint>.                                                                                                                                                    | Optional   | ''             |
 | `redirect_uri_port`     | The port on which the server listening for the OAuth 2 token will be started. | Optional | 5000 |
 | `timeout`               | Maximum amount of seconds to wait for a token to be received once requested. | Optional | 60 |
-| `success_display_time`  | In case a token is successfully received, this is the maximum amount of milliseconds the success page will be displayed in your browser. | Optional | 1 |
-| `failure_display_time`  | In case received token is not valid, this is the maximum amount of milliseconds the failure page will be displayed in your browser. | Optional | 5000 |
 | `header_name`           | Name of the header field used to send token. | Optional | Authorization |
 | `header_value`          | Format used to send the token value. "{token}" must be present as it will be replaced by the actual token. | Optional | Bearer {token} |
 
@@ -622,6 +662,10 @@ with httpx.Client() as client:
     client.get('https://www.example.com', auth=okta)
 ```
 
+Note:
+* You can persist tokens thanks to [the token cache](#managing-token-cache).
+* You can tweak web browser interaction thanks to [the display settings](#managing-the-web-browser).
+
 ###### Parameters
 
 | Name                    | Description                | Mandatory | Default value |
@@ -634,11 +678,10 @@ with httpx.Client() as client:
 | `nonce`                 | Refer to [OpenID ID Token specifications][3] for more details. | Optional | Newly generated Universal Unique Identifier. |
 | `scope`                 | Scope parameter sent in query. Can also be a list of scopes. | Optional | ['openid', 'profile', 'email'] |
 | `authorization_server`  | Okta authorization server. | Optional | 'default' |
-| `redirect_uri_endpoint` | Custom endpoint that will be used as redirect_uri the following way: http://localhost:<redirect_uri_port>/<redirect_uri_endpoint>. | Optional | ''             |
+| `redirect_uri_domain`   | [FQDN](https://en.wikipedia.org/wiki/Fully_qualified_domain_name) to use in the redirect_uri when localhost is not allowed.                                                                                                                                                                       | Optional   | localhost      |
+| `redirect_uri_endpoint` | Custom endpoint that will be used as redirect_uri the following way: http://<redirect_uri_domain>:<redirect_uri_port>/<redirect_uri_endpoint>.                                                                                                                                                    | Optional   | ''             |
 | `redirect_uri_port`     | The port on which the server listening for the OAuth 2 token will be started. | Optional | 5000 |
 | `timeout`               | Maximum amount of seconds to wait for a token to be received once requested. | Optional | 60 |
-| `success_display_time`  | In case a token is successfully received, this is the maximum amount of milliseconds the success page will be displayed in your browser. | Optional | 1 |
-| `failure_display_time`  | In case received token is not valid, this is the maximum amount of milliseconds the failure page will be displayed in your browser. | Optional | 5000 |
 | `header_name`           | Name of the header field used to send token. | Optional | Authorization |
 | `header_value`          | Format used to send the token value. "{token}" must be present as it will be replaced by the actual token. | Optional | Bearer {token} |
 
@@ -654,17 +697,35 @@ Usual extra parameters are:
 
 To avoid asking for a new token every new request, a token cache is used.
 
-Default cache is in memory but it is also possible to use a physical cache.
+Default cache is in memory, but it is also possible to use a physical cache.
 
-You need to provide the location of your token cache file. It can be a full or relative path.
+You need to provide the location of your token cache file. It can be a full or relative path (`str` or `pathlib.Path`).
 
-If the file already exists it will be used, if the file do not exists it will be created.
+If the file already exists it will be used, if the file do not exist it will be created.
 
 ```python
 from httpx_auth import OAuth2, JsonTokenFileCache
 
 OAuth2.token_cache = JsonTokenFileCache('path/to/my_token_cache.json')
 ```
+
+### Managing the web browser
+
+You can configure the browser display settings thanks to `httpx_auth.OAuth2.display` as in the following:
+```python
+from httpx_auth import OAuth2, DisplaySettings
+
+OAuth2.display = DisplaySettings()
+```
+
+The following parameters can be provided to `DisplaySettings`:
+
+| Name                   | Description                                                                                                                                                                      | Default value |
+|:-----------------------|:---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|:--------------|
+| `success_display_time` | In case a code or token is successfully received, this is the maximum amount of milliseconds the success page will be displayed in your browser.                                 | 1             |
+| `success_html`         | In case a code or token is successfully received, this is the success page that will be displayed in your browser. `{display_time}` is expected in this content.                 |               |
+| `failure_display_time` | In case received code or token is not valid, this is the maximum amount of milliseconds the failure page will be displayed in your browser.                                      | 10_000        |
+| `failure_html`         | In case received code or token is not valid, this is the failure page that will be displayed in your browser. `{information}` and `{display_time}` are expected in this content. |               |
 
 ## AWS Signature v4
 
@@ -706,6 +767,36 @@ Note that the following changes were made compared to `requests-aws4auth`:
 | `service`          | The name of the service you are connecting to, as per [this list](http://docs.aws.amazon.com/general/latest/gr/rande.html). e.g. elasticbeanstalk.                                             | Mandatory  |                                                                                                                          |
 | `security_token`   | Used for the `x-amz-security-token` header, for use with STS temporary credentials.                                                                                                            | Optional   |                                                                                                                          |
 | `include_headers`  | Set of headers to include in the canonical and signed headers (in addition to the default). Note that `x-amz-client-context` is not included by default and `*` will include all headers.      | Optional   | {"host", "content-type", "x-amz-*"} and if `security_token` is provided, `x-amz-security-token`. |
+
+### Dynamically retrieving credentials using boto3
+
+While `httpx-auth` does not want to include support for `botocore`, the following authentication class should allow you to automatically retrieve up-to-date credentials.
+
+```python
+import httpx
+from botocore.session import Session
+from httpx_auth import AWS4Auth
+
+class AWS4BotoAuth(AWS4Auth):
+    def __init__(self, region: str, service: str = "s3", **kwargs):
+        self.refreshable_credentials = Session().get_credentials()
+        AWS4Auth.__init__(self, access_id=kwargs.pop("access_id", "_"), secret_key=kwargs.pop("secret_key", "_"), region=region, service=service, **kwargs)
+
+    def auth_flow(self, request):
+        self.refresh_credentials()
+        yield super().auth_flow(request)
+
+    def refresh_credentials(self):
+        credentials = self.refreshable_credentials.get_frozen_credentials()
+        self.access_id = credentials.access_key
+        self.secret_key = credentials.secret_key
+        self.security_token = credentials.token
+
+
+aws = AWS4BotoAuth(region="eu-west-1")
+with httpx.Client() as client:
+    client.get('http://s3-eu-west-1.amazonaws.com', auth=aws)
+```
 
 ## API key in header
 
@@ -780,6 +871,18 @@ with httpx.Client() as client:
     client.get('https://www.example.com', auth=api_key + oauth2)
 ```
 
+This is supported on every authentication class exposed by `httpx_auth`, but you can also enable it on your own authentication classes by using `httpx_auth.SupportMultiAuth` as in the following sample:
+
+```python
+from httpx_auth import SupportMultiAuth
+# TODO Import your own auth here
+from my_package import MyAuth
+
+class MyMultiAuth(MyAuth, SupportMultiAuth):
+    pass
+```
+
+
 ## Available pytest fixtures
 
 Testing the code using `httpx_auth` authentication classes can be achieved using provided [`pytest`][6] fixtures.
@@ -795,18 +898,20 @@ def test_something(token_cache_mock):
 ```
 
 Use this fixture to mock authentication success for any of the following classes:
- * OAuth2AuthorizationCodePKCE
- * OktaAuthorizationCodePKCE
- * OAuth2Implicit
- * OktaImplicit
- * OktaImplicitIdToken
- * AzureActiveDirectoryImplicit
- * AzureActiveDirectoryImplicitIdToken
- * OAuth2AuthorizationCode
- * OktaAuthorizationCode
- * OAuth2ClientCredentials
- * OktaClientCredentials
- * OAuth2ResourceOwnerPasswordCredentials,
+ * `OAuth2AuthorizationCodePKCE`
+ * `OktaAuthorizationCodePKCE`
+ * `OAuth2Implicit`
+ * `OktaImplicit`
+ * `OktaImplicitIdToken`
+ * `AzureActiveDirectoryImplicit`
+ * `AzureActiveDirectoryImplicitIdToken`
+ * `OAuth2AuthorizationCode`
+ * `OktaAuthorizationCode`
+ * `WakaTimeAuthorizationCode`
+ * `OAuth2ClientCredentials`
+ * `OktaClientCredentials`
+ * `OAuth2ResourceOwnerPasswordCredentials`
+ * `OktaResourceOwnerPasswordCredentials`
 
 By default, an access token with value `2YotnFZFEjr1zCsicMWpAA` is generated.
 
@@ -885,9 +990,7 @@ def test_something(browser_mock: BrowserMock):
 
     # perform code using authentication
 
-    tab.assert_success(
-        "You are now authenticated on 1234 You may close this tab."
-    )
+    tab.assert_success()
 ```
 
 [1]: https://pypi.python.org/pypi/httpx "httpx module"

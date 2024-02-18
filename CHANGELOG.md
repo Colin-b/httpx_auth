@@ -6,6 +6,43 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.21.0] - 2024-02-19
+### Added
+- Publicly expose `httpx_auth.SupportMultiAuth`, allowing multiple authentication support for every `httpx` authentication class that exists.
+- Publicly expose `httpx_auth.TokenMemoryCache`, allowing to create custom Oauth2 token cache based on this default implementation.
+- You can now provide your own HTML success (`success_html`) and failure (`failure_html`) display via the new `OAuth2.display` shared setting. Refer to documentation for more details.
+- Support for refresh tokens in the Resource Owner Password Credentials flow.
+- Support for refresh tokens in the Authorization code (with and without PKCE) flow.
+- Thanks to the new `redirect_uri_domain` parameter on Authorization code (with and without PKCE) and Implicit flows, you can now provide the [FQDN](https://en.wikipedia.org/wiki/Fully_qualified_domain_name) to use in the `redirect_uri` when `localhost` (the default) is not allowed.
+
+### Changed
+- Except for `httpx_auth.testing`, only direct access via `httpx_auth.` was considered publicly exposed. This is now explicit, as inner packages are now using private prefix (`_`).
+  If you were relying on some classes or functions that are now internal, feel free to open an issue.
+- Browser display settings have been moved to a shared setting, see documentation for more information on `httpx_auth.OAuth2.display`.
+  The failure page will be displayed for 10 seconds by default instead of 5 seconds previously.
+  As a result the following classes no longer expose `success_display_time` and `failure_display_time` parameters.
+  - `httpx_auth.OAuth2AuthorizationCode`.
+  - `httpx_auth.OktaAuthorizationCode`.
+  - `httpx_auth.WakaTimeAuthorizationCode`.
+  - `httpx_auth.OAuth2AuthorizationCodePKCE`.
+  - `httpx_auth.OktaAuthorizationCodePKCE`.
+  - `httpx_auth.OAuth2Implicit`.
+  - `httpx_auth.AzureActiveDirectoryImplicit`.
+  - `httpx_auth.AzureActiveDirectoryImplicitIdToken`.
+  - `httpx_auth.OktaImplicit`.
+  - `httpx_auth.OktaImplicitIdToken`.
+- The authentication success and failure displayed in the browser were revamped to be more user-friendly. `httpx_auth.testing` was modified to accommodate this change:
+  - `tab.assert_success` `expected_message` parameter was removed.
+  - `tab.assert_failure` `expected_message` parameter should not be prefixed with `Unable to properly perform authentication: ` anymore and `\n` in the message should be replaced with `<br>`.
+- `httpx_auth.JsonTokenFileCache` does not expose `tokens_path` or `last_save_time` attributes anymore and is also allowing `pathlib.Path` instances as cache location.
+- `httpx_auth.TokenMemoryCache` does not expose `forbid_concurrent_cache_access` or `forbid_concurrent_missing_token_function_call` attributes anymore.
+- `httpx_auth.JsonTokenFileCache` and `httpx_auth.TokenMemoryCache` `get_token` method now handles a new optional parameter named `on_expired_token`.
+
+### Fixed
+- `httpx_auth.OktaClientCredentials` `scope` parameter is now mandatory and does not default to `openid` anymore.
+- `httpx_auth.OktaClientCredentials` will now display a more user-friendly error message in case Okta instance is not provided.
+- Tokens cache `DEBUG` logs will not display tokens anymore.
+
 ## [0.20.0] - 2024-02-12
 ### Fixed
 - Remove deprecation warnings due to usage of `utcnow` and `utcfromtimestamp`. Thanks to [`Raphael Krupinski`](https://github.com/rafalkrupinski).
@@ -208,7 +245,8 @@ Note that a few changes were made:
 ### Added
 - Placeholder for port of requests_auth to httpx
 
-[Unreleased]: https://github.com/Colin-b/httpx_auth/compare/v0.20.0...HEAD
+[Unreleased]: https://github.com/Colin-b/httpx_auth/compare/v0.21.0...HEAD
+[0.21.0]: https://github.com/Colin-b/httpx_auth/compare/v0.20.0...v0.21.0
 [0.20.0]: https://github.com/Colin-b/httpx_auth/compare/v0.19.0...v0.20.0
 [0.19.0]: https://github.com/Colin-b/httpx_auth/compare/v0.18.0...v0.19.0
 [0.18.0]: https://github.com/Colin-b/httpx_auth/compare/v0.17.0...v0.18.0

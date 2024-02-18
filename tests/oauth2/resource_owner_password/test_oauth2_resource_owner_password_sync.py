@@ -6,6 +6,7 @@ import httpx
 
 import httpx_auth
 from httpx_auth.testing import token_cache
+from httpx_auth._oauth2.tokens import to_expiry
 
 
 def test_oauth2_password_credentials_flow_uses_provided_client(
@@ -60,6 +61,45 @@ def test_oauth2_password_credentials_flow_is_able_to_reuse_client(
             "access_token": "2YotnFZFEjr1zCsicMWpAA",
             "token_type": "example",
             "expires_in": 10,
+            "example_parameter": "example_value",
+        },
+        match_content=b"grant_type=password&username=test_user&password=test_pwd",
+        match_headers={"x-test": "Test value"},
+    )
+    httpx_mock.add_response(
+        url="https://authorized_only",
+        method="GET",
+        match_headers={
+            "Authorization": "Bearer 2YotnFZFEjr1zCsicMWpAA",
+        },
+    )
+
+    with httpx.Client() as client:
+        client.get("https://authorized_only", auth=auth)
+
+    time.sleep(10)
+
+    with httpx.Client() as client:
+        client.get("https://authorized_only", auth=auth)
+
+
+def test_oauth2_password_credentials_flow_is_able_to_reuse_client_with_token_refresh(
+    token_cache, httpx_mock: HTTPXMock
+):
+    client = httpx.Client(headers={"x-test": "Test value"})
+    auth = httpx_auth.OAuth2ResourceOwnerPasswordCredentials(
+        "https://provide_access_token",
+        username="test_user",
+        password="test_pwd",
+        client=client,
+    )
+    httpx_mock.add_response(
+        method="POST",
+        url="https://provide_access_token",
+        json={
+            "access_token": "2YotnFZFEjr1zCsicMWpAA",
+            "token_type": "example",
+            "expires_in": 10,
             "refresh_token": "tGzv3JOkF0XG5Qx2TlKWIA",
             "example_parameter": "example_value",
         },
@@ -78,6 +118,27 @@ def test_oauth2_password_credentials_flow_is_able_to_reuse_client(
         client.get("https://authorized_only", auth=auth)
 
     time.sleep(10)
+
+    httpx_mock.add_response(
+        method="POST",
+        url="https://provide_access_token",
+        json={
+            "access_token": "rVR7Syg5bjZtZYjbZIW",
+            "token_type": "example",
+            "expires_in": 3600,
+            "refresh_token": "tGzv3JOkF0XG5Qx2TlKWIA",
+            "example_parameter": "example_value",
+        },
+        match_content=b"grant_type=refresh_token&refresh_token=tGzv3JOkF0XG5Qx2TlKWIA",
+        match_headers={"x-test": "Test value"},
+    )
+    httpx_mock.add_response(
+        url="https://authorized_only",
+        method="GET",
+        match_headers={
+            "Authorization": "Bearer rVR7Syg5bjZtZYjbZIW",
+        },
+    )
 
     with httpx.Client() as client:
         client.get("https://authorized_only", auth=auth)
@@ -192,7 +253,7 @@ def test_oauth2_password_credentials_flow_token_is_expired_after_30_seconds_by_d
     token_cache._add_token(
         key="495327550ce1d88cfd1eb8f9975f319992a9635b9a7dfc932f90be05c20448d7509b68bd486c07efb32fc67a4e2c46d75eeaf2dad39711a626492a9e3e469c82",
         token="2YotnFZFEjr1zCsicMWpAA",
-        expiry=httpx_auth.oauth2_tokens._to_expiry(expires_in=29),
+        expiry=to_expiry(expires_in=29),
     )
     # Meaning a new one will be requested
     httpx_mock.add_response(
@@ -232,7 +293,7 @@ def test_oauth2_password_credentials_flow_token_custom_expiry(
     token_cache._add_token(
         key="495327550ce1d88cfd1eb8f9975f319992a9635b9a7dfc932f90be05c20448d7509b68bd486c07efb32fc67a4e2c46d75eeaf2dad39711a626492a9e3e469c82",
         token="2YotnFZFEjr1zCsicMWpAA",
-        expiry=httpx_auth.oauth2_tokens._to_expiry(expires_in=29),
+        expiry=to_expiry(expires_in=29),
     )
     httpx_mock.add_response(
         url="https://authorized_only",
@@ -242,6 +303,144 @@ def test_oauth2_password_credentials_flow_token_custom_expiry(
         },
     )
 
+    with httpx.Client() as client:
+        client.get("https://authorized_only", auth=auth)
+
+
+def test_oauth2_password_credentials_flow_refresh_token(
+    token_cache, httpx_mock: HTTPXMock
+):
+    auth = httpx_auth.OAuth2ResourceOwnerPasswordCredentials(
+        "https://provide_access_token", username="test_user", password="test_pwd"
+    )
+    httpx_mock.add_response(
+        method="POST",
+        url="https://provide_access_token",
+        json={
+            "access_token": "2YotnFZFEjr1zCsicMWpAA",
+            "token_type": "example",
+            "expires_in": "0",
+            "refresh_token": "tGzv3JOkF0XG5Qx2TlKWIA",
+            "example_parameter": "example_value",
+        },
+        match_content=b"grant_type=password&username=test_user&password=test_pwd",
+    )
+    httpx_mock.add_response(
+        url="https://authorized_only",
+        method="GET",
+        match_headers={
+            "Authorization": "Bearer 2YotnFZFEjr1zCsicMWpAA",
+        },
+    )
+
+    with httpx.Client() as client:
+        client.get("https://authorized_only", auth=auth)
+
+    # response for refresh token grant
+    httpx_mock.add_response(
+        method="POST",
+        url="https://provide_access_token",
+        json={
+            "access_token": "rVR7Syg5bjZtZYjbZIW",
+            "token_type": "example",
+            "expires_in": 3600,
+            "refresh_token": "tGzv3JOkF0XG5Qx2TlKWIA",
+            "example_parameter": "example_value",
+        },
+        match_content=b"grant_type=refresh_token&refresh_token=tGzv3JOkF0XG5Qx2TlKWIA",
+    )
+    httpx_mock.add_response(
+        url="https://authorized_only",
+        method="GET",
+        match_headers={
+            "Authorization": "Bearer rVR7Syg5bjZtZYjbZIW",
+        },
+    )
+
+    with httpx.Client() as client:
+        client.get("https://authorized_only", auth=auth)
+
+
+def test_oauth2_password_credentials_flow_refresh_token_invalid(
+    token_cache, httpx_mock: HTTPXMock
+):
+    auth = httpx_auth.OAuth2ResourceOwnerPasswordCredentials(
+        "https://provide_access_token", username="test_user", password="test_pwd"
+    )
+    httpx_mock.add_response(
+        method="POST",
+        url="https://provide_access_token",
+        json={
+            "access_token": "2YotnFZFEjr1zCsicMWpAA",
+            "token_type": "example",
+            "expires_in": "0",
+            "refresh_token": "tGzv3JOkF0XG5Qx2TlKWIA",
+            "example_parameter": "example_value",
+        },
+        match_content=b"grant_type=password&username=test_user&password=test_pwd",
+    )
+    httpx_mock.add_response(
+        url="https://authorized_only",
+        method="GET",
+        match_headers={
+            "Authorization": "Bearer 2YotnFZFEjr1zCsicMWpAA",
+        },
+    )
+
+    with httpx.Client() as client:
+        client.get("https://authorized_only", auth=auth)
+
+    # response for refresh token grant
+    httpx_mock.add_response(
+        method="POST",
+        url="https://provide_access_token",
+        json={"error": "invalid_request"},
+        status_code=400,
+        match_content=b"grant_type=refresh_token&refresh_token=tGzv3JOkF0XG5Qx2TlKWIA",
+    )
+
+    httpx_mock.add_response(
+        url="https://authorized_only",
+        method="GET",
+        match_headers={
+            "Authorization": "Bearer 2YotnFZFEjr1zCsicMWpAA",
+        },
+    )
+
+    with httpx.Client() as client:
+        client.get("https://authorized_only", auth=auth)
+
+
+def test_oauth2_password_credentials_flow_refresh_token_access_token_not_expired(
+    token_cache, httpx_mock: HTTPXMock
+):
+    auth = httpx_auth.OAuth2ResourceOwnerPasswordCredentials(
+        "https://provide_access_token", username="test_user", password="test_pwd"
+    )
+    httpx_mock.add_response(
+        method="POST",
+        url="https://provide_access_token",
+        json={
+            "access_token": "2YotnFZFEjr1zCsicMWpAA",
+            "token_type": "example",
+            "expires_in": 3600,
+            "refresh_token": "tGzv3JOkF0XG5Qx2TlKWIA",
+            "example_parameter": "example_value",
+        },
+        match_content=b"grant_type=password&username=test_user&password=test_pwd",
+    )
+    httpx_mock.add_response(
+        url="https://authorized_only",
+        method="GET",
+        match_headers={
+            "Authorization": "Bearer 2YotnFZFEjr1zCsicMWpAA",
+        },
+    )
+
+    with httpx.Client() as client:
+        client.get("https://authorized_only", auth=auth)
+
+    # expect Bearer token to remain the same
     with httpx.Client() as client:
         client.get("https://authorized_only", auth=auth)
 

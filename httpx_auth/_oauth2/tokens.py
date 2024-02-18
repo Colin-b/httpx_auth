@@ -4,14 +4,21 @@ import os
 import datetime
 import threading
 import logging
-from typing import Union
+from pathlib import Path
+from typing import Union, Optional
 
-from httpx_auth.errors import InvalidToken, TokenExpiryNotProvided, AuthenticationFailed
+from httpx_auth._errors import (
+    InvalidToken,
+    TokenExpiryNotProvided,
+    AuthenticationFailed,
+    InvalidGrantRequest,
+    GrantNotProvided,
+)
 
 logger = logging.getLogger(__name__)
 
 
-def _decode_base64(base64_encoded_string: str) -> str:
+def decode_base64(base64_encoded_string: str) -> str:
     """
     Decode base64, padding being optional.
 
@@ -24,13 +31,13 @@ def _decode_base64(base64_encoded_string: str) -> str:
     return base64.b64decode(base64_encoded_string).decode("unicode_escape")
 
 
-def _is_expired(expiry: float, early_expiry: float) -> bool:
+def is_expired(expiry: float, early_expiry: float) -> bool:
     return datetime.datetime.fromtimestamp(
         expiry - early_expiry, datetime.timezone.utc
     ) < datetime.datetime.now(datetime.timezone.utc)
 
 
-def _to_expiry(expires_in: Union[int, str]) -> float:
+def to_expiry(expires_in: Union[int, str]) -> float:
     expiry = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(
         seconds=int(expires_in)
     )
@@ -44,10 +51,10 @@ class TokenMemoryCache:
 
     def __init__(self):
         self.tokens = {}
-        self.forbid_concurrent_cache_access = threading.Lock()
-        self.forbid_concurrent_missing_token_function_call = threading.Lock()
+        self._forbid_concurrent_cache_access = threading.Lock()
+        self._forbid_concurrent_missing_token_function_call = threading.Lock()
 
-    def _add_bearer_token(self, key: str, token: str):
+    def _add_bearer_token(self, key: str, token: str) -> None:
         """
         Set the bearer token and save it
         :param key: key identifier of the token
@@ -59,14 +66,20 @@ class TokenMemoryCache:
             raise InvalidToken(token)
 
         header, body, other = token.split(".")
-        body = json.loads(_decode_base64(body))
+        body = json.loads(decode_base64(body))
         expiry = body.get("exp")
         if not expiry:
             raise TokenExpiryNotProvided(expiry)
 
         self._add_token(key, token, expiry)
 
-    def _add_access_token(self, key: str, token: str, expires_in: int):
+    def _add_access_token(
+        self,
+        key: str,
+        token: str,
+        expires_in: Union[int, str],
+        refresh_token: Optional[str] = None,
+    ) -> None:
         """
         Set the bearer token and save it
         :param key: key identifier of the token
@@ -74,21 +87,24 @@ class TokenMemoryCache:
         :param expires_in: Number of seconds before token expiry
         :raise InvalidToken: In case token is invalid.
         """
-        self._add_token(key, token, _to_expiry(expires_in))
+        self._add_token(key, token, to_expiry(expires_in), refresh_token)
 
-    def _add_token(self, key: str, token: str, expiry: float):
+    def _add_token(
+        self, key: str, token: str, expiry: float, refresh_token: Optional[str] = None
+    ) -> None:
         """
         Set the bearer token and save it
         :param key: key identifier of the token
         :param token: value
         :param expiry: UTC timestamp of expiry
+        :param refresh_token: refresh token value
         """
-        with self.forbid_concurrent_cache_access:
-            self.tokens[key] = token, expiry
+        with self._forbid_concurrent_cache_access:
+            self.tokens[key] = token, expiry, refresh_token
             self._save_tokens()
             logger.debug(
                 "Inserting token expiring on"
-                f' {datetime.datetime.fromtimestamp(expiry, datetime.timezone.utc)} with "{key}" key: {token}'
+                f' {datetime.datetime.fromtimestamp(expiry, datetime.timezone.utc)} with "{key}" key.'
             )
 
     def get_token(
@@ -97,6 +113,7 @@ class TokenMemoryCache:
         *,
         early_expiry: float = 30.0,
         on_missing_token=None,
+        on_expired_token=None,
         **on_missing_token_kwargs,
     ) -> str:
         """
@@ -108,16 +125,22 @@ class TokenMemoryCache:
         This is the number of seconds to subtract to the actual token expiry. Token will be considered as
         expired 30 seconds before real expiry by default.
         :param on_missing_token: function to call when token is expired or missing (returning token and expiry tuple)
-        :param on_missing_token_kwargs: arguments of the function (key-value arguments)
+        :param on_expired_token: function to call to refresh the token when it is expired
+        :param on_missing_token_kwargs: arguments of the on_missing_token function (key-value arguments)
         :return: the token
         :raise AuthenticationFailed: in case token cannot be retrieved.
         """
         logger.debug(f'Retrieving token with "{key}" key.')
-        with self.forbid_concurrent_cache_access:
+        refresh_token = None
+        with self._forbid_concurrent_cache_access:
             self._load_tokens()
             if key in self.tokens:
-                bearer, expiry = self.tokens[key]
-                if _is_expired(expiry, early_expiry):
+                token = self.tokens[key]
+                if len(token) == 2:  # No refresh token
+                    bearer, expiry = token
+                else:
+                    bearer, expiry, refresh_token = token
+                if is_expired(expiry, early_expiry):
                     logger.debug(f'Authentication token with "{key}" key is expired.')
                     del self.tokens[key]
                 else:
@@ -127,23 +150,44 @@ class TokenMemoryCache:
                     )
                     return bearer
 
+        if refresh_token is not None and on_expired_token is not None:
+            try:
+                with self._forbid_concurrent_missing_token_function_call:
+                    state, token, expires_in, refresh_token = on_expired_token(
+                        refresh_token
+                    )
+                    self._add_access_token(state, token, expires_in, refresh_token)
+                    logger.debug(f"Refreshed token with key {key}.")
+                with self._forbid_concurrent_cache_access:
+                    if state in self.tokens:
+                        bearer, expiry, refresh_token = self.tokens[state]
+                        logger.debug(
+                            f"Using newly refreshed token, expiring on {datetime.datetime.fromtimestamp(expiry, datetime.timezone.utc)}."
+                        )
+                        return bearer
+            except (InvalidGrantRequest, GrantNotProvided):
+                logger.debug("Failed to refresh token.")
+
         logger.debug("Token cannot be found in cache.")
         if on_missing_token is not None:
-            with self.forbid_concurrent_missing_token_function_call:
+            with self._forbid_concurrent_missing_token_function_call:
                 new_token = on_missing_token(**on_missing_token_kwargs)
                 if len(new_token) == 2:  # Bearer token
                     state, token = new_token
                     self._add_bearer_token(state, token)
-                else:  # Access Token
+                elif len(new_token) == 3:  # Access token
                     state, token, expires_in = new_token
                     self._add_access_token(state, token, expires_in)
+                else:  # Access Token and Refresh token
+                    state, token, expires_in, refresh_token = new_token
+                    self._add_access_token(state, token, expires_in, refresh_token)
                 if key != state:
                     logger.warning(
                         f"Using a token received on another key than expected. Expecting {key} but was {state}."
                     )
-            with self.forbid_concurrent_cache_access:
+            with self._forbid_concurrent_cache_access:
                 if state in self.tokens:
-                    bearer, expiry = self.tokens[state]
+                    bearer, expiry, refresh_token = self.tokens[state]
                     logger.debug(
                         "Using newly received authentication, expiring on"
                         f" {datetime.datetime.fromtimestamp(expiry, datetime.timezone.utc)}."
@@ -151,24 +195,24 @@ class TokenMemoryCache:
                     return bearer
 
         logger.debug(
-            f"User was not authenticated: key {key} cannot be found in {self.tokens}."
+            f"User was not authenticated: key {key} cannot be found in {list(self.tokens)}."
         )
         raise AuthenticationFailed()
 
-    def clear(self):
+    def clear(self) -> None:
         """Remove tokens from the cache."""
-        with self.forbid_concurrent_cache_access:
+        with self._forbid_concurrent_cache_access:
             logger.debug("Clearing token cache.")
             self.tokens = {}
             self._clear()
 
-    def _save_tokens(self):
+    def _save_tokens(self) -> None:
         pass
 
-    def _load_tokens(self):
+    def _load_tokens(self) -> None:
         pass
 
-    def _clear(self):
+    def _clear(self) -> None:
         pass
 
 
@@ -177,36 +221,36 @@ class JsonTokenFileCache(TokenMemoryCache):
     Class to manage tokens using a cache file.
     """
 
-    def __init__(self, tokens_path: str):
+    def __init__(self, tokens_path: Union[str, Path]):
         TokenMemoryCache.__init__(self)
-        self.tokens_path = tokens_path
-        self.last_save_time = 0
+        self._tokens_path = Path(tokens_path)
+        self._last_save_time = 0
         self._load_tokens()
 
-    def _clear(self):
-        self.last_save_time = 0
+    def _clear(self) -> None:
+        self._last_save_time = 0
         try:
-            os.remove(self.tokens_path)
+            self._tokens_path.unlink(missing_ok=True)
         except:
             logger.debug("Cannot remove tokens file.")
 
-    def _save_tokens(self):
+    def _save_tokens(self) -> None:
         try:
-            with open(self.tokens_path, "w") as tokens_cache_file:
+            with self._tokens_path.open(mode="w") as tokens_cache_file:
                 json.dump(self.tokens, tokens_cache_file)
-            self.last_save_time = os.path.getmtime(self.tokens_path)
+            self._last_save_time = os.path.getmtime(self._tokens_path)
         except:
             logger.exception("Cannot save tokens.")
 
-    def _load_tokens(self):
-        if not os.path.exists(self.tokens_path):
+    def _load_tokens(self) -> None:
+        if not self._tokens_path.exists():
             logger.debug("No token loaded. Token cache does not exists.")
             return
         try:
-            last_modification_time = os.path.getmtime(self.tokens_path)
-            if last_modification_time > self.last_save_time:
-                self.last_save_time = last_modification_time
-                with open(self.tokens_path, "r") as tokens_cache_file:
+            last_modification_time = os.path.getmtime(self._tokens_path)
+            if last_modification_time > self._last_save_time:
+                self._last_save_time = last_modification_time
+                with self._tokens_path.open(mode="r") as tokens_cache_file:
                     self.tokens = json.load(tokens_cache_file)
         except:
             logger.exception("Cannot load tokens.")
