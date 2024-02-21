@@ -10,7 +10,7 @@ from httpx_auth._oauth2.common import (
 )
 
 
-class OAuth2ClientCredentials(httpx.Auth, SupportMultiAuth):
+class OAuth2ClientCredentials(OAuth2, SupportMultiAuth):
     """
     Client Credentials Grant
 
@@ -49,6 +49,8 @@ class OAuth2ClientCredentials(httpx.Auth, SupportMultiAuth):
         if not self.client_secret:
             raise Exception("client_secret is mandatory.")
 
+        super().__init__()
+
         self.header_name = kwargs.pop("header_name", None) or "Authorization"
         self.header_value = kwargs.pop("header_value", None) or "Bearer {token}"
         if "{token}" not in self.header_value:
@@ -72,16 +74,8 @@ class OAuth2ClientCredentials(httpx.Auth, SupportMultiAuth):
         all_parameters_in_url = _add_parameters(self.token_url, self.data)
         self.state = sha512(all_parameters_in_url.encode("unicode_escape")).hexdigest()
 
-    def auth_flow(
-        self, request: httpx.Request
-    ) -> Generator[httpx.Request, httpx.Response, None]:
-        token = OAuth2.token_cache.get_token(
-            self.state,
-            early_expiry=self.early_expiry,
-            on_missing_token=self.request_new_token,
-        )
+    def _update_user_request(self, request: httpx.Request, token: str) -> None:
         request.headers[self.header_name] = self.header_value.format(token=token)
-        yield request
 
     def request_new_token(self) -> tuple:
         client = self.client or httpx.Client()

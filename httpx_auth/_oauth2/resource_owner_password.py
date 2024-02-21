@@ -1,5 +1,4 @@
 from hashlib import sha512
-from typing import Generator
 
 import httpx
 from httpx_auth._authentication import SupportMultiAuth
@@ -10,7 +9,7 @@ from httpx_auth._oauth2.common import (
 )
 
 
-class OAuth2ResourceOwnerPasswordCredentials(httpx.Auth, SupportMultiAuth):
+class OAuth2ResourceOwnerPasswordCredentials(OAuth2, SupportMultiAuth):
     """
     Resource Owner Password Credentials Grant
 
@@ -42,6 +41,8 @@ class OAuth2ResourceOwnerPasswordCredentials(httpx.Auth, SupportMultiAuth):
         Use it to provide a custom proxying rule for instance.
         :param kwargs: all additional authorization parameters that should be put as body parameters in the token URL.
         """
+        super().__init__()
+
         self.token_url = token_url
         if not self.token_url:
             raise Exception("Token URL is mandatory.")
@@ -85,17 +86,8 @@ class OAuth2ResourceOwnerPasswordCredentials(httpx.Auth, SupportMultiAuth):
         all_parameters_in_url = _add_parameters(self.token_url, self.data)
         self.state = sha512(all_parameters_in_url.encode("unicode_escape")).hexdigest()
 
-    def auth_flow(
-        self, request: httpx.Request
-    ) -> Generator[httpx.Request, httpx.Response, None]:
-        token = OAuth2.token_cache.get_token(
-            self.state,
-            early_expiry=self.early_expiry,
-            on_missing_token=self.request_new_token,
-            on_expired_token=self.refresh_token,
-        )
+    def _update_user_request(self, request: httpx.Request, token: str) -> None:
         request.headers[self.header_name] = self.header_value.format(token=token)
-        yield request
 
     def request_new_token(self) -> tuple:
         client = self.client or httpx.Client()

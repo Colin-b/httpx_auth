@@ -166,7 +166,7 @@ class FixedHttpServer(HTTPServer):
         raise TimeoutOccurred(self.timeout)
 
 
-def request_new_grant(grant_details: GrantDetails) -> (str, str):
+def request_new_grant(grant_details: GrantDetails) -> tuple[str, str]:
     """
     Ask for a new OAuth2 grant.
     :return: A tuple (state, grant)

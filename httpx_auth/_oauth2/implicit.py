@@ -1,6 +1,6 @@
 import uuid
 from hashlib import sha512
-from typing import Generator
+from typing import Generator, Union
 
 import httpx
 
@@ -15,7 +15,7 @@ from httpx_auth._oauth2.common import (
 )
 
 
-class OAuth2Implicit(httpx.Auth, SupportMultiAuth, BrowserAuth):
+class OAuth2Implicit(OAuth2, SupportMultiAuth, BrowserAuth):
     """
     Implicit Grant
 
@@ -61,6 +61,7 @@ class OAuth2Implicit(httpx.Auth, SupportMultiAuth, BrowserAuth):
             raise Exception("Authorization URL is mandatory.")
 
         BrowserAuth.__init__(self, kwargs)
+        OAuth2.__init__(self)
 
         self.header_name = kwargs.pop("header_name", None) or "Authorization"
         self.header_value = kwargs.pop("header_value", None) or "Bearer {token}"
@@ -104,17 +105,11 @@ class OAuth2Implicit(httpx.Auth, SupportMultiAuth, BrowserAuth):
             self.redirect_uri_port,
         )
 
-    def auth_flow(
-        self, request: httpx.Request
-    ) -> Generator[httpx.Request, httpx.Response, None]:
-        token = OAuth2.token_cache.get_token(
-            self.state,
-            early_expiry=self.early_expiry,
-            on_missing_token=authentication_responses_server.request_new_grant,
-            grant_details=self.grant_details,
-        )
+    def _update_user_request(self, request: httpx.Request, token: str) -> None:
         request.headers[self.header_name] = self.header_value.format(token=token)
-        yield request
+
+    def request_new_token(self) -> tuple[str, str]:
+        return authentication_responses_server.request_new_grant(self.grant_details)
 
 
 class AzureActiveDirectoryImplicit(OAuth2Implicit):

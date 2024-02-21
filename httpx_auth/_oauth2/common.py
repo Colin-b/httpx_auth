@@ -1,4 +1,5 @@
-from typing import Optional
+import abc
+from typing import Callable, Generator, Optional, Union
 from urllib.parse import parse_qs, urlsplit, urlunsplit, urlencode
 
 import httpx
@@ -83,6 +84,32 @@ def request_new_grant_with_post(
     return token, content.get("expires_in"), content.get("refresh_token")
 
 
-class OAuth2:
+class OAuth2(abc.ABC, httpx.Auth):
     token_cache = TokenMemoryCache()
     display = DisplaySettings()
+    state: Optional[str] = None
+    early_expiry: float
+
+    refresh_token: Optional[Callable]
+
+    def auth_flow(
+        self, request: httpx.Request
+    ) -> Generator[httpx.Request, httpx.Response, None]:
+        token = OAuth2.token_cache.get_token(
+            self.state,
+            early_expiry=self.early_expiry,
+            on_missing_token=self.request_new_token,
+            on_expired_token=(
+                self.refresh_token if "refresh_token" in dir(self) else None
+            ),
+        )
+        self._update_user_request(request, token)
+        yield request
+
+    @abc.abstractmethod
+    def request_new_token(self) -> Union[tuple[str, str], tuple[str, str, int]]:
+        pass  # pragma: no cover
+
+    @abc.abstractmethod
+    def _update_user_request(self, request: httpx.Request, token: str) -> None:
+        pass  # pragma: no cover

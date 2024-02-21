@@ -15,7 +15,7 @@ from httpx_auth._oauth2.common import (
 )
 
 
-class OAuth2AuthorizationCode(httpx.Auth, SupportMultiAuth, BrowserAuth):
+class OAuth2AuthorizationCode(OAuth2, SupportMultiAuth, BrowserAuth):
     """
     Authorization Code Grant
 
@@ -70,6 +70,7 @@ class OAuth2AuthorizationCode(httpx.Auth, SupportMultiAuth, BrowserAuth):
             raise Exception("Token URL is mandatory.")
 
         BrowserAuth.__init__(self, kwargs)
+        OAuth2.__init__(self)
 
         self.header_name = kwargs.pop("header_name", None) or "Authorization"
         self.header_value = kwargs.pop("header_value", None) or "Bearer {token}"
@@ -129,17 +130,8 @@ class OAuth2AuthorizationCode(httpx.Auth, SupportMultiAuth, BrowserAuth):
         self.refresh_data = {"grant_type": "refresh_token"}
         self.refresh_data.update(kwargs)
 
-    def auth_flow(
-        self, request: httpx.Request
-    ) -> Generator[httpx.Request, httpx.Response, None]:
-        token = OAuth2.token_cache.get_token(
-            self.state,
-            early_expiry=self.early_expiry,
-            on_missing_token=self.request_new_token,
-            on_expired_token=self.refresh_token,
-        )
+    def _update_user_request(self, request: httpx.Request, token: str) -> None:
         request.headers[self.header_name] = self.header_value.format(token=token)
-        yield request
 
     def request_new_token(self) -> tuple:
         # Request code
