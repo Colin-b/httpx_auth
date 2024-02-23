@@ -1,7 +1,6 @@
 import base64
 import os
 from hashlib import sha256, sha512
-from typing import Generator
 
 import httpx
 
@@ -10,13 +9,13 @@ from httpx_auth._oauth2 import authentication_responses_server
 from httpx_auth._oauth2.browser import BrowserAuth
 from httpx_auth._oauth2.common import (
     request_new_grant_with_post,
-    OAuth2,
+    OAuth2BaseAuth,
     _add_parameters,
     _pop_parameter,
 )
 
 
-class OAuth2AuthorizationCodePKCE(OAuth2, SupportMultiAuth, BrowserAuth):
+class OAuth2AuthorizationCodePKCE(OAuth2BaseAuth, SupportMultiAuth, BrowserAuth):
     """
     Proof Key for Code Exchange
 
@@ -69,7 +68,7 @@ class OAuth2AuthorizationCodePKCE(OAuth2, SupportMultiAuth, BrowserAuth):
             raise Exception("Token URL is mandatory.")
 
         BrowserAuth.__init__(self, kwargs)
-        OAuth2.__init__(self)
+        OAuth2BaseAuth.__init__(self)
 
         self.client = kwargs.pop("client", None)
 

@@ -84,9 +84,12 @@ def request_new_grant_with_post(
     return token, content.get("expires_in"), content.get("refresh_token")
 
 
-class OAuth2(abc.ABC, httpx.Auth):
+class OAuth2:
     token_cache = TokenMemoryCache()
     display = DisplaySettings()
+
+
+class OAuth2BaseAuth(abc.ABC, httpx.Auth):
     state: Optional[str] = None
     early_expiry: float
 

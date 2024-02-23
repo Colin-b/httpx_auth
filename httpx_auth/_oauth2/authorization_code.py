@@ -1,5 +1,5 @@
 from hashlib import sha512
-from typing import Generator, Iterable, Union
+from typing import Iterable, Union
 
 import httpx
 
@@ -8,14 +8,14 @@ from httpx_auth._oauth2 import authentication_responses_server
 from httpx_auth._oauth2.browser import BrowserAuth
 from httpx_auth._oauth2.common import (
     request_new_grant_with_post,
-    OAuth2,
+    OAuth2BaseAuth,
     _add_parameters,
     _pop_parameter,
     _get_query_parameter,
 )
 
 
-class OAuth2AuthorizationCode(OAuth2, SupportMultiAuth, BrowserAuth):
+class OAuth2AuthorizationCode(OAuth2BaseAuth, SupportMultiAuth, BrowserAuth):
     """
     Authorization Code Grant
 
@@ -70,7 +70,7 @@ class OAuth2AuthorizationCode(OAuth2, SupportMultiAuth, BrowserAuth):
             raise Exception("Token URL is mandatory.")
 
         BrowserAuth.__init__(self, kwargs)
-        OAuth2.__init__(self)
+        OAuth2BaseAuth.__init__(self)
 
         self.header_name = kwargs.pop("header_name", None) or "Authorization"
         self.header_value = kwargs.pop("header_value", None) or "Bearer {token}"

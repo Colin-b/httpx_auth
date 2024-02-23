@@ -1,16 +1,16 @@
 from hashlib import sha512
-from typing import Generator, Union, Iterable
+from typing import Union, Iterable
 
 import httpx
 from httpx_auth._authentication import SupportMultiAuth
 from httpx_auth._oauth2.common import (
-    OAuth2,
+    OAuth2BaseAuth,
     request_new_grant_with_post,
     _add_parameters,
 )
 
 
-class OAuth2ClientCredentials(OAuth2, SupportMultiAuth):
+class OAuth2ClientCredentials(OAuth2BaseAuth, SupportMultiAuth):
     """
     Client Credentials Grant
 
