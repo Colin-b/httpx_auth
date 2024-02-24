@@ -41,7 +41,6 @@ class OAuth2ResourceOwnerPasswordCredentials(OAuth2BaseAuth, SupportMultiAuth):
         Use it to provide a custom proxying rule for instance.
         :param kwargs: all additional authorization parameters that should be put as body parameters in the token URL.
         """
-        OAuth2BaseAuth.__init__(self)
 
         self.token_url = token_url
         if not self.token_url:
@@ -59,7 +58,7 @@ class OAuth2ResourceOwnerPasswordCredentials(OAuth2BaseAuth, SupportMultiAuth):
             raise Exception("header_value parameter must contains {token}.")
 
         self.token_field_name = kwargs.pop("token_field_name", None) or "access_token"
-        self.early_expiry = float(kwargs.pop("early_expiry", None) or 30.0)
+        early_expiry = float(kwargs.pop("early_expiry", None) or 30.0)
 
         # Time is expressed in seconds
         self.timeout = int(kwargs.pop("timeout", None) or 60)
@@ -84,7 +83,9 @@ class OAuth2ResourceOwnerPasswordCredentials(OAuth2BaseAuth, SupportMultiAuth):
         self.refresh_data.update(kwargs)
 
         all_parameters_in_url = _add_parameters(self.token_url, self.data)
-        self.state = sha512(all_parameters_in_url.encode("unicode_escape")).hexdigest()
+        state = sha512(all_parameters_in_url.encode("unicode_escape")).hexdigest()
+
+        OAuth2BaseAuth.__init__(self, state, early_expiry, self.refresh_token)
 
     def _update_user_request(self, request: httpx.Request, token: str) -> None:
         request.headers[self.header_name] = self.header_value.format(token=token)

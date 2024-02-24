@@ -49,15 +49,13 @@ class OAuth2ClientCredentials(OAuth2BaseAuth, SupportMultiAuth):
         if not self.client_secret:
             raise Exception("client_secret is mandatory.")
 
-        super().__init__()
-
         self.header_name = kwargs.pop("header_name", None) or "Authorization"
         self.header_value = kwargs.pop("header_value", None) or "Bearer {token}"
         if "{token}" not in self.header_value:
             raise Exception("header_value parameter must contains {token}.")
 
         self.token_field_name = kwargs.pop("token_field_name", None) or "access_token"
-        self.early_expiry = float(kwargs.pop("early_expiry", None) or 30.0)
+        early_expiry = float(kwargs.pop("early_expiry", None) or 30.0)
 
         # Time is expressed in seconds
         self.timeout = int(kwargs.pop("timeout", None) or 60)
@@ -72,7 +70,9 @@ class OAuth2ClientCredentials(OAuth2BaseAuth, SupportMultiAuth):
         self.data.update(kwargs)
 
         all_parameters_in_url = _add_parameters(self.token_url, self.data)
-        self.state = sha512(all_parameters_in_url.encode("unicode_escape")).hexdigest()
+        state = sha512(all_parameters_in_url.encode("unicode_escape")).hexdigest()
+
+        super().__init__(state, early_expiry)
 
     def _update_user_request(self, request: httpx.Request, token: str) -> None:
         request.headers[self.header_name] = self.header_value.format(token=token)

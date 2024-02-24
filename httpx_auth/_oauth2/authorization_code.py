@@ -70,7 +70,6 @@ class OAuth2AuthorizationCode(OAuth2BaseAuth, SupportMultiAuth, BrowserAuth):
             raise Exception("Token URL is mandatory.")
 
         BrowserAuth.__init__(self, kwargs)
-        OAuth2BaseAuth.__init__(self)
 
         self.header_name = kwargs.pop("header_name", None) or "Authorization"
         self.header_value = kwargs.pop("header_value", None) or "Bearer {token}"
@@ -78,7 +77,7 @@ class OAuth2AuthorizationCode(OAuth2BaseAuth, SupportMultiAuth, BrowserAuth):
             raise Exception("header_value parameter must contains {token}.")
 
         self.token_field_name = kwargs.pop("token_field_name", None) or "access_token"
-        self.early_expiry = float(kwargs.pop("early_expiry", None) or 30.0)
+        early_expiry = float(kwargs.pop("early_expiry", None) or 30.0)
 
         username = kwargs.pop("username", None)
         password = kwargs.pop("password", None)
@@ -100,11 +99,11 @@ class OAuth2AuthorizationCode(OAuth2BaseAuth, SupportMultiAuth, BrowserAuth):
         authorization_url_without_nonce, nonce = _pop_parameter(
             authorization_url_without_nonce, "nonce"
         )
-        self.state = sha512(
+        state = sha512(
             authorization_url_without_nonce.encode("unicode_escape")
         ).hexdigest()
         custom_code_parameters = {
-            "state": self.state,
+            "state": state,
             "redirect_uri": self.redirect_uri,
         }
         if nonce:
@@ -129,6 +128,8 @@ class OAuth2AuthorizationCode(OAuth2BaseAuth, SupportMultiAuth, BrowserAuth):
         # As described in https://tools.ietf.org/html/rfc6749#section-6
         self.refresh_data = {"grant_type": "refresh_token"}
         self.refresh_data.update(kwargs)
+
+        OAuth2BaseAuth.__init__(self, state, early_expiry, self.refresh_token)
 
     def _update_user_request(self, request: httpx.Request, token: str) -> None:
         request.headers[self.header_name] = self.header_value.format(token=token)

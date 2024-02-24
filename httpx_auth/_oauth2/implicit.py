@@ -60,7 +60,6 @@ class OAuth2Implicit(OAuth2BaseAuth, SupportMultiAuth, BrowserAuth):
             raise Exception("Authorization URL is mandatory.")
 
         BrowserAuth.__init__(self, kwargs)
-        OAuth2BaseAuth.__init__(self)
 
         self.header_name = kwargs.pop("header_name", None) or "Authorization"
         self.header_value = kwargs.pop("header_value", None) or "Bearer {token}"
@@ -82,7 +81,7 @@ class OAuth2Implicit(OAuth2BaseAuth, SupportMultiAuth, BrowserAuth):
                 "id_token" if "id_token" == response_type else "access_token"
             )
 
-        self.early_expiry = float(kwargs.pop("early_expiry", None) or 30.0)
+        early_expiry = float(kwargs.pop("early_expiry", None) or 30.0)
 
         authorization_url_without_nonce = _add_parameters(
             self.authorization_url, kwargs
@@ -90,10 +89,10 @@ class OAuth2Implicit(OAuth2BaseAuth, SupportMultiAuth, BrowserAuth):
         authorization_url_without_nonce, nonce = _pop_parameter(
             authorization_url_without_nonce, "nonce"
         )
-        self.state = sha512(
+        state = sha512(
             authorization_url_without_nonce.encode("unicode_escape")
         ).hexdigest()
-        custom_parameters = {"state": self.state, "redirect_uri": self.redirect_uri}
+        custom_parameters = {"state": state, "redirect_uri": self.redirect_uri}
         if nonce:
             custom_parameters["nonce"] = nonce
         grant_url = _add_parameters(authorization_url_without_nonce, custom_parameters)
@@ -103,6 +102,8 @@ class OAuth2Implicit(OAuth2BaseAuth, SupportMultiAuth, BrowserAuth):
             self.timeout,
             self.redirect_uri_port,
         )
+
+        OAuth2BaseAuth.__init__(self, state, early_expiry)
 
     def _update_user_request(self, request: httpx.Request, token: str) -> None:
         request.headers[self.header_name] = self.header_value.format(token=token)

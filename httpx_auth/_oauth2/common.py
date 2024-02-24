@@ -90,10 +90,12 @@ class OAuth2:
 
 
 class OAuth2BaseAuth(abc.ABC, httpx.Auth):
-    state: Optional[str] = None
-    early_expiry: float
-
-    refresh_token: Optional[Callable]
+    def __init__(
+        self, state: str, early_expiry: float, refresh_token: Optional[Callable] = None
+    ) -> None:
+        self.state = state
+        self.early_expiry = early_expiry
+        self.refresh_token = refresh_token
 
     def auth_flow(
         self, request: httpx.Request
@@ -102,9 +104,7 @@ class OAuth2BaseAuth(abc.ABC, httpx.Auth):
             self.state,
             early_expiry=self.early_expiry,
             on_missing_token=self.request_new_token,
-            on_expired_token=(
-                self.refresh_token if "refresh_token" in dir(self) else None
-            ),
+            on_expired_token=self.refresh_token,
         )
         self._update_user_request(request, token)
         yield request
