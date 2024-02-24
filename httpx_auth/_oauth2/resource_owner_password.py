@@ -41,7 +41,7 @@ class OAuth2ResourceOwnerPasswordCredentials(OAuth2BaseAuth, SupportMultiAuth):
         Use it to provide a custom proxying rule for instance.
         :param kwargs: all additional authorization parameters that should be put as body parameters in the token URL.
         """
-        super().__init__()
+        OAuth2BaseAuth.__init__(self)
 
         self.token_url = token_url
         if not self.token_url:
