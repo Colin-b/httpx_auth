@@ -52,10 +52,8 @@ class OAuth2ResourceOwnerPasswordCredentials(OAuth2BaseAuth, SupportMultiAuth):
         if not self.password:
             raise Exception("Password is mandatory.")
 
-        self.header_name = kwargs.pop("header_name", None) or "Authorization"
-        self.header_value = kwargs.pop("header_value", None) or "Bearer {token}"
-        if "{token}" not in self.header_value:
-            raise Exception("header_value parameter must contains {token}.")
+        header_name = kwargs.pop("header_name", None) or "Authorization"
+        header_value = kwargs.pop("header_value", None) or "Bearer {token}"
 
         self.token_field_name = kwargs.pop("token_field_name", None) or "access_token"
         early_expiry = float(kwargs.pop("early_expiry", None) or 30.0)
@@ -85,10 +83,14 @@ class OAuth2ResourceOwnerPasswordCredentials(OAuth2BaseAuth, SupportMultiAuth):
         all_parameters_in_url = _add_parameters(self.token_url, self.data)
         state = sha512(all_parameters_in_url.encode("unicode_escape")).hexdigest()
 
-        OAuth2BaseAuth.__init__(self, state, early_expiry, self.refresh_token)
-
-    def _update_user_request(self, request: httpx.Request, token: str) -> None:
-        request.headers[self.header_name] = self.header_value.format(token=token)
+        OAuth2BaseAuth.__init__(
+            self,
+            state,
+            early_expiry,
+            header_name,
+            header_value,
+            self.refresh_token,
+        )
 
     def request_new_token(self) -> tuple:
         client = self.client or httpx.Client()

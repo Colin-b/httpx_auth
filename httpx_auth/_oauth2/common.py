@@ -91,10 +91,20 @@ class OAuth2:
 
 class OAuth2BaseAuth(abc.ABC, httpx.Auth):
     def __init__(
-        self, state: str, early_expiry: float, refresh_token: Optional[Callable] = None
+        self,
+        state: str,
+        early_expiry: float,
+        header_name: str,
+        header_value: str,
+        refresh_token: Optional[Callable] = None,
     ) -> None:
+        if "{token}" not in header_value:
+            raise Exception("header_value parameter must contains {token}.")
+
         self.state = state
         self.early_expiry = early_expiry
+        self.header_name = header_name
+        self.header_value = header_value
         self.refresh_token = refresh_token
 
     def auth_flow(
@@ -113,6 +123,5 @@ class OAuth2BaseAuth(abc.ABC, httpx.Auth):
     def request_new_token(self) -> Union[tuple[str, str], tuple[str, str, int]]:
         pass  # pragma: no cover
 
-    @abc.abstractmethod
     def _update_user_request(self, request: httpx.Request, token: str) -> None:
-        pass  # pragma: no cover
+        request.headers[self.header_name] = self.header_value.format(token=token)

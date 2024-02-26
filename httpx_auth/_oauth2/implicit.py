@@ -61,10 +61,8 @@ class OAuth2Implicit(OAuth2BaseAuth, SupportMultiAuth, BrowserAuth):
 
         BrowserAuth.__init__(self, kwargs)
 
-        self.header_name = kwargs.pop("header_name", None) or "Authorization"
-        self.header_value = kwargs.pop("header_value", None) or "Bearer {token}"
-        if "{token}" not in self.header_value:
-            raise Exception("header_value parameter must contains {token}.")
+        header_name = kwargs.pop("header_name", None) or "Authorization"
+        header_value = kwargs.pop("header_value", None) or "Bearer {token}"
 
         response_type = _get_query_parameter(self.authorization_url, "response_type")
         if response_type:
@@ -103,10 +101,13 @@ class OAuth2Implicit(OAuth2BaseAuth, SupportMultiAuth, BrowserAuth):
             self.redirect_uri_port,
         )
 
-        OAuth2BaseAuth.__init__(self, state, early_expiry)
-
-    def _update_user_request(self, request: httpx.Request, token: str) -> None:
-        request.headers[self.header_name] = self.header_value.format(token=token)
+        OAuth2BaseAuth.__init__(
+            self,
+            state,
+            early_expiry,
+            header_name,
+            header_value,
+        )
 
     def request_new_token(self) -> tuple[str, str]:
         return authentication_responses_server.request_new_grant(self.grant_details)
