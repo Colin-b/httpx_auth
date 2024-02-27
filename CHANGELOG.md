@@ -5,6 +5,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Fixed
+- `httpx_auth.JsonTokenFileCache` and `httpx_auth.TokenMemoryCache` `get_token` method does not handles kwargs anymore, the `on_missing_token` callable does not expect any arguments anymore.
 
 ## [0.21.0] - 2024-02-19
 ### Added
