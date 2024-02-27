@@ -114,7 +114,6 @@ class TokenMemoryCache:
         early_expiry: float = 30.0,
         on_missing_token=None,
         on_expired_token=None,
-        **on_missing_token_kwargs,
     ) -> str:
         """
         Return the bearer token.
@@ -126,7 +125,6 @@ class TokenMemoryCache:
         expired 30 seconds before real expiry by default.
         :param on_missing_token: function to call when token is expired or missing (returning token and expiry tuple)
         :param on_expired_token: function to call to refresh the token when it is expired
-        :param on_missing_token_kwargs: arguments of the on_missing_token function (key-value arguments)
         :return: the token
         :raise AuthenticationFailed: in case token cannot be retrieved.
         """
@@ -171,7 +169,7 @@ class TokenMemoryCache:
         logger.debug("Token cannot be found in cache.")
         if on_missing_token is not None:
             with self._forbid_concurrent_missing_token_function_call:
-                new_token = on_missing_token(**on_missing_token_kwargs)
+                new_token = on_missing_token()
                 if len(new_token) == 2:  # Bearer token
                     state, token = new_token
                     self._add_bearer_token(state, token)

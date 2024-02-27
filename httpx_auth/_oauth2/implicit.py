@@ -1,6 +1,5 @@
 import uuid
 from hashlib import sha512
-from typing import Generator
 
 import httpx
 
@@ -8,14 +7,14 @@ from httpx_auth._authentication import SupportMultiAuth
 from httpx_auth._oauth2 import authentication_responses_server
 from httpx_auth._oauth2.browser import BrowserAuth
 from httpx_auth._oauth2.common import (
-    OAuth2,
+    OAuth2BaseAuth,
     _add_parameters,
     _pop_parameter,
     _get_query_parameter,
 )
 
 
-class OAuth2Implicit(httpx.Auth, SupportMultiAuth, BrowserAuth):
+class OAuth2Implicit(OAuth2BaseAuth, SupportMultiAuth, BrowserAuth):
     """
     Implicit Grant
 
@@ -62,10 +61,8 @@ class OAuth2Implicit(httpx.Auth, SupportMultiAuth, BrowserAuth):
 
         BrowserAuth.__init__(self, kwargs)
 
-        self.header_name = kwargs.pop("header_name", None) or "Authorization"
-        self.header_value = kwargs.pop("header_value", None) or "Bearer {token}"
-        if "{token}" not in self.header_value:
-            raise Exception("header_value parameter must contains {token}.")
+        header_name = kwargs.pop("header_name", None) or "Authorization"
+        header_value = kwargs.pop("header_value", None) or "Bearer {token}"
 
         response_type = _get_query_parameter(self.authorization_url, "response_type")
         if response_type:
@@ -82,7 +79,7 @@ class OAuth2Implicit(httpx.Auth, SupportMultiAuth, BrowserAuth):
                 "id_token" if "id_token" == response_type else "access_token"
             )
 
-        self.early_expiry = float(kwargs.pop("early_expiry", None) or 30.0)
+        early_expiry = float(kwargs.pop("early_expiry", None) or 30.0)
 
         authorization_url_without_nonce = _add_parameters(
             self.authorization_url, kwargs
@@ -90,10 +87,10 @@ class OAuth2Implicit(httpx.Auth, SupportMultiAuth, BrowserAuth):
         authorization_url_without_nonce, nonce = _pop_parameter(
             authorization_url_without_nonce, "nonce"
         )
-        self.state = sha512(
+        state = sha512(
             authorization_url_without_nonce.encode("unicode_escape")
         ).hexdigest()
-        custom_parameters = {"state": self.state, "redirect_uri": self.redirect_uri}
+        custom_parameters = {"state": state, "redirect_uri": self.redirect_uri}
         if nonce:
             custom_parameters["nonce"] = nonce
         grant_url = _add_parameters(authorization_url_without_nonce, custom_parameters)
@@ -104,17 +101,16 @@ class OAuth2Implicit(httpx.Auth, SupportMultiAuth, BrowserAuth):
             self.redirect_uri_port,
         )
 
-    def auth_flow(
-        self, request: httpx.Request
-    ) -> Generator[httpx.Request, httpx.Response, None]:
-        token = OAuth2.token_cache.get_token(
-            self.state,
-            early_expiry=self.early_expiry,
-            on_missing_token=authentication_responses_server.request_new_grant,
-            grant_details=self.grant_details,
+        OAuth2BaseAuth.__init__(
+            self,
+            state,
+            early_expiry,
+            header_name,
+            header_value,
         )
-        request.headers[self.header_name] = self.header_value.format(token=token)
-        yield request
+
+    def request_new_token(self) -> tuple[str, str]:
+        return authentication_responses_server.request_new_grant(self.grant_details)
 
 
 class AzureActiveDirectoryImplicit(OAuth2Implicit):

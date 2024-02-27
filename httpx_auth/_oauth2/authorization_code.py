@@ -1,5 +1,5 @@
 from hashlib import sha512
-from typing import Generator, Iterable, Union
+from typing import Iterable, Union
 
 import httpx
 
@@ -8,14 +8,14 @@ from httpx_auth._oauth2 import authentication_responses_server
 from httpx_auth._oauth2.browser import BrowserAuth
 from httpx_auth._oauth2.common import (
     request_new_grant_with_post,
-    OAuth2,
+    OAuth2BaseAuth,
     _add_parameters,
     _pop_parameter,
     _get_query_parameter,
 )
 
 
-class OAuth2AuthorizationCode(httpx.Auth, SupportMultiAuth, BrowserAuth):
+class OAuth2AuthorizationCode(OAuth2BaseAuth, SupportMultiAuth, BrowserAuth):
     """
     Authorization Code Grant
 
@@ -71,13 +71,11 @@ class OAuth2AuthorizationCode(httpx.Auth, SupportMultiAuth, BrowserAuth):
 
         BrowserAuth.__init__(self, kwargs)
 
-        self.header_name = kwargs.pop("header_name", None) or "Authorization"
-        self.header_value = kwargs.pop("header_value", None) or "Bearer {token}"
-        if "{token}" not in self.header_value:
-            raise Exception("header_value parameter must contains {token}.")
+        header_name = kwargs.pop("header_name", None) or "Authorization"
+        header_value = kwargs.pop("header_value", None) or "Bearer {token}"
 
         self.token_field_name = kwargs.pop("token_field_name", None) or "access_token"
-        self.early_expiry = float(kwargs.pop("early_expiry", None) or 30.0)
+        early_expiry = float(kwargs.pop("early_expiry", None) or 30.0)
 
         username = kwargs.pop("username", None)
         password = kwargs.pop("password", None)
@@ -99,11 +97,11 @@ class OAuth2AuthorizationCode(httpx.Auth, SupportMultiAuth, BrowserAuth):
         authorization_url_without_nonce, nonce = _pop_parameter(
             authorization_url_without_nonce, "nonce"
         )
-        self.state = sha512(
+        state = sha512(
             authorization_url_without_nonce.encode("unicode_escape")
         ).hexdigest()
         custom_code_parameters = {
-            "state": self.state,
+            "state": state,
             "redirect_uri": self.redirect_uri,
         }
         if nonce:
@@ -129,17 +127,14 @@ class OAuth2AuthorizationCode(httpx.Auth, SupportMultiAuth, BrowserAuth):
         self.refresh_data = {"grant_type": "refresh_token"}
         self.refresh_data.update(kwargs)
 
-    def auth_flow(
-        self, request: httpx.Request
-    ) -> Generator[httpx.Request, httpx.Response, None]:
-        token = OAuth2.token_cache.get_token(
-            self.state,
-            early_expiry=self.early_expiry,
-            on_missing_token=self.request_new_token,
-            on_expired_token=self.refresh_token,
+        OAuth2BaseAuth.__init__(
+            self,
+            state,
+            early_expiry,
+            header_name,
+            header_value,
+            self.refresh_token,
         )
-        request.headers[self.header_name] = self.header_value.format(token=token)
-        yield request
 
     def request_new_token(self) -> tuple:
         # Request code
