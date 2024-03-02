@@ -1,16 +1,16 @@
 from hashlib import sha512
-from typing import Generator, Union, Iterable
+from typing import Union, Iterable
 
 import httpx
 from httpx_auth._authentication import SupportMultiAuth
 from httpx_auth._oauth2.common import (
-    OAuth2,
+    OAuth2BaseAuth,
     request_new_grant_with_post,
     _add_parameters,
 )
 
 
-class OAuth2ClientCredentials(httpx.Auth, SupportMultiAuth):
+class OAuth2ClientCredentials(OAuth2BaseAuth, SupportMultiAuth):
     """
     Client Credentials Grant
 
@@ -49,13 +49,11 @@ class OAuth2ClientCredentials(httpx.Auth, SupportMultiAuth):
         if not self.client_secret:
             raise Exception("client_secret is mandatory.")
 
-        self.header_name = kwargs.pop("header_name", None) or "Authorization"
-        self.header_value = kwargs.pop("header_value", None) or "Bearer {token}"
-        if "{token}" not in self.header_value:
-            raise Exception("header_value parameter must contains {token}.")
+        header_name = kwargs.pop("header_name", None) or "Authorization"
+        header_value = kwargs.pop("header_value", None) or "Bearer {token}"
 
         self.token_field_name = kwargs.pop("token_field_name", None) or "access_token"
-        self.early_expiry = float(kwargs.pop("early_expiry", None) or 30.0)
+        early_expiry = float(kwargs.pop("early_expiry", None) or 30.0)
 
         # Time is expressed in seconds
         self.timeout = int(kwargs.pop("timeout", None) or 60)
@@ -70,18 +68,14 @@ class OAuth2ClientCredentials(httpx.Auth, SupportMultiAuth):
         self.data.update(kwargs)
 
         all_parameters_in_url = _add_parameters(self.token_url, self.data)
-        self.state = sha512(all_parameters_in_url.encode("unicode_escape")).hexdigest()
+        state = sha512(all_parameters_in_url.encode("unicode_escape")).hexdigest()
 
-    def auth_flow(
-        self, request: httpx.Request
-    ) -> Generator[httpx.Request, httpx.Response, None]:
-        token = OAuth2.token_cache.get_token(
-            self.state,
-            early_expiry=self.early_expiry,
-            on_missing_token=self.request_new_token,
+        super().__init__(
+            state,
+            early_expiry,
+            header_name,
+            header_value,
         )
-        request.headers[self.header_name] = self.header_value.format(token=token)
-        yield request
 
     def request_new_token(self) -> tuple:
         client = self.client or httpx.Client()

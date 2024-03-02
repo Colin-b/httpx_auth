@@ -1,4 +1,5 @@
-from typing import Optional
+import abc
+from typing import Callable, Generator, Optional, Union
 from urllib.parse import parse_qs, urlsplit, urlunsplit, urlencode
 
 import httpx
@@ -86,3 +87,41 @@ def request_new_grant_with_post(
 class OAuth2:
     token_cache = TokenMemoryCache()
     display = DisplaySettings()
+
+
+class OAuth2BaseAuth(abc.ABC, httpx.Auth):
+    def __init__(
+        self,
+        state: str,
+        early_expiry: float,
+        header_name: str,
+        header_value: str,
+        refresh_token: Optional[Callable] = None,
+    ) -> None:
+        if "{token}" not in header_value:
+            raise Exception("header_value parameter must contains {token}.")
+
+        self.state = state
+        self.early_expiry = early_expiry
+        self.header_name = header_name
+        self.header_value = header_value
+        self.refresh_token = refresh_token
+
+    def auth_flow(
+        self, request: httpx.Request
+    ) -> Generator[httpx.Request, httpx.Response, None]:
+        token = OAuth2.token_cache.get_token(
+            self.state,
+            early_expiry=self.early_expiry,
+            on_missing_token=self.request_new_token,
+            on_expired_token=self.refresh_token,
+        )
+        self._update_user_request(request, token)
+        yield request
+
+    @abc.abstractmethod
+    def request_new_token(self) -> Union[tuple[str, str], tuple[str, str, int]]:
+        pass  # pragma: no cover
+
+    def _update_user_request(self, request: httpx.Request, token: str) -> None:
+        request.headers[self.header_name] = self.header_value.format(token=token)

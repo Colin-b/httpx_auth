@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.22.0] - 2024-03-02
+### Changed
+- Requires [`httpx`](https://www.python-httpx.org)==0.27.\*
+- `httpx_auth.JsonTokenFileCache` and `httpx_auth.TokenMemoryCache` `get_token` method does not handle kwargs anymore, the `on_missing_token` callable does not expect any arguments anymore.
+
 ## [0.21.0] - 2024-02-19
 ### Added
 - Publicly expose `httpx_auth.SupportMultiAuth`, allowing multiple authentication support for every `httpx` authentication class that exists.
@@ -245,7 +250,8 @@ Note that a few changes were made:
 ### Added
 - Placeholder for port of requests_auth to httpx
 
-[Unreleased]: https://github.com/Colin-b/httpx_auth/compare/v0.21.0...HEAD
+[Unreleased]: https://github.com/Colin-b/httpx_auth/compare/v0.22.0...HEAD
+[0.22.0]: https://github.com/Colin-b/httpx_auth/compare/v0.21.0...v0.22.0
 [0.21.0]: https://github.com/Colin-b/httpx_auth/compare/v0.20.0...v0.21.0
 [0.20.0]: https://github.com/Colin-b/httpx_auth/compare/v0.19.0...v0.20.0
 [0.19.0]: https://github.com/Colin-b/httpx_auth/compare/v0.18.0...v0.19.0
