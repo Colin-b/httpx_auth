@@ -1,3 +1,4 @@
+from collections.abc import Generator
 from hashlib import sha512
 from typing import Iterable, Union
 
@@ -52,7 +53,7 @@ class OAuth2AuthorizationCode(OAuth2BaseAuth, SupportMultiAuth, BrowserAuth):
         :param code_field_name: Field name containing the code. code by default.
         :param username: Username in case basic authentication should be used to retrieve token.
         :param password: User password in case basic authentication should be used to retrieve token.
-        :param client: httpx.Client instance that will be used to request the token.
+        :param headers: Additional headers to set when requesting or refreshing token.
         Use it to provide a custom proxying rule for instance.
         :param kwargs: all additional authorization parameters that should be put as query parameter
         in the authorization URL and as body parameters in the token URL.
@@ -80,7 +81,7 @@ class OAuth2AuthorizationCode(OAuth2BaseAuth, SupportMultiAuth, BrowserAuth):
         username = kwargs.pop("username", None)
         password = kwargs.pop("password", None)
         self.auth = (username, password) if username and password else None
-        self.client = kwargs.pop("client", None)
+        self.token_headers = kwargs.pop("headers", {})
 
         # As described in https://tools.ietf.org/html/rfc6749#section-4.1.2
         code_field_name = kwargs.pop("code_field_name", "code")
@@ -136,7 +137,11 @@ class OAuth2AuthorizationCode(OAuth2BaseAuth, SupportMultiAuth, BrowserAuth):
             self.refresh_token,
         )
 
-    def request_new_token(self) -> tuple:
+    def request_new_token(
+        self,
+    ) -> Generator[
+        httpx.Request, httpx.Response, Union[tuple[str, str], tuple[str, str, int]]
+    ]:
         # Request code
         state, code = authentication_responses_server.request_new_grant(
             self.code_grant_details
@@ -145,17 +150,10 @@ class OAuth2AuthorizationCode(OAuth2BaseAuth, SupportMultiAuth, BrowserAuth):
         # As described in https://tools.ietf.org/html/rfc6749#section-4.1.3
         self.token_data["code"] = code
 
-        client = self.client or httpx.Client()
-        self._configure_client(client)
-        try:
-            # As described in https://tools.ietf.org/html/rfc6749#section-4.1.4
-            token, expires_in, refresh_token = request_new_grant_with_post(
-                self.token_url, self.token_data, self.token_field_name, client
-            )
-        finally:
-            # Close client only if it was created by this module
-            if self.client is None:
-                client.close()
+        # As described in https://tools.ietf.org/html/rfc6749#section-4.1.4
+        token, expires_in, refresh_token = yield from request_new_grant_with_post(
+            self.token_url, self.token_data, self.token_field_name, self.token_headers
+        )
         # Handle both Access and Bearer tokens
         return (
             (self.state, token, expires_in, refresh_token)
@@ -163,27 +161,18 @@ class OAuth2AuthorizationCode(OAuth2BaseAuth, SupportMultiAuth, BrowserAuth):
             else (self.state, token)
         )
 
-    def refresh_token(self, refresh_token: str) -> tuple:
-        client = self.client or httpx.Client()
-        self._configure_client(client)
-        try:
-            # As described in https://tools.ietf.org/html/rfc6749#section-6
-            self.refresh_data["refresh_token"] = refresh_token
-            token, expires_in, refresh_token = request_new_grant_with_post(
-                self.token_url,
-                self.refresh_data,
-                self.token_field_name,
-                client,
-            )
-        finally:
-            # Close client only if it was created by this module
-            if self.client is None:
-                client.close()
+    def refresh_token(
+        self, refresh_token: str
+    ) -> Generator[httpx.Request, httpx.Response, tuple[str, str, int, str]]:
+        # As described in https://tools.ietf.org/html/rfc6749#section-6
+        self.refresh_data["refresh_token"] = refresh_token
+        token, expires_in, refresh_token = yield from request_new_grant_with_post(
+            self.token_url,
+            self.refresh_data,
+            self.token_field_name,
+            self.token_headers,
+        )
         return self.state, token, expires_in, refresh_token
-
-    def _configure_client(self, client: httpx.Client):
-        client.auth = self.auth
-        client.timeout = self.timeout
 
 
 class OktaAuthorizationCode(OAuth2AuthorizationCode):
@@ -220,8 +209,7 @@ class OktaAuthorizationCode(OAuth2AuthorizationCode):
         :param header_value: Format used to send the token value.
         "{token}" must be present as it will be replaced by the actual token.
         Token will be sent as "Bearer {token}" by default.
-        :param client: httpx.Client instance that will be used to request the token.
-        Use it to provide a custom proxying rule for instance.
+        :param headers: Additional headers to set when requesting or refreshing token.
         :param kwargs: all additional authorization parameters that should be put as query parameter
         in the authorization URL.
         Usual parameters are:
@@ -276,8 +264,7 @@ class WakaTimeAuthorizationCode(OAuth2AuthorizationCode):
         :param header_value: Format used to send the token value.
         "{token}" must be present as it will be replaced by the actual token.
         Token will be sent as "Bearer {token}" by default.
-        :param client: httpx.Client instance that will be used to request the token.
-        Use it to provide a custom proxying rule for instance.
+        :param headers: Additional headers to set when requesting or refreshing token.
         :param kwargs: all additional authorization parameters that should be put as query parameter
         in the authorization URL.
         """

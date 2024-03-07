@@ -1,6 +1,8 @@
+import typing
 from typing import Generator
 
 import httpx
+from httpx import Request, Response
 
 
 class _MultiAuth(httpx.Auth):
@@ -9,11 +11,32 @@ class _MultiAuth(httpx.Auth):
     def __init__(self, *authentication_modes):
         self.authentication_modes = authentication_modes
 
-    def auth_flow(
-        self, request: httpx.Request
-    ) -> Generator[httpx.Request, httpx.Response, None]:
+    def sync_auth_flow(
+        self, request: Request
+    ) -> typing.Generator[Request, Response, None]:
         for authentication_mode in self.authentication_modes:
-            next(authentication_mode.auth_flow(request))
+            # auth_flow may yield one or more requests, the last of which is the user request with added auth headers
+            flow = authentication_mode.sync_auth_flow(request)
+            req = next(flow)
+            while True:
+                if req is request:
+                    break
+                resp = yield req
+                req = flow.send(resp)
+        yield request
+
+    async def async_auth_flow(
+        self, request: Request
+    ) -> typing.AsyncGenerator[Request, Response]:
+        for authentication_mode in self.authentication_modes:
+            # auth_flow may yield one or more requests, the last of which is the user request with added auth headers
+            flow = authentication_mode.async_auth_flow(request)
+            req = await anext(flow)
+            while True:
+                if req is request:
+                    break
+                resp = yield req
+                req = await flow.asend(resp)
         yield request
 
     def __add__(self, other) -> "_MultiAuth":

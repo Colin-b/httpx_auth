@@ -1,4 +1,5 @@
 import abc
+from collections.abc import Mapping
 from typing import Callable, Generator, Optional, Union
 from urllib.parse import parse_qs, urlsplit, urlunsplit, urlencode
 
@@ -69,9 +70,9 @@ def _content_from_response(response: httpx.Response) -> dict:
 
 
 def request_new_grant_with_post(
-    url: str, data, grant_name: str, client: httpx.Client
-) -> (str, int, str):
-    response = client.post(url, data=data)
+    url: str, data, grant_name: str, headers: Mapping[str, str]
+) -> Generator[httpx.Request, httpx.Response, tuple[str, int, str]]:
+    response = yield httpx.Request("post", url, data=data, headers=headers)
 
     if response.is_error:
         # As described in https://tools.ietf.org/html/rfc6749#section-5.2
@@ -106,11 +107,12 @@ class OAuth2BaseAuth(abc.ABC, httpx.Auth):
         self.header_name = header_name
         self.header_value = header_value
         self.refresh_token = refresh_token
+        self.requires_response_body = True
 
     def auth_flow(
         self, request: httpx.Request
     ) -> Generator[httpx.Request, httpx.Response, None]:
-        token = OAuth2.token_cache.get_token(
+        token = yield from OAuth2.token_cache.get_token(
             self.state,
             early_expiry=self.early_expiry,
             on_missing_token=self.request_new_token,
@@ -120,7 +122,11 @@ class OAuth2BaseAuth(abc.ABC, httpx.Auth):
         yield request
 
     @abc.abstractmethod
-    def request_new_token(self) -> Union[tuple[str, str], tuple[str, str, int]]:
+    def request_new_token(
+        self,
+    ) -> Generator[
+        httpx.Request, httpx.Response, Union[tuple[str, str], tuple[str, str, int]]
+    ]:
         pass  # pragma: no cover
 
     def _update_user_request(self, request: httpx.Request, token: str) -> None:

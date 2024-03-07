@@ -4,8 +4,11 @@ import os
 import datetime
 import threading
 import logging
+from collections.abc import Callable, Generator
 from pathlib import Path
 from typing import Union, Optional
+
+import httpx
 
 from httpx_auth._errors import (
     InvalidToken,
@@ -113,8 +116,13 @@ class TokenMemoryCache:
         *,
         early_expiry: float = 30.0,
         on_missing_token=None,
-        on_expired_token=None,
-    ) -> str:
+        on_expired_token: Optional[
+            Callable[
+                [str],
+                Generator[httpx.Request, httpx.Response, tuple[str, str, int, str]],
+            ]
+        ] = None,
+    ) -> Generator[httpx.Request, httpx.Response, str]:
         """
         Return the bearer token.
         :param key: key identifier of the token
@@ -123,7 +131,8 @@ class TokenMemoryCache:
         even if still valid when fetched.
         This is the number of seconds to subtract to the actual token expiry. Token will be considered as
         expired 30 seconds before real expiry by default.
-        :param on_missing_token: function to call when token is expired or missing (returning token and expiry tuple)
+        :param on_missing_token: generator function to call when token is expired or missing
+        (yielding requests, accepting responses and returning token and expiry tuple)
         :param on_expired_token: function to call to refresh the token when it is expired
         :return: the token
         :raise AuthenticationFailed: in case token cannot be retrieved.
@@ -151,8 +160,8 @@ class TokenMemoryCache:
         if refresh_token is not None and on_expired_token is not None:
             try:
                 with self._forbid_concurrent_missing_token_function_call:
-                    state, token, expires_in, refresh_token = on_expired_token(
-                        refresh_token
+                    state, token, expires_in, refresh_token = (
+                        yield from on_expired_token(refresh_token)
                     )
                     self._add_access_token(state, token, expires_in, refresh_token)
                     logger.debug(f"Refreshed token with key {key}.")
@@ -169,7 +178,7 @@ class TokenMemoryCache:
         logger.debug("Token cannot be found in cache.")
         if on_missing_token is not None:
             with self._forbid_concurrent_missing_token_function_call:
-                new_token = on_missing_token()
+                new_token = yield from on_missing_token()
                 if len(new_token) == 2:  # Bearer token
                     state, token = new_token
                     self._add_bearer_token(state, token)

@@ -1,4 +1,6 @@
+from collections.abc import Generator
 from hashlib import sha512
+from typing import Union
 
 import httpx
 from httpx_auth._authentication import SupportMultiAuth
@@ -37,7 +39,7 @@ class OAuth2ResourceOwnerPasswordCredentials(OAuth2BaseAuth, SupportMultiAuth):
         :param early_expiry: Number of seconds before actual token expiry where token will be considered as expired.
         Default to 30 seconds to ensure token will not expire between the time of retrieval and the time the request
         reaches the actual server. Set it to 0 to deactivate this feature and use the same token until actual expiry.
-        :param client: httpx.Client instance that will be used to request the token.
+        :param headers: Additional headers to set when requesting or refreshing token.
         Use it to provide a custom proxying rule for instance.
         :param kwargs: all additional authorization parameters that should be put as body parameters in the token URL.
         """
@@ -60,8 +62,12 @@ class OAuth2ResourceOwnerPasswordCredentials(OAuth2BaseAuth, SupportMultiAuth):
 
         # Time is expressed in seconds
         self.timeout = int(kwargs.pop("timeout", None) or 60)
-        self.client = kwargs.pop("client", None)
-        self.client_auth = kwargs.pop("client_auth", None)
+        self.token_headers = kwargs.pop("headers", {})
+        client_auth = kwargs.pop("client_auth", None)
+        if client_auth:
+            self.token_headers["Authorization"] = httpx.BasicAuth._build_auth_header(
+                None, *client_auth
+            )
 
         # As described in https://tools.ietf.org/html/rfc6749#section-4.3.2
         self.data = {
@@ -92,18 +98,18 @@ class OAuth2ResourceOwnerPasswordCredentials(OAuth2BaseAuth, SupportMultiAuth):
             self.refresh_token,
         )
 
-    def request_new_token(self) -> tuple:
-        client = self.client or httpx.Client()
-        self._configure_client(client)
-        try:
-            # As described in https://tools.ietf.org/html/rfc6749#section-4.3.3
-            token, expires_in, refresh_token = request_new_grant_with_post(
-                self.token_url, self.data, self.token_field_name, client
-            )
-        finally:
-            # Close client only if it was created by this module
-            if self.client is None:
-                client.close()
+    def request_new_token(
+        self,
+    ) -> Generator[
+        httpx.Request, httpx.Response, Union[tuple[str, str], tuple[str, str, int, str]]
+    ]:
+        # As described in https://tools.ietf.org/html/rfc6749#section-4.3.3
+        token, expires_in, refresh_token = yield from request_new_grant_with_post(
+            self.token_url,
+            self.data,
+            self.token_field_name,
+            self.token_headers,
+        )
         # Handle both Access and Bearer tokens
         return (
             (self.state, token, expires_in, refresh_token)
@@ -111,28 +117,18 @@ class OAuth2ResourceOwnerPasswordCredentials(OAuth2BaseAuth, SupportMultiAuth):
             else (self.state, token)
         )
 
-    def refresh_token(self, refresh_token: str) -> tuple:
-        client = self.client or httpx.Client()
-        self._configure_client(client)
-        try:
-            # As described in https://tools.ietf.org/html/rfc6749#section-6
-            self.refresh_data["refresh_token"] = refresh_token
-            token, expires_in, refresh_token = request_new_grant_with_post(
-                self.token_url,
-                self.refresh_data,
-                self.token_field_name,
-                client,
-            )
-        finally:
-            # Close client only if it was created by this module
-            if self.client is None:
-                client.close()
+    def refresh_token(
+        self, refresh_token: str
+    ) -> Generator[httpx.Request, httpx.Response, tuple[str, str, int, str]]:
+        # As described in https://tools.ietf.org/html/rfc6749#section-6
+        self.refresh_data["refresh_token"] = refresh_token
+        token, expires_in, refresh_token = yield from request_new_grant_with_post(
+            self.token_url,
+            self.refresh_data,
+            self.token_field_name,
+            self.token_headers,
+        )
         return self.state, token, expires_in, refresh_token
-
-    def _configure_client(self, client: httpx.Client):
-        if self.client_auth:
-            client.auth = self.client_auth
-        client.timeout = self.timeout
 
 
 class OktaResourceOwnerPasswordCredentials(OAuth2ResourceOwnerPasswordCredentials):
@@ -170,8 +166,7 @@ class OktaResourceOwnerPasswordCredentials(OAuth2ResourceOwnerPasswordCredential
         :param early_expiry: Number of seconds before actual token expiry where token will be considered as expired.
         Default to 30 seconds to ensure token will not expire between the time of retrieval and the time the request
         reaches the actual server. Set it to 0 to deactivate this feature and use the same token until actual expiry.
-        :param client: httpx.Client instance that will be used to request the token.
-        Use it to provide a custom proxying rule for instance.
+        :param headers: Additional headers to set when requesting or refreshing token.
         :param kwargs: all additional authorization parameters that should be put as body parameters in the token URL.
         """
         if not instance:
