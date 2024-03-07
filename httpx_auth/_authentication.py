@@ -31,7 +31,8 @@ class _MultiAuth(httpx.Auth):
         for authentication_mode in self.authentication_modes:
             # auth_flow may yield one or more requests, the last of which is the user request with added auth headers
             flow = authentication_mode.async_auth_flow(request)
-            req = await anext(flow)
+
+            req = await flow.__anext__()
             while True:
                 if req is request:
                     break
