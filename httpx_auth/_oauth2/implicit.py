@@ -1,4 +1,5 @@
 import uuid
+from collections.abc import Generator
 from hashlib import sha512
 
 import httpx
@@ -109,7 +110,12 @@ class OAuth2Implicit(OAuth2BaseAuth, SupportMultiAuth, BrowserAuth):
             header_value,
         )
 
-    def request_new_token(self) -> tuple[str, str]:
+    def request_new_token(
+        self,
+    ) -> Generator[httpx.Request, httpx.Response, tuple[str, str]]:
+        # make this function an empty generator
+        yield from ()
+
         return authentication_responses_server.request_new_grant(self.grant_details)
 
 

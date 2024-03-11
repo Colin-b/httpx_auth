@@ -13,9 +13,9 @@ from httpx_auth._oauth2.tokens import to_expiry
 async def test_oauth2_pkce_flow_uses_provided_client(
     token_cache, httpx_mock: HTTPXMock, browser_mock: BrowserMock
 ):
-    client = httpx.Client(headers={"x-test": "Test value"})
+    headers = {"x-test": "Test value"}
     auth = httpx_auth.OAuth2AuthorizationCodePKCE(
-        "https://provide_code", "https://provide_access_token", client=client
+        "https://provide_code", "https://provide_access_token", headers=headers
     )
     tab = browser_mock.add_response(
         opened_url="https://provide_code?response_type=code&state=ce9c755b41b5e3c5b64c70598715d5de271023a53f39a67a70215d265d11d2bfb6ef6e9c701701e998e69cbdbf2cee29fd51d2a950aa05f59a20cf4a646099d5&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F&code_challenge=5C_ph_KZ3DstYUc965SiqmKAA-ShvKF4Ut7daKd3fjc&code_challenge_method=S256",
@@ -155,9 +155,9 @@ async def test_oauth2_pkce_flow_uses_custom_failure(
 async def test_oauth2_pkce_flow_is_able_to_reuse_client(
     token_cache, httpx_mock: HTTPXMock, browser_mock: BrowserMock
 ):
-    client = httpx.Client(headers={"x-test": "Test value"})
+    headers = {"x-test": "Test value"}
     auth = httpx_auth.OAuth2AuthorizationCodePKCE(
-        "https://provide_code", "https://provide_access_token", client=client
+        "https://provide_code", "https://provide_access_token", headers=headers
     )
     tab = browser_mock.add_response(
         opened_url="https://provide_code?response_type=code&state=ce9c755b41b5e3c5b64c70598715d5de271023a53f39a67a70215d265d11d2bfb6ef6e9c701701e998e69cbdbf2cee29fd51d2a950aa05f59a20cf4a646099d5&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F&code_challenge=5C_ph_KZ3DstYUc965SiqmKAA-ShvKF4Ut7daKd3fjc&code_challenge_method=S256",
@@ -203,9 +203,9 @@ async def test_oauth2_pkce_flow_is_able_to_reuse_client(
 async def test_oauth2_pkce_flow_is_able_to_reuse_client_with_token_refresh(
     token_cache, httpx_mock: HTTPXMock, browser_mock: BrowserMock
 ):
-    client = httpx.Client(headers={"x-test": "Test value"})
+    headers = {"x-test": "Test value"}
     auth = httpx_auth.OAuth2AuthorizationCodePKCE(
-        "https://provide_code", "https://provide_access_token", client=client
+        "https://provide_code", "https://provide_access_token", headers=headers
     )
     tab = browser_mock.add_response(
         opened_url="https://provide_code?response_type=code&state=ce9c755b41b5e3c5b64c70598715d5de271023a53f39a67a70215d265d11d2bfb6ef6e9c701701e998e69cbdbf2cee29fd51d2a950aa05f59a20cf4a646099d5&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F&code_challenge=5C_ph_KZ3DstYUc965SiqmKAA-ShvKF4Ut7daKd3fjc&code_challenge_method=S256",

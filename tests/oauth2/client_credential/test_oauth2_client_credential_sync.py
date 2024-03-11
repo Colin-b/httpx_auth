@@ -12,12 +12,12 @@ from httpx_auth._oauth2.tokens import to_expiry
 def test_oauth2_client_credentials_flow_uses_provided_client(
     token_cache, httpx_mock: HTTPXMock
 ):
-    client = httpx.Client(headers={"x-test": "Test value"})
+    headers = {"x-test": "Test value"}
     auth = httpx_auth.OAuth2ClientCredentials(
         "https://provide_access_token",
         client_id="test_user",
         client_secret="test_pwd",
-        client=client,
+        headers=headers,
     )
     httpx_mock.add_response(
         method="POST",
@@ -47,12 +47,12 @@ def test_oauth2_client_credentials_flow_uses_provided_client(
 def test_oauth2_client_credentials_flow_is_able_to_reuse_client(
     token_cache, httpx_mock: HTTPXMock
 ):
-    client = httpx.Client(headers={"x-test": "Test value"})
+    headers = {"x-test": "Test value"}
     auth = httpx_auth.OAuth2ClientCredentials(
         "https://provide_access_token",
         client_id="test_user",
         client_secret="test_pwd",
-        client=client,
+        headers=headers,
     )
     httpx_mock.add_response(
         method="POST",

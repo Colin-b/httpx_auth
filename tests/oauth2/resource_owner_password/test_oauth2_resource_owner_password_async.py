@@ -14,12 +14,12 @@ async def test_oauth2_password_credentials_flow_uses_provided_client(
     token_cache, httpx_mock: HTTPXMock
 ):
     # TODO Add support for AsyncClient
-    client = httpx.Client(headers={"x-test": "Test value"})
+    headers = {"x-test": "Test value"}
     auth = httpx_auth.OAuth2ResourceOwnerPasswordCredentials(
         "https://provide_access_token",
         username="test_user",
         password="test_pwd",
-        client=client,
+        headers=headers,
     )
     httpx_mock.add_response(
         method="POST",
@@ -51,12 +51,12 @@ async def test_oauth2_password_credentials_flow_is_able_to_reuse_client(
     token_cache, httpx_mock: HTTPXMock
 ):
     # TODO Add support for AsyncClient
-    client = httpx.Client(headers={"x-test": "Test value"})
+    headers = {"x-test": "Test value"}
     auth = httpx_auth.OAuth2ResourceOwnerPasswordCredentials(
         "https://provide_access_token",
         username="test_user",
         password="test_pwd",
-        client=client,
+        headers=headers,
     )
     httpx_mock.add_response(
         method="POST",
@@ -92,12 +92,12 @@ async def test_oauth2_password_credentials_flow_is_able_to_reuse_client_with_tok
     token_cache, httpx_mock: HTTPXMock
 ):
     # TODO Add support for AsyncClient
-    client = httpx.Client(headers={"x-test": "Test value"})
+    headers = {"x-test": "Test value"}
     auth = httpx_auth.OAuth2ResourceOwnerPasswordCredentials(
         "https://provide_access_token",
         username="test_user",
         password="test_pwd",
-        client=client,
+        headers=headers,
     )
     httpx_mock.add_response(
         method="POST",

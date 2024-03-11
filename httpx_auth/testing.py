@@ -310,6 +310,7 @@ def token_mock() -> str:
 def token_cache_mock(monkeypatch, token_mock: str):
     class TokenCacheMock:
         def get_token(self, *args, **kwargs) -> str:
+            yield from ()
             return token_mock
 
     monkeypatch.setattr(httpx_auth.OAuth2, "token_cache", TokenCacheMock())

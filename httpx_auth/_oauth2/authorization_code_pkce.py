@@ -1,6 +1,8 @@
 import base64
 import os
+from collections.abc import Generator
 from hashlib import sha256, sha512
+from typing import Union
 
 import httpx
 
@@ -50,7 +52,7 @@ class OAuth2AuthorizationCodePKCE(OAuth2BaseAuth, SupportMultiAuth, BrowserAuth)
         Default to 30 seconds to ensure token will not expire between the time of retrieval and the time the request
         reaches the actual server. Set it to 0 to deactivate this feature and use the same token until actual expiry.
         :param code_field_name: Field name containing the code. code by default.
-        :param client: httpx.Client instance that will be used to request the token.
+        :param headers: Additional headers to set when requesting or refreshing token.
         Use it to provide a custom proxying rule for instance.
         :param kwargs: all additional authorization parameters that should be put as query parameter
         in the authorization URL and as body parameters in the token URL.
@@ -69,7 +71,7 @@ class OAuth2AuthorizationCodePKCE(OAuth2BaseAuth, SupportMultiAuth, BrowserAuth)
 
         BrowserAuth.__init__(self, kwargs)
 
-        self.client = kwargs.pop("client", None)
+        self.token_headers = kwargs.pop("headers", {})
 
         header_name = kwargs.pop("header_name", None) or "Authorization"
         header_value = kwargs.pop("header_value", None) or "Bearer {token}"
@@ -140,7 +142,11 @@ class OAuth2AuthorizationCodePKCE(OAuth2BaseAuth, SupportMultiAuth, BrowserAuth)
             self, state, early_expiry, header_name, header_value, self.refresh_token
         )
 
-    def request_new_token(self) -> tuple:
+    def request_new_token(
+        self,
+    ) -> Generator[
+        httpx.Request, httpx.Response, Union[tuple[str, str, int, str], tuple[str, str]]
+    ]:
         # Request code
         state, code = authentication_responses_server.request_new_grant(
             self.code_grant_details
@@ -149,17 +155,10 @@ class OAuth2AuthorizationCodePKCE(OAuth2BaseAuth, SupportMultiAuth, BrowserAuth)
         # As described in https://tools.ietf.org/html/rfc6749#section-4.1.3
         self.token_data["code"] = code
 
-        client = self.client or httpx.Client()
-        self._configure_client(client)
-        try:
-            # As described in https://tools.ietf.org/html/rfc6749#section-4.1.4
-            token, expires_in, refresh_token = request_new_grant_with_post(
-                self.token_url, self.token_data, self.token_field_name, client
-            )
-        finally:
-            # Close client only if it was created by this module
-            if self.client is None:
-                client.close()
+        # As described in https://tools.ietf.org/html/rfc6749#section-4.1.4
+        token, expires_in, refresh_token = yield from request_new_grant_with_post(
+            self.token_url, self.token_data, self.token_field_name, self.token_headers
+        )
         # Handle both Access and Bearer tokens
         return (
             (self.state, token, expires_in, refresh_token)
@@ -167,26 +166,18 @@ class OAuth2AuthorizationCodePKCE(OAuth2BaseAuth, SupportMultiAuth, BrowserAuth)
             else (self.state, token)
         )
 
-    def refresh_token(self, refresh_token: str) -> tuple:
-        client = self.client or httpx.Client()
-        self._configure_client(client)
-        try:
-            # As described in https://tools.ietf.org/html/rfc6749#section-6
-            self.refresh_data["refresh_token"] = refresh_token
-            token, expires_in, refresh_token = request_new_grant_with_post(
-                self.token_url,
-                self.refresh_data,
-                self.token_field_name,
-                client,
-            )
-        finally:
-            # Close client only if it was created by this module
-            if self.client is None:
-                client.close()
+    def refresh_token(
+        self, refresh_token: str
+    ) -> Generator[httpx.Request, httpx.Response, tuple[str, str, int, str]]:
+        # As described in https://tools.ietf.org/html/rfc6749#section-6
+        self.refresh_data["refresh_token"] = refresh_token
+        token, expires_in, refresh_token = yield from request_new_grant_with_post(
+            self.token_url,
+            self.refresh_data,
+            self.token_field_name,
+            self.token_headers,
+        )
         return self.state, token, expires_in, refresh_token
-
-    def _configure_client(self, client: httpx.Client):
-        client.timeout = self.timeout
 
     @staticmethod
     def generate_code_verifier() -> bytes:
@@ -256,8 +247,7 @@ class OktaAuthorizationCodePKCE(OAuth2AuthorizationCodePKCE):
         :param header_value: Format used to send the token value.
         "{token}" must be present as it will be replaced by the actual token.
         Token will be sent as "Bearer {token}" by default.
-        :param client: httpx.Client instance that will be used to request the token.
-        Use it to provide a custom proxying rule for instance.
+        :param headers: Additional headers to set when requesting or refreshing token.
         :param kwargs: all additional authorization parameters that should be put as query parameter
         in the authorization URL and as body parameters in the token URL.
         Usual parameters are:

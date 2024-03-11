@@ -11,12 +11,12 @@ from httpx_auth._oauth2.tokens import to_expiry
 async def test_oauth2_authorization_code_flow_uses_provided_client(
     token_cache, httpx_mock: HTTPXMock, browser_mock: BrowserMock
 ):
-    client = httpx.Client(headers={"x-test": "Test value"})
+    headers = {"x-test": "Test value"}
     auth = httpx_auth.WakaTimeAuthorizationCode(
         "jPJQV0op6Pu3b66MWDi8b1wD",
         "waka_sec_0c4MBGeR9LN74LzV5uelF9SgeQ32CqfeWpIuieneBbsL57dAAlqqJWDiVDJOlsSx61pVwHMKlsb3uMvU",
         scope="email",
-        client=client,
+        headers=headers,
     )
     tab = browser_mock.add_response(
         opened_url="https://wakatime.com/oauth/authorize?client_id=jPJQV0op6Pu3b66MWDi8b1wD&client_secret=waka_sec_0c4MBGeR9LN74LzV5uelF9SgeQ32CqfeWpIuieneBbsL57dAAlqqJWDiVDJOlsSx61pVwHMKlsb3uMvU&scope=email&response_type=code&state=5d0adb208bdbecaf5cfb6de0bf4ba0aea52986f3fc5ea7bc30c4b2db449c17e5c9d15f9a3926476cdaf1c72e9f73c7cfdc624dde0187c38d8c6b04532770df2a&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F",
