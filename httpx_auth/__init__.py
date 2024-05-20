@@ -1,6 +1,7 @@
 from httpx_auth._authentication import (
     Basic,
     HeaderApiKey,
+    MultiAuth,
     QueryApiKey,
     SupportMultiAuth,
 )
@@ -63,6 +64,7 @@ __all__ = [
     "OAuth2ResourceOwnerPasswordCredentials",
     "OktaResourceOwnerPasswordCredentials",
     "WakaTimeAuthorizationCode",
+    "MultiAuth",
     "SupportMultiAuth",
     "JsonTokenFileCache",
     "TokenMemoryCache",

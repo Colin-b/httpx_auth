@@ -3,7 +3,7 @@ from typing import Generator
 import httpx
 
 
-class _MultiAuth(httpx.Auth):
+class MultiAuth(httpx.Auth):
     """Authentication using multiple authentication methods."""
 
     def __init__(self, *authentication_modes):
@@ -16,29 +16,29 @@ class _MultiAuth(httpx.Auth):
             next(authentication_mode.auth_flow(request))
         yield request
 
-    def __add__(self, other) -> "_MultiAuth":
-        if isinstance(other, _MultiAuth):
-            return _MultiAuth(*self.authentication_modes, *other.authentication_modes)
-        return _MultiAuth(*self.authentication_modes, other)
+    def __add__(self, other) -> "MultiAuth":
+        if isinstance(other, MultiAuth):
+            return MultiAuth(*self.authentication_modes, *other.authentication_modes)
+        return MultiAuth(*self.authentication_modes, other)
 
-    def __and__(self, other) -> "_MultiAuth":
-        if isinstance(other, _MultiAuth):
-            return _MultiAuth(*self.authentication_modes, *other.authentication_modes)
-        return _MultiAuth(*self.authentication_modes, other)
+    def __and__(self, other) -> "MultiAuth":
+        if isinstance(other, MultiAuth):
+            return MultiAuth(*self.authentication_modes, *other.authentication_modes)
+        return MultiAuth(*self.authentication_modes, other)
 
 
 class SupportMultiAuth:
     """Inherit from this class to be able to use your class with httpx_auth provided authentication classes."""
 
-    def __add__(self, other) -> _MultiAuth:
-        if isinstance(other, _MultiAuth):
-            return _MultiAuth(self, *other.authentication_modes)
-        return _MultiAuth(self, other)
+    def __add__(self, other) -> MultiAuth:
+        if isinstance(other, MultiAuth):
+            return MultiAuth(self, *other.authentication_modes)
+        return MultiAuth(self, other)
 
-    def __and__(self, other) -> _MultiAuth:
-        if isinstance(other, _MultiAuth):
-            return _MultiAuth(self, *other.authentication_modes)
-        return _MultiAuth(self, other)
+    def __and__(self, other) -> MultiAuth:
+        if isinstance(other, MultiAuth):
+            return MultiAuth(self, *other.authentication_modes)
+        return MultiAuth(self, other)
 
 
 class HeaderApiKey(httpx.Auth, SupportMultiAuth):
