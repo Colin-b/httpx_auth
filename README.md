@@ -711,6 +711,8 @@ OAuth2.token_cache = JsonTokenFileCache('path/to/my_token_cache.json')
 
 ### Managing the web browser
 
+#### Authentication response pages
+
 You can configure the browser display settings thanks to `httpx_auth.OAuth2.display` as in the following:
 ```python
 from httpx_auth import OAuth2, DisplaySettings
@@ -726,6 +728,16 @@ The following parameters can be provided to `DisplaySettings`:
 | `success_html`         | In case a code or token is successfully received, this is the success page that will be displayed in your browser. `{display_time}` is expected in this content.                 |               |
 | `failure_display_time` | In case received code or token is not valid, this is the maximum amount of milliseconds the failure page will be displayed in your browser.                                      | 10_000        |
 | `failure_html`         | In case received code or token is not valid, this is the failure page that will be displayed in your browser. `{information}` and `{display_time}` are expected in this content. |               |
+
+#### Text-mode web browser
+
+This project uses [`webbrowser.open()`][4] to open a web browser to support authentication flows like OAuth's Authorization Code grant. When running graphically, `webbrowser.open()` does not block. But when run in text mode, `webbrowser.open()` blocks until the opened browser is closed, which leads to a deadlock when httpx-auth cannot serve the auth response pages to the webbrowser. To work around this, you can specify a `BROWSER` environment variable that contains a `%s` and ends with a `&`, and the `webbrowser` module will open the text-mode browser in a subprocess and allow httpx-auth to serve the auth response pages to the browser without deadlocking.
+
+```bash
+BROWSER="/usr/bin/links %s &"
+```
+
+For more information, please see the implementation of [`webbrowser.get()`][5].
 
 ## AWS Signature v4
 
@@ -996,4 +1008,6 @@ def test_something(browser_mock: BrowserMock):
 [1]: https://pypi.python.org/pypi/httpx "httpx module"
 [2]: https://www.python-httpx.org/advanced/#customizing-authentication "authentication parameter on httpx module"
 [3]: https://openid.net/specs/openid-connect-core-1_0.html#IDToken "OpenID ID Token specifications"
+[4]: https://docs.python.org/3/library/webbrowser.html#webbrowser.open "Python webbrowser module"
+[5]: https://github.com/python/cpython/blob/main/Lib/webbrowser.py "Python webbrowser module code"
 [6]: https://docs.pytest.org/en/latest/ "pytest module"
