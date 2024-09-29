@@ -520,6 +520,18 @@ async def test_oauth2_authorization_code_flow_refresh_token_invalid(
     )
 
     httpx_mock.add_response(
+        method="POST",
+        url="https://provide_access_token",
+        json={
+            "access_token": "2YotnFZFEjr1zCsicMWpAA",
+            "token_type": "example",
+            "expires_in": "0",
+            "refresh_token": "tGzv3JOkF0XG5Qx2TlKWIA",
+            "example_parameter": "example_value",
+        },
+        match_content=b"grant_type=authorization_code&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F&response_type=code&code=SplxlOBeZQQYbYS6WxSbIA",
+    )
+    httpx_mock.add_response(
         url="https://authorized_only",
         method="GET",
         match_headers={
@@ -570,6 +582,13 @@ async def test_oauth2_authorization_code_flow_refresh_token_access_token_not_exp
 
     tab.assert_success()
 
+    httpx_mock.add_response(
+        url="https://authorized_only",
+        method="GET",
+        match_headers={
+            "Authorization": "Bearer 2YotnFZFEjr1zCsicMWpAA",
+        },
+    )
     # expect Bearer token to remain the same
     async with httpx.AsyncClient() as client:
         await client.get("https://authorized_only", auth=auth)

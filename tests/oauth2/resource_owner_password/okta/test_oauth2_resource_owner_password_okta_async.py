@@ -93,6 +93,28 @@ async def test_oauth2_password_credentials_flow_is_able_to_reuse_client(
 
     time.sleep(10)
 
+    httpx_mock.add_response(
+        method="POST",
+        url="https://testserver.okta-emea.com/oauth2/default/v1/token",
+        json={
+            "access_token": "2YotnFZFEjr1zCsicMWpAA",
+            "token_type": "example",
+            "expires_in": 10,
+            "example_parameter": "example_value",
+        },
+        match_content=b"grant_type=password&username=test_user&password=test_pwd&scope=openid",
+        match_headers={
+            "x-test": "Test value",
+            "Authorization": "Basic dGVzdF91c2VyMjp0ZXN0X3B3ZDI=",
+        },
+    )
+    httpx_mock.add_response(
+        url="https://authorized_only",
+        method="GET",
+        match_headers={
+            "Authorization": "Bearer 2YotnFZFEjr1zCsicMWpAA",
+        },
+    )
     async with httpx.AsyncClient() as client:
         await client.get("https://authorized_only", auth=auth)
 
@@ -390,6 +412,21 @@ async def test_oauth2_password_credentials_flow_refresh_token_invalid(
             "Authorization": "Basic dGVzdF91c2VyMjp0ZXN0X3B3ZDI=",
         },
     )
+    httpx_mock.add_response(
+        method="POST",
+        url="https://testserver.okta-emea.com/oauth2/default/v1/token",
+        json={
+            "access_token": "2YotnFZFEjr1zCsicMWpAA",
+            "token_type": "example",
+            "expires_in": "0",
+            "refresh_token": "tGzv3JOkF0XG5Qx2TlKWIA",
+            "example_parameter": "example_value",
+        },
+        match_content=b"grant_type=password&username=test_user&password=test_pwd&scope=openid",
+        match_headers={
+            "Authorization": "Basic dGVzdF91c2VyMjp0ZXN0X3B3ZDI=",
+        },
+    )
 
     httpx_mock.add_response(
         url="https://authorized_only",
@@ -440,6 +477,13 @@ async def test_oauth2_password_credentials_flow_refresh_token_access_token_not_e
     async with httpx.AsyncClient() as client:
         await client.get("https://authorized_only", auth=auth)
 
+    httpx_mock.add_response(
+        url="https://authorized_only",
+        method="GET",
+        match_headers={
+            "Authorization": "Bearer 2YotnFZFEjr1zCsicMWpAA",
+        },
+    )
     # expect Bearer token to remain the same
     async with httpx.AsyncClient() as client:
         await client.get("https://authorized_only", auth=auth)
