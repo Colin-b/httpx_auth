@@ -83,6 +83,25 @@ async def test_oauth2_password_credentials_flow_is_able_to_reuse_client(
 
     time.sleep(10)
 
+    httpx_mock.add_response(
+        method="POST",
+        url="https://provide_access_token",
+        json={
+            "access_token": "2YotnFZFEjr1zCsicMWpAA",
+            "token_type": "example",
+            "expires_in": 10,
+            "example_parameter": "example_value",
+        },
+        match_content=b"grant_type=password&username=test_user&password=test_pwd",
+        match_headers={"x-test": "Test value"},
+    )
+    httpx_mock.add_response(
+        url="https://authorized_only",
+        method="GET",
+        match_headers={
+            "Authorization": "Bearer 2YotnFZFEjr1zCsicMWpAA",
+        },
+    )
     async with httpx.AsyncClient() as client:
         await client.get("https://authorized_only", auth=auth)
 
