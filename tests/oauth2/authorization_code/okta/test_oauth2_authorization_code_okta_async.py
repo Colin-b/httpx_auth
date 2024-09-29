@@ -372,6 +372,18 @@ async def test_oauth2_authorization_code_flow_refresh_token_invalid(
         opened_url="https://testserver.okta-emea.com/oauth2/default/v1/authorize?client_id=54239d18-c68c-4c47-8bdd-ce71ea1d50cd&scope=openid&response_type=code&state=5264d11c8b268ccf911ce564ca42fd75cea68c4a3c1ec3ac1ab20243891ab7cd5250ad4c2d002017c6e8ac2ba34954293baa5e0e4fd00bb9ffd4a39c45f1960b&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F",
         reply_url="http://localhost:5000#code=SplxlOBeZQQYbYS6WxSbIA&state=5264d11c8b268ccf911ce564ca42fd75cea68c4a3c1ec3ac1ab20243891ab7cd5250ad4c2d002017c6e8ac2ba34954293baa5e0e4fd00bb9ffd4a39c45f1960b",
     )
+    httpx_mock.add_response(
+        method="POST",
+        url="https://testserver.okta-emea.com/oauth2/default/v1/token",
+        json={
+            "access_token": "2YotnFZFEjr1zCsicMWpAA",
+            "token_type": "example",
+            "expires_in": "0",
+            "refresh_token": "tGzv3JOkF0XG5Qx2TlKWIA",
+            "example_parameter": "example_value",
+        },
+        match_content=b"grant_type=authorization_code&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F&client_id=54239d18-c68c-4c47-8bdd-ce71ea1d50cd&scope=openid&response_type=code&code=SplxlOBeZQQYbYS6WxSbIA",
+    )
 
     httpx_mock.add_response(
         url="https://authorized_only",
@@ -423,6 +435,13 @@ async def test_oauth2_authorization_code_flow_refresh_token_access_token_not_exp
 
     tab.assert_success()
 
+    httpx_mock.add_response(
+        url="https://authorized_only",
+        method="GET",
+        match_headers={
+            "Authorization": "Bearer 2YotnFZFEjr1zCsicMWpAA",
+        },
+    )
     # expect Bearer token to remain the same
     async with httpx.AsyncClient() as client:
         await client.get("https://authorized_only", auth=auth)

@@ -80,6 +80,26 @@ def test_oauth2_client_credentials_flow_is_able_to_reuse_client(
 
     time.sleep(10)
 
+    httpx_mock.add_response(
+        method="POST",
+        url="https://provide_access_token",
+        json={
+            "access_token": "2YotnFZFEjr1zCsicMWpAA",
+            "token_type": "example",
+            "expires_in": 10,
+            "refresh_token": "tGzv3JOkF0XG5Qx2TlKWIA",
+            "example_parameter": "example_value",
+        },
+        match_headers={"x-test": "Test value"},
+        match_content=b"grant_type=client_credentials",
+    )
+    httpx_mock.add_response(
+        url="https://authorized_only",
+        method="GET",
+        match_headers={
+            "Authorization": "Bearer 2YotnFZFEjr1zCsicMWpAA",
+        },
+    )
     with httpx.Client() as client:
         client.get("https://authorized_only", auth=auth)
 
