@@ -28,7 +28,7 @@ def decode_base64(base64_encoded_string: str) -> str:
     missing_padding = len(base64_encoded_string) % 4
     if missing_padding != 0:
         base64_encoded_string += "=" * (4 - missing_padding)
-    return base64.b64decode(base64_encoded_string).decode("unicode_escape")
+    return base64.urlsafe_b64decode(base64_encoded_string).decode("utf-8")
 
 
 def is_expired(expiry: float, early_expiry: float) -> bool:
