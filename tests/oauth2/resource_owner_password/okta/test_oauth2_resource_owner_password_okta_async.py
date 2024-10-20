@@ -14,14 +14,14 @@ async def test_oauth2_password_credentials_flow_uses_provided_client(
     token_cache, httpx_mock: HTTPXMock
 ):
     # TODO Add support for AsyncClient
-    client = httpx.Client(headers={"x-test": "Test value"})
+    headers = {"x-test": "Test value"}
     auth = httpx_auth.OktaResourceOwnerPasswordCredentials(
         "testserver.okta-emea.com",
         username="test_user",
         password="test_pwd",
         client_id="test_user2",
         client_secret="test_pwd2",
-        client=client,
+        headers=headers,
     )
     httpx_mock.add_response(
         method="POST",
@@ -56,14 +56,14 @@ async def test_oauth2_password_credentials_flow_is_able_to_reuse_client(
     token_cache, httpx_mock: HTTPXMock
 ):
     # TODO Add support for AsyncClient
-    client = httpx.Client(headers={"x-test": "Test value"})
+    headers = {"x-test": "Test value"}
     auth = httpx_auth.OktaResourceOwnerPasswordCredentials(
         "testserver.okta-emea.com",
         username="test_user",
         password="test_pwd",
         client_id="test_user2",
         client_secret="test_pwd2",
-        client=client,
+        headers=headers,
     )
     httpx_mock.add_response(
         method="POST",
@@ -124,14 +124,14 @@ async def test_oauth2_password_credentials_flow_is_able_to_reuse_client_with_tok
     token_cache, httpx_mock: HTTPXMock
 ):
     # TODO Add support for AsyncClient
-    client = httpx.Client(headers={"x-test": "Test value"})
+    headers = {"x-test": "Test value"}
     auth = httpx_auth.OktaResourceOwnerPasswordCredentials(
         "testserver.okta-emea.com",
         username="test_user",
         password="test_pwd",
         client_id="test_user2",
         client_secret="test_pwd2",
-        client=client,
+        headers=headers,
     )
     httpx_mock.add_response(
         method="POST",
