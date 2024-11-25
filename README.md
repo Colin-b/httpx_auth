@@ -9,6 +9,7 @@
 <a href="https://pypi.org/project/httpx-auth/"><img alt="Number of downloads" src="https://img.shields.io/pypi/dm/httpx_auth"></a>
 </p>
 
+> [!NOTE]  
 > Version 1.0.0 will be released once httpx is considered as stable (release of 1.0.0).
 >
 > However, current state can be considered as stable.

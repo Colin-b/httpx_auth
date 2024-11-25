@@ -401,6 +401,12 @@ def test_oauth2_authorization_code_flow_refresh_token_invalid(
     )
 
     httpx_mock.add_response(
+        method="POST",
+        url="https://wakatime.com/oauth/token",
+        html="access_token=waka_tok_12345&token_type=bearer&expires_in=0&refresh_token=waka_ref_12345&scope=email&example_parameter=example_value",
+        match_content=b"grant_type=authorization_code&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F&client_id=jPJQV0op6Pu3b66MWDi8b1wD&client_secret=waka_sec_0c4MBGeR9LN74LzV5uelF9SgeQ32CqfeWpIuieneBbsL57dAAlqqJWDiVDJOlsSx61pVwHMKlsb3uMvU&scope=email&response_type=code&code=SplxlOBeZQQYbYS6WxSbIA",
+    )
+    httpx_mock.add_response(
         url="https://authorized_only",
         method="GET",
         match_headers={
@@ -445,6 +451,13 @@ def test_oauth2_authorization_code_flow_refresh_token_access_token_not_expired(
 
     tab.assert_success()
 
+    httpx_mock.add_response(
+        url="https://authorized_only",
+        method="GET",
+        match_headers={
+            "Authorization": "Bearer waka_tok_12345",
+        },
+    )
     # expect Bearer token to remain the same
     with httpx.Client() as client:
         client.get("https://authorized_only", auth=auth)

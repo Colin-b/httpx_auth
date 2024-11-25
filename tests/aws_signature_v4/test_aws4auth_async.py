@@ -682,7 +682,7 @@ async def test_aws_auth_query_reserved_with_fragment(httpx_mock: HTTPXMock):
     )
 
     httpx_mock.add_response(
-        url="https://authorized_only/?@#$%25%5E&+=/,?%3E%3C%60%22;:%5C%7C][%7B%7D%20=@#$%25%5E&+=/,?%3E%3C%60%22;:%5C%7C][%7B%7D",
+        url=r'https://authorized_only/?@#$%^&+=/,?%3E%3C`";:\|][{}%20=@#$%^&+=/,?%3E%3C`";:\|][{}',
         method="POST",
         match_headers={
             "x-amz-content-sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
@@ -760,7 +760,7 @@ async def test_aws_auth_path_quoting(httpx_mock: HTTPXMock):
     )
 
     httpx_mock.add_response(
-        url="https://authorized_only/test/hello-*.&%5E~+%7B%7D!$%C2%A3_%20",
+        url="https://authorized_only/test/hello-*.&^~+{}!$%C2%A3_%20",
         method="POST",
         match_headers={
             "x-amz-content-sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
@@ -784,7 +784,7 @@ async def test_aws_auth_path_percent_encode_non_s3(httpx_mock: HTTPXMock):
     )
 
     httpx_mock.add_response(
-        url="https://authorized_only/test/%2a%2b%25/~-_%5E&%20%25%25",
+        url="https://authorized_only/test/%2a%2b%25/~-_^&%20%%",
         method="POST",
         match_headers={
             "x-amz-content-sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
@@ -808,7 +808,7 @@ async def test_aws_auth_path_percent_encode_s3(httpx_mock: HTTPXMock):
     )
 
     httpx_mock.add_response(
-        url="https://authorized_only/test/%2a%2b%25/~-_%5E&%20%25%25",
+        url="https://authorized_only/test/%2a%2b%25/~-_^&%20%%",
         method="POST",
         match_headers={
             "x-amz-content-sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",

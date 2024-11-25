@@ -45,17 +45,14 @@ testing = [
     # Used to generate test tokens
     "pyjwt==2.*",
     # Used to mock httpx
-    "pytest_httpx==0.30.*",
+    "pytest_httpx==0.32.*",
     # Used to mock date and time
     "time-machine==2.*",
     # Used to check coverage
-    "pytest-cov==4.*",
+    "pytest-cov==5.*",
     # Used to run async tests
-    "pytest-asyncio==0.23.*",
+    "pytest-asyncio==0.24.*",
 ]
-
-[tool.setuptools.packages.find]
-exclude = ["tests*"]
 
 [tool.setuptools.dynamic]
 version = {attr = "httpx_auth.version.__version__"}
@@ -64,3 +61,5 @@ version = {attr = "httpx_auth.version.__version__"}
 filterwarnings = [
     "error",
 ]
+# Silence deprecation warnings about option "asyncio_default_fixture_loop_scope"
+asyncio_default_fixture_loop_scope = "function"
