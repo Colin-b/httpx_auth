@@ -30,9 +30,9 @@ jobs:
         rm -Rf httpx_auth
     - name: Install wheel
       run: |
-        python -m pip install dist/httpx_auth-0.22.0-py3-none-any.whl --force-reinstall
+        python -m pip install dist/httpx_auth-0.23.0-py3-none-any.whl --force-reinstall
         python -c 'import httpx_auth'
     - name: Install source distribution
       run: |
-        python -m pip install dist/httpx_auth-0.22.0.tar.gz --force-reinstall
+        python -m pip install dist/httpx_auth-0.23.0.tar.gz --force-reinstall
         python -c 'import httpx_auth'
