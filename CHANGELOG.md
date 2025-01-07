@@ -5,6 +5,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [0.23.0] - 2025-01-07
 ### Fixed
 - Bearer tokens with nested JSON string are now properly handled. Thanks to [`Patrick Rodrigues`](https://github.com/pythrick).
 - Client credentials auth instances will now use credentials (client_id and client_secret) as well to distinguish tokens. This was an issue when the only parameters changing were the credentials.
@@ -260,7 +262,8 @@ Note that a few changes were made:
 ### Added
 - Placeholder for port of requests_auth to httpx
 
-[Unreleased]: https://github.com/Colin-b/httpx_auth/compare/v0.22.0...HEAD
+[Unreleased]: https://github.com/Colin-b/httpx_auth/compare/v0.23.0...HEAD
+[0.23.0]: https://github.com/Colin-b/httpx_auth/compare/v0.22.0...v0.23.0
 [0.22.0]: https://github.com/Colin-b/httpx_auth/compare/v0.21.0...v0.22.0
 [0.21.0]: https://github.com/Colin-b/httpx_auth/compare/v0.20.0...v0.21.0
 [0.20.0]: https://github.com/Colin-b/httpx_auth/compare/v0.19.0...v0.20.0
