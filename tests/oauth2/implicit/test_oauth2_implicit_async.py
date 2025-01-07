@@ -19,7 +19,7 @@ async def test_oauth2_implicit_flow_token_is_not_reused_if_a_url_parameter_is_ch
     token_cache,
     httpx_mock: HTTPXMock,
     browser_mock: BrowserMock,
-    unused_tcp_port_factory: typing.Callable[int, []],
+    unused_tcp_port_factory: typing.Callable[[], int],
 ):
     auth1 = httpx_auth.OAuth2Implicit(
         "https://provide_token?response_type=custom_token&fake_param=1",
