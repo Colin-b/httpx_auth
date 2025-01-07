@@ -31,7 +31,7 @@ classifiers=[
     "Topic :: Software Development :: Build Tools",
 ]
 dependencies = [
-    "httpx==0.27.*",
+    "httpx==0.28.*",
 ]
 dynamic = ["version"]
 
@@ -46,13 +46,13 @@ testing = [
     # Used to generate test tokens
     "pyjwt==2.*",
     # Used to mock httpx
-    "pytest_httpx==0.32.*",
+    "pytest_httpx==0.35.*",
     # Used to mock date and time
     "time-machine==2.*",
     # Used to check coverage
-    "pytest-cov==5.*",
+    "pytest-cov==6.*",
     # Used to run async tests
-    "pytest-asyncio==0.24.*",
+    "pytest-asyncio==0.25.*",
 ]
 
 [tool.setuptools.dynamic]
