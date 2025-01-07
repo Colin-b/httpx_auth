@@ -1,7 +1,9 @@
+import json
 import time
 import datetime
 
 import httpx
+import jwt
 import pytest
 from pytest_httpx import HTTPXMock
 
@@ -184,6 +186,13 @@ async def test_oauth2_implicit_flow_token_is_reused_if_only_nonce_differs(
         token_field_name="custom_token",
     )
 
+    httpx_mock.add_response(
+        url="https://authorized_only",
+        method="GET",
+        match_headers={
+            "Authorization": f"Bearer {token}",
+        },
+    )
     async with httpx.AsyncClient() as client:
         await client.get("https://authorized_only", auth=auth2)
 
@@ -230,7 +239,13 @@ async def test_oauth2_implicit_flow_post_token_is_sent_in_authorization_header_b
     expiry_in_1_hour = datetime.datetime.now(
         datetime.timezone.utc
     ) + datetime.timedelta(hours=1)
-    token = create_token(expiry_in_1_hour)
+    token = jwt.encode(
+        {
+            "exp": expiry_in_1_hour,
+            "data": json.dumps({"something 漢字": ["漢字 else"]}),
+        },
+        "secret",
+    )
     tab = browser_mock.add_response(
         opened_url="https://provide_token?response_type=token&state=bee505cb6ceb14b9f6ac3573cd700b3b3e965004078d7bb57c7b92df01e448c992a7a46b4804164fc998ea166ece3f3d5849ca2405c4a548f43b915b0677231c&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F",
         reply_url="http://localhost:5000",
@@ -639,6 +654,13 @@ async def test_oauth2_implicit_flow_token_is_reused_if_not_expired(
 
     auth2 = httpx_auth.OAuth2Implicit("https://provide_token")
 
+    httpx_mock.add_response(
+        url="https://authorized_only",
+        method="GET",
+        match_headers={
+            "Authorization": f"Bearer {token}",
+        },
+    )
     async with httpx.AsyncClient() as client:
         await client.get("https://authorized_only", auth=auth2)
 

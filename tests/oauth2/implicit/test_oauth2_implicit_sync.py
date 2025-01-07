@@ -1,7 +1,9 @@
+import json
 import time
 import datetime
 
 import httpx
+import jwt
 import pytest
 from pytest_httpx import HTTPXMock
 
@@ -179,6 +181,13 @@ def test_oauth2_implicit_flow_token_is_reused_if_only_nonce_differs(
         token_field_name="custom_token",
     )
 
+    httpx_mock.add_response(
+        url="https://authorized_only",
+        method="GET",
+        match_headers={
+            "Authorization": f"Bearer {token}",
+        },
+    )
     with httpx.Client() as client:
         client.get("https://authorized_only", auth=auth2)
 
@@ -223,7 +232,13 @@ def test_oauth2_implicit_flow_post_token_is_sent_in_authorization_header_by_defa
     expiry_in_1_hour = datetime.datetime.now(
         datetime.timezone.utc
     ) + datetime.timedelta(hours=1)
-    token = create_token(expiry_in_1_hour)
+    token = jwt.encode(
+        {
+            "exp": expiry_in_1_hour,
+            "data": json.dumps({"something 漢字": ["漢字 else"]}),
+        },
+        "secret",
+    )
     tab = browser_mock.add_response(
         opened_url="https://provide_token?response_type=token&state=bee505cb6ceb14b9f6ac3573cd700b3b3e965004078d7bb57c7b92df01e448c992a7a46b4804164fc998ea166ece3f3d5849ca2405c4a548f43b915b0677231c&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F",
         reply_url="http://localhost:5000",
@@ -334,6 +349,8 @@ def test_browser_opening_failure(token_cache, httpx_mock: HTTPXMock, monkeypatch
         str(exception_info.value)
         == "User authentication was not received within 0.1 seconds."
     )
+    assert isinstance(exception_info.value, httpx_auth.HttpxAuthException)
+    assert isinstance(exception_info.value, httpx.HTTPError)
 
 
 def test_browser_error(token_cache, httpx_mock: HTTPXMock, monkeypatch):
@@ -365,6 +382,8 @@ def test_browser_error(token_cache, httpx_mock: HTTPXMock, monkeypatch):
         str(exception_info.value)
         == "User authentication was not received within 0.1 seconds."
     )
+    assert isinstance(exception_info.value, httpx_auth.HttpxAuthException)
+    assert isinstance(exception_info.value, httpx.HTTPError)
 
 
 def test_state_change(token_cache, httpx_mock: HTTPXMock, browser_mock: BrowserMock):
@@ -401,9 +420,13 @@ def test_empty_token_is_invalid(token_cache, browser_mock: BrowserMock):
     )
 
     with httpx.Client() as client:
-        with pytest.raises(httpx_auth.InvalidToken, match=" is invalid."):
+        with pytest.raises(
+            httpx_auth.InvalidToken, match=" is invalid."
+        ) as exception_info:
             client.get("https://authorized_only", auth=auth)
 
+    assert isinstance(exception_info.value, httpx_auth.HttpxAuthException)
+    assert isinstance(exception_info.value, httpx.HTTPError)
     tab.assert_success()
 
 
@@ -420,6 +443,8 @@ def test_token_without_expiry_is_invalid(token_cache, browser_mock: BrowserMock)
             client.get("https://authorized_only", auth=auth)
 
     assert str(exception_info.value) == "Expiry (exp) is not provided in None."
+    assert isinstance(exception_info.value, httpx_auth.HttpxAuthException)
+    assert isinstance(exception_info.value, httpx.HTTPError)
     tab.assert_success()
 
 
@@ -616,6 +641,13 @@ def test_oauth2_implicit_flow_token_is_reused_if_not_expired(
 
     auth2 = httpx_auth.OAuth2Implicit("https://provide_token")
 
+    httpx_mock.add_response(
+        url="https://authorized_only",
+        method="GET",
+        match_headers={
+            "Authorization": f"Bearer {token}",
+        },
+    )
     with httpx.Client() as client:
         client.get("https://authorized_only", auth=auth2)
 
@@ -679,6 +711,8 @@ def test_oauth2_implicit_flow_post_failure_if_state_is_not_provided(
         str(exception_info.value)
         == f"state not provided within {{'access_token': ['{token}']}}."
     )
+    assert isinstance(exception_info.value, httpx_auth.HttpxAuthException)
+    assert isinstance(exception_info.value, httpx.HTTPError)
     tab.assert_failure(f"state not provided within {{'access_token': ['{token}']}}.")
 
 
