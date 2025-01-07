@@ -6,7 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Fixed
-- Fix `JSONDecodeError` due to Improper Handling of Nested JSON Strings in JWT Payloads
+- Bearer tokens with nested JSON string are now properly handled. Thanks to [`Patrick Rodrigues`](https://github.com/pythrick).
 
 ### Changed
 - Requires [`httpx`](https://www.python-httpx.org)==0.28.\*
