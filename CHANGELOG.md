@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - Requires [`httpx`](https://www.python-httpx.org)==0.28.\*
+- Exceptions issued by `httpx_auth` are now inheriting from `httpx_auth.HttpxAuthException`, itself inheriting from `httpx.HTTPError`, instead of `Exception`.
 
 ### Added
 - Explicit support for python `3.13`.

@@ -349,6 +349,8 @@ def test_browser_opening_failure(token_cache, httpx_mock: HTTPXMock, monkeypatch
         str(exception_info.value)
         == "User authentication was not received within 0.1 seconds."
     )
+    assert isinstance(exception_info.value, httpx_auth.HttpxAuthException)
+    assert isinstance(exception_info.value, httpx.HTTPError)
 
 
 def test_browser_error(token_cache, httpx_mock: HTTPXMock, monkeypatch):
@@ -380,6 +382,8 @@ def test_browser_error(token_cache, httpx_mock: HTTPXMock, monkeypatch):
         str(exception_info.value)
         == "User authentication was not received within 0.1 seconds."
     )
+    assert isinstance(exception_info.value, httpx_auth.HttpxAuthException)
+    assert isinstance(exception_info.value, httpx.HTTPError)
 
 
 def test_state_change(token_cache, httpx_mock: HTTPXMock, browser_mock: BrowserMock):
@@ -416,9 +420,13 @@ def test_empty_token_is_invalid(token_cache, browser_mock: BrowserMock):
     )
 
     with httpx.Client() as client:
-        with pytest.raises(httpx_auth.InvalidToken, match=" is invalid."):
+        with pytest.raises(
+            httpx_auth.InvalidToken, match=" is invalid."
+        ) as exception_info:
             client.get("https://authorized_only", auth=auth)
 
+    assert isinstance(exception_info.value, httpx_auth.HttpxAuthException)
+    assert isinstance(exception_info.value, httpx.HTTPError)
     tab.assert_success()
 
 
@@ -435,6 +443,8 @@ def test_token_without_expiry_is_invalid(token_cache, browser_mock: BrowserMock)
             client.get("https://authorized_only", auth=auth)
 
     assert str(exception_info.value) == "Expiry (exp) is not provided in None."
+    assert isinstance(exception_info.value, httpx_auth.HttpxAuthException)
+    assert isinstance(exception_info.value, httpx.HTTPError)
     tab.assert_success()
 
 
@@ -701,6 +711,8 @@ def test_oauth2_implicit_flow_post_failure_if_state_is_not_provided(
         str(exception_info.value)
         == f"state not provided within {{'access_token': ['{token}']}}."
     )
+    assert isinstance(exception_info.value, httpx_auth.HttpxAuthException)
+    assert isinstance(exception_info.value, httpx.HTTPError)
     tab.assert_failure(f"state not provided within {{'access_token': ['{token}']}}.")
 
 
