@@ -34,9 +34,7 @@ async def test_oauth2_authorization_code_flow_uses_provided_client(
             "refresh_token": "tGzv3JOkF0XG5Qx2TlKWIA",
             "example_parameter": "example_value",
         },
-        match_content=b"grant_type=authorization_code&redirect_uri=http%3A%2F%2Flocalhost%3A"
-        + str(unused_tcp_port).encode()
-        + b"%2F&response_type=code&code=SplxlOBeZQQYbYS6WxSbIA",
+        match_content=f"grant_type=authorization_code&redirect_uri=http%3A%2F%2Flocalhost%3A{unused_tcp_port}%2F&response_type=code&code=SplxlOBeZQQYbYS6WxSbIA".encode(),
         match_headers={"x-test": "Test value"},
     )
 
@@ -77,9 +75,7 @@ async def test_oauth2_authorization_code_flow_uses_redirect_uri_domain(
             "refresh_token": "tGzv3JOkF0XG5Qx2TlKWIA",
             "example_parameter": "example_value",
         },
-        match_content=b"grant_type=authorization_code&redirect_uri=http%3A%2F%2Flocalhost.mycompany.com%3A"
-        + str(unused_tcp_port).encode()
-        + b"%2F&response_type=code&code=SplxlOBeZQQYbYS6WxSbIA",
+        match_content=f"grant_type=authorization_code&redirect_uri=http%3A%2F%2Flocalhost.mycompany.com%3A{unused_tcp_port}%2F&response_type=code&code=SplxlOBeZQQYbYS6WxSbIA".encode(),
     )
 
     httpx_mock.add_response(
@@ -126,9 +122,7 @@ async def test_oauth2_authorization_code_flow_uses_custom_success(
             "refresh_token": "tGzv3JOkF0XG5Qx2TlKWIA",
             "example_parameter": "example_value",
         },
-        match_content=b"grant_type=authorization_code&redirect_uri=http%3A%2F%2Flocalhost%3A"
-        + str(unused_tcp_port).encode()
-        + b"%2F&response_type=code&code=SplxlOBeZQQYbYS6WxSbIA",
+        match_content=f"grant_type=authorization_code&redirect_uri=http%3A%2F%2Flocalhost%3A{unused_tcp_port}%2F&response_type=code&code=SplxlOBeZQQYbYS6WxSbIA".encode(),
     )
     httpx_mock.add_response(
         url="https://authorized_only",
@@ -193,9 +187,7 @@ async def test_oauth2_authorization_code_flow_is_able_to_reuse_client(
             "expires_in": 2,
             "example_parameter": "example_value",
         },
-        match_content=b"grant_type=authorization_code&redirect_uri=http%3A%2F%2Flocalhost%3A"
-        + str(unused_tcp_port).encode()
-        + b"%2F&response_type=code&code=SplxlOBeZQQYbYS6WxSbIA",
+        match_content=f"grant_type=authorization_code&redirect_uri=http%3A%2F%2Flocalhost%3A{unused_tcp_port}%2F&response_type=code&code=SplxlOBeZQQYbYS6WxSbIA".encode(),
         match_headers={"x-test": "Test value"},
     )
 
@@ -226,9 +218,7 @@ async def test_oauth2_authorization_code_flow_is_able_to_reuse_client(
             "expires_in": 10,
             "example_parameter": "example_value",
         },
-        match_content=b"grant_type=authorization_code&redirect_uri=http%3A%2F%2Flocalhost%3A"
-        + str(unused_tcp_port).encode()
-        + b"%2F&response_type=code&code=SplxlOBeZQQYbYS6WxSbIA",
+        match_content=f"grant_type=authorization_code&redirect_uri=http%3A%2F%2Flocalhost%3A{unused_tcp_port}%2F&response_type=code&code=SplxlOBeZQQYbYS6WxSbIA".encode(),
         match_headers={"x-test": "Test value"},
     )
 
@@ -270,9 +260,7 @@ async def test_oauth2_authorization_code_flow_is_able_to_reuse_client_with_token
             "refresh_token": "tGzv3JOkF0XG5Qx2TlKWIA",
             "example_parameter": "example_value",
         },
-        match_content=b"grant_type=authorization_code&redirect_uri=http%3A%2F%2Flocalhost%3A"
-        + str(unused_tcp_port).encode()
-        + b"%2F&response_type=code&code=SplxlOBeZQQYbYS6WxSbIA",
+        match_content=f"grant_type=authorization_code&redirect_uri=http%3A%2F%2Flocalhost%3A{unused_tcp_port}%2F&response_type=code&code=SplxlOBeZQQYbYS6WxSbIA".encode(),
         match_headers={"x-test": "Test value"},
     )
 
@@ -339,9 +327,7 @@ async def test_oauth2_authorization_code_flow_get_code_is_sent_in_authorization_
             "refresh_token": "tGzv3JOkF0XG5Qx2TlKWIA",
             "example_parameter": "example_value",
         },
-        match_content=b"grant_type=authorization_code&redirect_uri=http%3A%2F%2Flocalhost%3A"
-        + str(unused_tcp_port).encode()
-        + b"%2F&response_type=code&code=SplxlOBeZQQYbYS6WxSbIA",
+        match_content=f"grant_type=authorization_code&redirect_uri=http%3A%2F%2Flocalhost%3A{unused_tcp_port}%2F&response_type=code&code=SplxlOBeZQQYbYS6WxSbIA".encode(),
     )
 
     httpx_mock.add_response(
@@ -374,9 +360,7 @@ async def test_oauth2_authorization_code_flow_token_as_html(
         method="POST",
         url="https://provide_access_token",
         html="access_token=2YotnFZFEjr1zCsicMWpAA&token_type=example&expires_in=3600&refresh_token=tGzv3JOkF0XG5Qx2TlKWIA&example_parameter=example_value",
-        match_content=b"grant_type=authorization_code&redirect_uri=http%3A%2F%2Flocalhost%3A"
-        + str(unused_tcp_port).encode()
-        + b"%2F&response_type=code&code=SplxlOBeZQQYbYS6WxSbIA",
+        match_content=f"grant_type=authorization_code&redirect_uri=http%3A%2F%2Flocalhost%3A{unused_tcp_port}%2F&response_type=code&code=SplxlOBeZQQYbYS6WxSbIA".encode(),
     )
 
     httpx_mock.add_response(
@@ -422,9 +406,7 @@ async def test_oauth2_authorization_code_flow_get_code_is_expired_after_30_secon
             "refresh_token": "tGzv3JOkF0XG5Qx2TlKWIA",
             "example_parameter": "example_value",
         },
-        match_content=b"grant_type=authorization_code&redirect_uri=http%3A%2F%2Flocalhost%3A"
-        + str(unused_tcp_port).encode()
-        + b"%2F&response_type=code&code=SplxlOBeZQQYbYS6WxSbIA",
+        match_content=f"grant_type=authorization_code&redirect_uri=http%3A%2F%2Flocalhost%3A{unused_tcp_port}%2F&response_type=code&code=SplxlOBeZQQYbYS6WxSbIA".encode(),
     )
 
     httpx_mock.add_response(
@@ -492,9 +474,7 @@ async def test_oauth2_authorization_code_flow_refresh_token(
             "refresh_token": "tGzv3JOkF0XG5Qx2TlKWIA",
             "example_parameter": "example_value",
         },
-        match_content=b"grant_type=authorization_code&redirect_uri=http%3A%2F%2Flocalhost%3A"
-        + str(unused_tcp_port).encode()
-        + b"%2F&response_type=code&code=SplxlOBeZQQYbYS6WxSbIA",
+        match_content=f"grant_type=authorization_code&redirect_uri=http%3A%2F%2Flocalhost%3A{unused_tcp_port}%2F&response_type=code&code=SplxlOBeZQQYbYS6WxSbIA".encode(),
     )
     httpx_mock.add_response(
         url="https://authorized_only",
@@ -558,9 +538,7 @@ async def test_oauth2_authorization_code_flow_refresh_token_invalid(
             "refresh_token": "tGzv3JOkF0XG5Qx2TlKWIA",
             "example_parameter": "example_value",
         },
-        match_content=b"grant_type=authorization_code&redirect_uri=http%3A%2F%2Flocalhost%3A"
-        + str(unused_tcp_port).encode()
-        + b"%2F&response_type=code&code=SplxlOBeZQQYbYS6WxSbIA",
+        match_content=f"grant_type=authorization_code&redirect_uri=http%3A%2F%2Flocalhost%3A{unused_tcp_port}%2F&response_type=code&code=SplxlOBeZQQYbYS6WxSbIA".encode(),
     )
     httpx_mock.add_response(
         url="https://authorized_only",
@@ -600,9 +578,7 @@ async def test_oauth2_authorization_code_flow_refresh_token_invalid(
             "refresh_token": "tGzv3JOkF0XG5Qx2TlKWIA",
             "example_parameter": "example_value",
         },
-        match_content=b"grant_type=authorization_code&redirect_uri=http%3A%2F%2Flocalhost%3A"
-        + str(unused_tcp_port).encode()
-        + b"%2F&response_type=code&code=SplxlOBeZQQYbYS6WxSbIA",
+        match_content=f"grant_type=authorization_code&redirect_uri=http%3A%2F%2Flocalhost%3A{unused_tcp_port}%2F&response_type=code&code=SplxlOBeZQQYbYS6WxSbIA".encode(),
     )
     httpx_mock.add_response(
         url="https://authorized_only",
@@ -642,9 +618,7 @@ async def test_oauth2_authorization_code_flow_refresh_token_access_token_not_exp
             "refresh_token": "tGzv3JOkF0XG5Qx2TlKWIA",
             "example_parameter": "example_value",
         },
-        match_content=b"grant_type=authorization_code&redirect_uri=http%3A%2F%2Flocalhost%3A"
-        + str(unused_tcp_port).encode()
-        + b"%2F&response_type=code&code=SplxlOBeZQQYbYS6WxSbIA",
+        match_content=f"grant_type=authorization_code&redirect_uri=http%3A%2F%2Flocalhost%3A{unused_tcp_port}%2F&response_type=code&code=SplxlOBeZQQYbYS6WxSbIA".encode(),
     )
     httpx_mock.add_response(
         url="https://authorized_only",
@@ -1353,9 +1327,7 @@ async def test_nonce_is_sent_if_provided_in_authorization_url(
             "refresh_token": "tGzv3JOkF0XG5Qx2TlKWIA",
             "example_parameter": "example_value",
         },
-        match_content=b"grant_type=authorization_code&redirect_uri=http%3A%2F%2Flocalhost%3A"
-        + str(unused_tcp_port).encode()
-        + b"%2F&response_type=code&code=SplxlOBeZQQYbYS6WxSbIA",
+        match_content=f"grant_type=authorization_code&redirect_uri=http%3A%2F%2Flocalhost%3A{unused_tcp_port}%2F&response_type=code&code=SplxlOBeZQQYbYS6WxSbIA".encode(),
     )
     httpx_mock.add_response(
         url="https://authorized_only",
@@ -1395,9 +1367,7 @@ async def test_response_type_can_be_provided_in_url(
             "refresh_token": "tGzv3JOkF0XG5Qx2TlKWIA",
             "example_parameter": "example_value",
         },
-        match_content=b"grant_type=authorization_code&redirect_uri=http%3A%2F%2Flocalhost%3A"
-        + str(unused_tcp_port).encode()
-        + b"%2F&code=SplxlOBeZQQYbYS6WxSbIA",
+        match_content=f"grant_type=authorization_code&redirect_uri=http%3A%2F%2Flocalhost%3A{unused_tcp_port}%2F&code=SplxlOBeZQQYbYS6WxSbIA".encode(),
     )
     httpx_mock.add_response(
         url="https://authorized_only",

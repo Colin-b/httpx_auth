@@ -27,9 +27,7 @@ async def test_oauth2_authorization_code_flow_uses_provided_client(
         method="POST",
         url="https://wakatime.com/oauth/token",
         html="access_token=waka_tok_12345&token_type=bearer&expires_in=3600&refresh_token=waka_ref_12345&scope=email&example_parameter=example_value",
-        match_content=b"grant_type=authorization_code&redirect_uri=http%3A%2F%2Flocalhost%3A"
-        + str(unused_tcp_port).encode()
-        + b"%2F&client_id=jPJQV0op6Pu3b66MWDi8b1wD&client_secret=waka_sec_0c4MBGeR9LN74LzV5uelF9SgeQ32CqfeWpIuieneBbsL57dAAlqqJWDiVDJOlsSx61pVwHMKlsb3uMvU&scope=email&response_type=code&code=SplxlOBeZQQYbYS6WxSbIA",
+        match_content=f"grant_type=authorization_code&redirect_uri=http%3A%2F%2Flocalhost%3A{unused_tcp_port}%2F&client_id=jPJQV0op6Pu3b66MWDi8b1wD&client_secret=waka_sec_0c4MBGeR9LN74LzV5uelF9SgeQ32CqfeWpIuieneBbsL57dAAlqqJWDiVDJOlsSx61pVwHMKlsb3uMvU&scope=email&response_type=code&code=SplxlOBeZQQYbYS6WxSbIA".encode(),
         match_headers={"x-test": "Test value"},
     )
     httpx_mock.add_response(
@@ -66,9 +64,7 @@ async def test_oauth2_authorization_code_flow_uses_redirect_uri_domain(
         method="POST",
         url="https://wakatime.com/oauth/token",
         html="access_token=waka_tok_12345&token_type=bearer&expires_in=3600&refresh_token=waka_ref_12345&scope=email&example_parameter=example_value",
-        match_content=b"grant_type=authorization_code&redirect_uri=http%3A%2F%2Flocalhost.mycompany.com%3A"
-        + str(unused_tcp_port).encode()
-        + b"%2F&client_id=jPJQV0op6Pu3b66MWDi8b1wD&client_secret=waka_sec_0c4MBGeR9LN74LzV5uelF9SgeQ32CqfeWpIuieneBbsL57dAAlqqJWDiVDJOlsSx61pVwHMKlsb3uMvU&scope=email&response_type=code&code=SplxlOBeZQQYbYS6WxSbIA",
+        match_content=f"grant_type=authorization_code&redirect_uri=http%3A%2F%2Flocalhost.mycompany.com%3A{unused_tcp_port}%2F&client_id=jPJQV0op6Pu3b66MWDi8b1wD&client_secret=waka_sec_0c4MBGeR9LN74LzV5uelF9SgeQ32CqfeWpIuieneBbsL57dAAlqqJWDiVDJOlsSx61pVwHMKlsb3uMvU&scope=email&response_type=code&code=SplxlOBeZQQYbYS6WxSbIA".encode(),
     )
     httpx_mock.add_response(
         url="https://authorized_only",
@@ -107,9 +103,7 @@ async def test_oauth2_authorization_code_flow_uses_custom_success(
         method="POST",
         url="https://wakatime.com/oauth/token",
         html="access_token=waka_tok_12345&token_type=bearer&expires_in=3600&refresh_token=waka_ref_12345&scope=email&example_parameter=example_value",
-        match_content=b"grant_type=authorization_code&redirect_uri=http%3A%2F%2Flocalhost%3A"
-        + str(unused_tcp_port).encode()
-        + b"%2F&client_id=jPJQV0op6Pu3b66MWDi8b1wD&client_secret=waka_sec_0c4MBGeR9LN74LzV5uelF9SgeQ32CqfeWpIuieneBbsL57dAAlqqJWDiVDJOlsSx61pVwHMKlsb3uMvU&scope=email&response_type=code&code=SplxlOBeZQQYbYS6WxSbIA",
+        match_content=f"grant_type=authorization_code&redirect_uri=http%3A%2F%2Flocalhost%3A{unused_tcp_port}%2F&client_id=jPJQV0op6Pu3b66MWDi8b1wD&client_secret=waka_sec_0c4MBGeR9LN74LzV5uelF9SgeQ32CqfeWpIuieneBbsL57dAAlqqJWDiVDJOlsSx61pVwHMKlsb3uMvU&scope=email&response_type=code&code=SplxlOBeZQQYbYS6WxSbIA".encode(),
     )
     httpx_mock.add_response(
         url="https://authorized_only",
@@ -171,9 +165,7 @@ async def test_multiple_scopes_are_comma_separated(
         method="POST",
         url="https://wakatime.com/oauth/token",
         html="access_token=waka_tok_12345&token_type=bearer&expires_in=3600&refresh_token=waka_ref_12345&scope=email&example_parameter=example_value",
-        match_content=b"grant_type=authorization_code&redirect_uri=http%3A%2F%2Flocalhost%3A"
-        + str(unused_tcp_port).encode()
-        + b"%2F&client_id=jPJQV0op6Pu3b66MWDi8b1wD&client_secret=waka_sec_0c4MBGeR9LN74LzV5uelF9SgeQ32CqfeWpIuieneBbsL57dAAlqqJWDiVDJOlsSx61pVwHMKlsb3uMvU&scope=email%2Cread_stats&response_type=code&code=SplxlOBeZQQYbYS6WxSbIA",
+        match_content=f"grant_type=authorization_code&redirect_uri=http%3A%2F%2Flocalhost%3A{unused_tcp_port}%2F&client_id=jPJQV0op6Pu3b66MWDi8b1wD&client_secret=waka_sec_0c4MBGeR9LN74LzV5uelF9SgeQ32CqfeWpIuieneBbsL57dAAlqqJWDiVDJOlsSx61pVwHMKlsb3uMvU&scope=email%2Cread_stats&response_type=code&code=SplxlOBeZQQYbYS6WxSbIA".encode(),
     )
     httpx_mock.add_response(
         url="https://authorized_only",
@@ -209,9 +201,7 @@ async def test_oauth2_authorization_code_flow_get_code_is_sent_in_authorization_
         method="POST",
         url="https://wakatime.com/oauth/token",
         html="access_token=waka_tok_12345&token_type=bearer&expires_in=3600&refresh_token=waka_ref_12345&scope=email&example_parameter=example_value",
-        match_content=b"grant_type=authorization_code&redirect_uri=http%3A%2F%2Flocalhost%3A"
-        + str(unused_tcp_port).encode()
-        + b"%2F&client_id=jPJQV0op6Pu3b66MWDi8b1wD&client_secret=waka_sec_0c4MBGeR9LN74LzV5uelF9SgeQ32CqfeWpIuieneBbsL57dAAlqqJWDiVDJOlsSx61pVwHMKlsb3uMvU&scope=email&response_type=code&code=SplxlOBeZQQYbYS6WxSbIA",
+        match_content=f"grant_type=authorization_code&redirect_uri=http%3A%2F%2Flocalhost%3A{unused_tcp_port}%2F&client_id=jPJQV0op6Pu3b66MWDi8b1wD&client_secret=waka_sec_0c4MBGeR9LN74LzV5uelF9SgeQ32CqfeWpIuieneBbsL57dAAlqqJWDiVDJOlsSx61pVwHMKlsb3uMvU&scope=email&response_type=code&code=SplxlOBeZQQYbYS6WxSbIA".encode(),
     )
     httpx_mock.add_response(
         url="https://authorized_only",
@@ -254,9 +244,7 @@ async def test_json_response_is_handled_even_if_unused(
             "scope": "email",
             "example_parameter": "example_value",
         },
-        match_content=b"grant_type=authorization_code&redirect_uri=http%3A%2F%2Flocalhost%3A"
-        + str(unused_tcp_port).encode()
-        + b"%2F&client_id=jPJQV0op6Pu3b66MWDi8b1wD&client_secret=waka_sec_0c4MBGeR9LN74LzV5uelF9SgeQ32CqfeWpIuieneBbsL57dAAlqqJWDiVDJOlsSx61pVwHMKlsb3uMvU&scope=email&response_type=code&code=SplxlOBeZQQYbYS6WxSbIA",
+        match_content=f"grant_type=authorization_code&redirect_uri=http%3A%2F%2Flocalhost%3A{unused_tcp_port}%2F&client_id=jPJQV0op6Pu3b66MWDi8b1wD&client_secret=waka_sec_0c4MBGeR9LN74LzV5uelF9SgeQ32CqfeWpIuieneBbsL57dAAlqqJWDiVDJOlsSx61pVwHMKlsb3uMvU&scope=email&response_type=code&code=SplxlOBeZQQYbYS6WxSbIA".encode(),
     )
     httpx_mock.add_response(
         url="https://authorized_only",
@@ -299,9 +287,7 @@ async def test_oauth2_authorization_code_flow_get_code_is_expired_after_30_secon
         method="POST",
         url="https://wakatime.com/oauth/token",
         html="access_token=waka_tok_12345&token_type=bearer&expires_in=3600&refresh_token=waka_ref_12345&scope=email&example_parameter=example_value",
-        match_content=b"grant_type=authorization_code&redirect_uri=http%3A%2F%2Flocalhost%3A"
-        + str(unused_tcp_port).encode()
-        + b"%2F&client_id=jPJQV0op6Pu3b66MWDi8b1wD&client_secret=waka_sec_0c4MBGeR9LN74LzV5uelF9SgeQ32CqfeWpIuieneBbsL57dAAlqqJWDiVDJOlsSx61pVwHMKlsb3uMvU&scope=email&response_type=code&code=SplxlOBeZQQYbYS6WxSbIA",
+        match_content=f"grant_type=authorization_code&redirect_uri=http%3A%2F%2Flocalhost%3A{unused_tcp_port}%2F&client_id=jPJQV0op6Pu3b66MWDi8b1wD&client_secret=waka_sec_0c4MBGeR9LN74LzV5uelF9SgeQ32CqfeWpIuieneBbsL57dAAlqqJWDiVDJOlsSx61pVwHMKlsb3uMvU&scope=email&response_type=code&code=SplxlOBeZQQYbYS6WxSbIA".encode(),
     )
     httpx_mock.add_response(
         url="https://authorized_only",
@@ -366,9 +352,7 @@ async def test_oauth2_authorization_code_flow_refresh_token(
         method="POST",
         url="https://wakatime.com/oauth/token",
         html="access_token=waka_tok_12345&token_type=bearer&expires_in=0&refresh_token=waka_ref_12345&scope=email&example_parameter=example_value",
-        match_content=b"grant_type=authorization_code&redirect_uri=http%3A%2F%2Flocalhost%3A"
-        + str(unused_tcp_port).encode()
-        + b"%2F&client_id=jPJQV0op6Pu3b66MWDi8b1wD&client_secret=waka_sec_0c4MBGeR9LN74LzV5uelF9SgeQ32CqfeWpIuieneBbsL57dAAlqqJWDiVDJOlsSx61pVwHMKlsb3uMvU&scope=email&response_type=code&code=SplxlOBeZQQYbYS6WxSbIA",
+        match_content=f"grant_type=authorization_code&redirect_uri=http%3A%2F%2Flocalhost%3A{unused_tcp_port}%2F&client_id=jPJQV0op6Pu3b66MWDi8b1wD&client_secret=waka_sec_0c4MBGeR9LN74LzV5uelF9SgeQ32CqfeWpIuieneBbsL57dAAlqqJWDiVDJOlsSx61pVwHMKlsb3uMvU&scope=email&response_type=code&code=SplxlOBeZQQYbYS6WxSbIA".encode(),
     )
     httpx_mock.add_response(
         url="https://authorized_only",
@@ -422,9 +406,7 @@ async def test_oauth2_authorization_code_flow_refresh_token_invalid(
         method="POST",
         url="https://wakatime.com/oauth/token",
         html="access_token=waka_tok_12345&token_type=bearer&expires_in=0&refresh_token=waka_ref_12345&scope=email&example_parameter=example_value",
-        match_content=b"grant_type=authorization_code&redirect_uri=http%3A%2F%2Flocalhost%3A"
-        + str(unused_tcp_port).encode()
-        + b"%2F&client_id=jPJQV0op6Pu3b66MWDi8b1wD&client_secret=waka_sec_0c4MBGeR9LN74LzV5uelF9SgeQ32CqfeWpIuieneBbsL57dAAlqqJWDiVDJOlsSx61pVwHMKlsb3uMvU&scope=email&response_type=code&code=SplxlOBeZQQYbYS6WxSbIA",
+        match_content=f"grant_type=authorization_code&redirect_uri=http%3A%2F%2Flocalhost%3A{unused_tcp_port}%2F&client_id=jPJQV0op6Pu3b66MWDi8b1wD&client_secret=waka_sec_0c4MBGeR9LN74LzV5uelF9SgeQ32CqfeWpIuieneBbsL57dAAlqqJWDiVDJOlsSx61pVwHMKlsb3uMvU&scope=email&response_type=code&code=SplxlOBeZQQYbYS6WxSbIA".encode(),
     )
     httpx_mock.add_response(
         url="https://authorized_only",
@@ -457,9 +439,7 @@ async def test_oauth2_authorization_code_flow_refresh_token_invalid(
         method="POST",
         url="https://wakatime.com/oauth/token",
         html="access_token=waka_tok_12345&token_type=bearer&expires_in=0&refresh_token=waka_ref_12345&scope=email&example_parameter=example_value",
-        match_content=b"grant_type=authorization_code&redirect_uri=http%3A%2F%2Flocalhost%3A"
-        + str(unused_tcp_port).encode()
-        + b"%2F&client_id=jPJQV0op6Pu3b66MWDi8b1wD&client_secret=waka_sec_0c4MBGeR9LN74LzV5uelF9SgeQ32CqfeWpIuieneBbsL57dAAlqqJWDiVDJOlsSx61pVwHMKlsb3uMvU&scope=email&response_type=code&code=SplxlOBeZQQYbYS6WxSbIA",
+        match_content=f"grant_type=authorization_code&redirect_uri=http%3A%2F%2Flocalhost%3A{unused_tcp_port}%2F&client_id=jPJQV0op6Pu3b66MWDi8b1wD&client_secret=waka_sec_0c4MBGeR9LN74LzV5uelF9SgeQ32CqfeWpIuieneBbsL57dAAlqqJWDiVDJOlsSx61pVwHMKlsb3uMvU&scope=email&response_type=code&code=SplxlOBeZQQYbYS6WxSbIA".encode(),
     )
 
     httpx_mock.add_response(
@@ -496,9 +476,7 @@ async def test_oauth2_authorization_code_flow_refresh_token_access_token_not_exp
         method="POST",
         url="https://wakatime.com/oauth/token",
         html="access_token=waka_tok_12345&token_type=bearer&expires_in=3600&refresh_token=waka_ref_12345&scope=email&example_parameter=example_value",
-        match_content=b"grant_type=authorization_code&redirect_uri=http%3A%2F%2Flocalhost%3A"
-        + str(unused_tcp_port).encode()
-        + b"%2F&client_id=jPJQV0op6Pu3b66MWDi8b1wD&client_secret=waka_sec_0c4MBGeR9LN74LzV5uelF9SgeQ32CqfeWpIuieneBbsL57dAAlqqJWDiVDJOlsSx61pVwHMKlsb3uMvU&scope=email&response_type=code&code=SplxlOBeZQQYbYS6WxSbIA",
+        match_content=f"grant_type=authorization_code&redirect_uri=http%3A%2F%2Flocalhost%3A{unused_tcp_port}%2F&client_id=jPJQV0op6Pu3b66MWDi8b1wD&client_secret=waka_sec_0c4MBGeR9LN74LzV5uelF9SgeQ32CqfeWpIuieneBbsL57dAAlqqJWDiVDJOlsSx61pVwHMKlsb3uMvU&scope=email&response_type=code&code=SplxlOBeZQQYbYS6WxSbIA".encode(),
     )
     httpx_mock.add_response(
         url="https://authorized_only",
@@ -545,9 +523,7 @@ async def test_empty_token_is_invalid(
         method="POST",
         url="https://wakatime.com/oauth/token",
         html="access_token=&token_type=bearer&expires_in=3600&refresh_token=waka_ref_12345&scope=email&example_parameter=example_value",
-        match_content=b"grant_type=authorization_code&redirect_uri=http%3A%2F%2Flocalhost%3A"
-        + str(unused_tcp_port).encode()
-        + b"%2F&client_id=jPJQV0op6Pu3b66MWDi8b1wD&client_secret=waka_sec_0c4MBGeR9LN74LzV5uelF9SgeQ32CqfeWpIuieneBbsL57dAAlqqJWDiVDJOlsSx61pVwHMKlsb3uMvU&scope=email&response_type=code&code=SplxlOBeZQQYbYS6WxSbIA",
+        match_content=f"grant_type=authorization_code&redirect_uri=http%3A%2F%2Flocalhost%3A{unused_tcp_port}%2F&client_id=jPJQV0op6Pu3b66MWDi8b1wD&client_secret=waka_sec_0c4MBGeR9LN74LzV5uelF9SgeQ32CqfeWpIuieneBbsL57dAAlqqJWDiVDJOlsSx61pVwHMKlsb3uMvU&scope=email&response_type=code&code=SplxlOBeZQQYbYS6WxSbIA".encode(),
     )
 
     async with httpx.AsyncClient() as client:
