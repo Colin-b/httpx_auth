@@ -45,8 +45,8 @@ def test_aws_auth_with_content_in_request(httpx_mock: HTTPXMock):
         method="POST",
         match_json=[{"key": "value"}],
         match_headers={
-            "x-amz-content-sha256": "fb65c1441d6743274738fe3b3042a73167ba1fb2d34679d8dd16433473758f97",
-            "Authorization": "AWS4-HMAC-SHA256 Credential=access_id/20181011/us-east-1/iam/aws4_request, SignedHeaders=content-type;host;x-amz-content-sha256;x-amz-date, Signature=5f4f832a19fc834d4f34047289ad67d96da25bd414a70f02ce6b85aef9ab8068",
+            "x-amz-content-sha256": "1e1d3e3fb0bcfb7b2b61f687369d0227e6aefd6739e1182312382ab03e83b75f",
+            "Authorization": "AWS4-HMAC-SHA256 Credential=access_id/20181011/us-east-1/iam/aws4_request, SignedHeaders=content-type;host;x-amz-content-sha256;x-amz-date, Signature=680fe73ca28e1639a3b2337a68d83324e03742679e612a52d3d29c9b6fc4b512",
             "x-amz-date": "20181011T150505Z",
         },
     )
@@ -454,8 +454,8 @@ def test_aws_auth_with_security_token_and_content_in_request(httpx_mock: HTTPXMo
         method="POST",
         match_json=[{"key": "value"}],
         match_headers={
-            "x-amz-content-sha256": "fb65c1441d6743274738fe3b3042a73167ba1fb2d34679d8dd16433473758f97",
-            "Authorization": "AWS4-HMAC-SHA256 Credential=access_id/20181011/us-east-1/iam/aws4_request, SignedHeaders=content-type;host;x-amz-content-sha256;x-amz-date;x-amz-security-token, Signature=e02c4733589cf6e80361f6905564da6d0c23a0829bb3c3899b328e43b2f7b581",
+            "x-amz-content-sha256": "1e1d3e3fb0bcfb7b2b61f687369d0227e6aefd6739e1182312382ab03e83b75f",
+            "Authorization": "AWS4-HMAC-SHA256 Credential=access_id/20181011/us-east-1/iam/aws4_request, SignedHeaders=content-type;host;x-amz-content-sha256;x-amz-date;x-amz-security-token, Signature=838d461dd62852877565b9f91558a9da26d7af50d8fadf3c48cc1a9f6d3561f4",
             "x-amz-date": "20181011T150505Z",
             "x-amz-security-token": "security_token",
         },
