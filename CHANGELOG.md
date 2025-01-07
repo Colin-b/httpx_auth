@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.23.1] - 2025-01-07
+### Fixed
+- Test suite should now run even if port 5000 is used by another process. Thanks to [`commonism`](https://github.com/commonism).
+
 ## [0.23.0] - 2025-01-07
 ### Fixed
 - Bearer tokens with nested JSON string are now properly handled. Thanks to [`Patrick Rodrigues`](https://github.com/pythrick).
@@ -262,7 +266,8 @@ Note that a few changes were made:
 ### Added
 - Placeholder for port of requests_auth to httpx
 
-[Unreleased]: https://github.com/Colin-b/httpx_auth/compare/v0.23.0...HEAD
+[Unreleased]: https://github.com/Colin-b/httpx_auth/compare/v0.23.1...HEAD
+[0.23.1]: https://github.com/Colin-b/httpx_auth/compare/v0.23.0...v0.23.1
 [0.23.0]: https://github.com/Colin-b/httpx_auth/compare/v0.22.0...v0.23.0
 [0.22.0]: https://github.com/Colin-b/httpx_auth/compare/v0.21.0...v0.22.0
 [0.21.0]: https://github.com/Colin-b/httpx_auth/compare/v0.20.0...v0.21.0
