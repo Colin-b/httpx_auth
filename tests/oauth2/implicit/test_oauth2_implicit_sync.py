@@ -13,19 +13,20 @@ from httpx_auth._oauth2.tokens import to_expiry
 
 
 def test_oauth2_implicit_flow_token_is_not_reused_if_a_url_parameter_is_changing(
-    token_cache, httpx_mock: HTTPXMock, browser_mock: BrowserMock
+    token_cache, httpx_mock: HTTPXMock, browser_mock: BrowserMock, unused_tcp_port: int
 ):
     auth1 = httpx_auth.OAuth2Implicit(
         "https://provide_token?response_type=custom_token&fake_param=1",
         token_field_name="custom_token",
+        redirect_uri_port=unused_tcp_port,
     )
     expiry_in_1_hour = datetime.datetime.now(
         datetime.timezone.utc
     ) + datetime.timedelta(hours=1)
     first_token = create_token(expiry_in_1_hour)
     tab1 = browser_mock.add_response(
-        opened_url="https://provide_token?response_type=custom_token&fake_param=1&state=fc65632abc93fbf8fede279fb6405912f18e05e5e7042b9d92e711f341b8a71efede90865c5fb38f0f11735e9923c0dccdf173be81acf61955f873d4a6e28fdb&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F",
-        reply_url="http://localhost:5000",
+        opened_url=f"https://provide_token?response_type=custom_token&fake_param=1&state=fc65632abc93fbf8fede279fb6405912f18e05e5e7042b9d92e711f341b8a71efede90865c5fb38f0f11735e9923c0dccdf173be81acf61955f873d4a6e28fdb&redirect_uri=http%3A%2F%2Flocalhost%3A{unused_tcp_port}%2F",
+        reply_url=f"http://localhost:{unused_tcp_port}",
         data=f"custom_token={first_token}&state=fc65632abc93fbf8fede279fb6405912f18e05e5e7042b9d92e711f341b8a71efede90865c5fb38f0f11735e9923c0dccdf173be81acf61955f873d4a6e28fdb",
     )
     httpx_mock.add_response(
@@ -47,11 +48,12 @@ def test_oauth2_implicit_flow_token_is_not_reused_if_a_url_parameter_is_changing
     auth2 = httpx_auth.OAuth2Implicit(
         "https://provide_token?response_type=custom_token&fake_param=2",
         token_field_name="custom_token",
+        redirect_uri_port=unused_tcp_port,
     )
     second_token = create_token(expiry_in_1_hour)
     tab2 = browser_mock.add_response(
-        opened_url="https://provide_token?response_type=custom_token&fake_param=2&state=91db107a8c3b8043302186936dd11ecc35049dc78b28d3642a62ba350e0a3e3b673d98b2820226bee5f3eca9633bd61825253cc7efe641bf9ad81bdae4d7adc9&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F",
-        reply_url="http://localhost:5000",
+        opened_url=f"https://provide_token?response_type=custom_token&fake_param=2&state=91db107a8c3b8043302186936dd11ecc35049dc78b28d3642a62ba350e0a3e3b673d98b2820226bee5f3eca9633bd61825253cc7efe641bf9ad81bdae4d7adc9&redirect_uri=http%3A%2F%2Flocalhost%3A{unused_tcp_port}%2F",
+        reply_url=f"http://localhost:{unused_tcp_port}",
         data=f"custom_token={second_token}&state=91db107a8c3b8043302186936dd11ecc35049dc78b28d3642a62ba350e0a3e3b673d98b2820226bee5f3eca9633bd61825253cc7efe641bf9ad81bdae4d7adc9",
     )
     httpx_mock.add_response(
@@ -70,18 +72,20 @@ def test_oauth2_implicit_flow_token_is_not_reused_if_a_url_parameter_is_changing
 
 
 def test_oauth2_implicit_flow_uses_redirect_uri_domain(
-    token_cache, httpx_mock: HTTPXMock, browser_mock: BrowserMock
+    token_cache, httpx_mock: HTTPXMock, browser_mock: BrowserMock, unused_tcp_port: int
 ):
     auth = httpx_auth.OAuth2Implicit(
-        "https://provide_token", redirect_uri_domain="localhost.mycompany.com"
+        "https://provide_token",
+        redirect_uri_domain="localhost.mycompany.com",
+        redirect_uri_port=unused_tcp_port,
     )
     expiry_in_1_hour = datetime.datetime.now(
         datetime.timezone.utc
     ) + datetime.timedelta(hours=1)
     token = create_token(expiry_in_1_hour)
     tab = browser_mock.add_response(
-        opened_url="https://provide_token?response_type=token&state=bee505cb6ceb14b9f6ac3573cd700b3b3e965004078d7bb57c7b92df01e448c992a7a46b4804164fc998ea166ece3f3d5849ca2405c4a548f43b915b0677231c&redirect_uri=http%3A%2F%2Flocalhost.mycompany.com%3A5000%2F",
-        reply_url="http://localhost:5000",
+        opened_url=f"https://provide_token?response_type=token&state=bee505cb6ceb14b9f6ac3573cd700b3b3e965004078d7bb57c7b92df01e448c992a7a46b4804164fc998ea166ece3f3d5849ca2405c4a548f43b915b0677231c&redirect_uri=http%3A%2F%2Flocalhost.mycompany.com%3A{unused_tcp_port}%2F",
+        reply_url=f"http://localhost:{unused_tcp_port}",
         data=f"access_token={token}&state=bee505cb6ceb14b9f6ac3573cd700b3b3e965004078d7bb57c7b92df01e448c992a7a46b4804164fc998ea166ece3f3d5849ca2405c4a548f43b915b0677231c",
     )
     httpx_mock.add_response(
@@ -99,9 +103,11 @@ def test_oauth2_implicit_flow_uses_redirect_uri_domain(
 
 
 def test_oauth2_implicit_flow_uses_custom_success(
-    token_cache, httpx_mock: HTTPXMock, browser_mock: BrowserMock
+    token_cache, httpx_mock: HTTPXMock, browser_mock: BrowserMock, unused_tcp_port: int
 ):
-    auth = httpx_auth.OAuth2Implicit("https://provide_token")
+    auth = httpx_auth.OAuth2Implicit(
+        "https://provide_token", redirect_uri_port=unused_tcp_port
+    )
     httpx_auth.OAuth2.display.success_html = (
         "<body><div>SUCCESS: {display_time}</div></body>"
     )
@@ -110,8 +116,8 @@ def test_oauth2_implicit_flow_uses_custom_success(
     ) + datetime.timedelta(hours=1)
     token = create_token(expiry_in_1_hour)
     tab = browser_mock.add_response(
-        opened_url="https://provide_token?response_type=token&state=bee505cb6ceb14b9f6ac3573cd700b3b3e965004078d7bb57c7b92df01e448c992a7a46b4804164fc998ea166ece3f3d5849ca2405c4a548f43b915b0677231c&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F",
-        reply_url="http://localhost:5000",
+        opened_url=f"https://provide_token?response_type=token&state=bee505cb6ceb14b9f6ac3573cd700b3b3e965004078d7bb57c7b92df01e448c992a7a46b4804164fc998ea166ece3f3d5849ca2405c4a548f43b915b0677231c&redirect_uri=http%3A%2F%2Flocalhost%3A{unused_tcp_port}%2F",
+        reply_url=f"http://localhost:{unused_tcp_port}",
         displayed_html="<body><div>SUCCESS: {display_time}</div></body>",
         data=f"access_token={token}&state=bee505cb6ceb14b9f6ac3573cd700b3b3e965004078d7bb57c7b92df01e448c992a7a46b4804164fc998ea166ece3f3d5849ca2405c4a548f43b915b0677231c",
     )
@@ -130,13 +136,15 @@ def test_oauth2_implicit_flow_uses_custom_success(
 
 
 def test_oauth2_implicit_flow_uses_custom_failure(
-    token_cache, httpx_mock: HTTPXMock, browser_mock: BrowserMock
+    token_cache, httpx_mock: HTTPXMock, browser_mock: BrowserMock, unused_tcp_port: int
 ):
-    auth = httpx_auth.OAuth2Implicit("https://provide_token")
+    auth = httpx_auth.OAuth2Implicit(
+        "https://provide_token", redirect_uri_port=unused_tcp_port
+    )
     httpx_auth.OAuth2.display.failure_html = "FAILURE: {display_time}\n{information}"
     tab = browser_mock.add_response(
-        opened_url="https://provide_token?response_type=token&state=bee505cb6ceb14b9f6ac3573cd700b3b3e965004078d7bb57c7b92df01e448c992a7a46b4804164fc998ea166ece3f3d5849ca2405c4a548f43b915b0677231c&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F",
-        reply_url="http://localhost:5000#error=invalid_request",
+        opened_url=f"https://provide_token?response_type=token&state=bee505cb6ceb14b9f6ac3573cd700b3b3e965004078d7bb57c7b92df01e448c992a7a46b4804164fc998ea166ece3f3d5849ca2405c4a548f43b915b0677231c&redirect_uri=http%3A%2F%2Flocalhost%3A{unused_tcp_port}%2F",
+        reply_url=f"http://localhost:{unused_tcp_port}#error=invalid_request",
         displayed_html="FAILURE: {display_time}\n{information}",
     )
 
@@ -150,19 +158,20 @@ def test_oauth2_implicit_flow_uses_custom_failure(
 
 
 def test_oauth2_implicit_flow_token_is_reused_if_only_nonce_differs(
-    token_cache, httpx_mock: HTTPXMock, browser_mock: BrowserMock
+    token_cache, httpx_mock: HTTPXMock, browser_mock: BrowserMock, unused_tcp_port: int
 ):
     auth1 = httpx_auth.OAuth2Implicit(
         "https://provide_token?response_type=custom_token&nonce=1",
         token_field_name="custom_token",
+        redirect_uri_port=unused_tcp_port,
     )
     expiry_in_1_hour = datetime.datetime.now(
         datetime.timezone.utc
     ) + datetime.timedelta(hours=1)
     token = create_token(expiry_in_1_hour)
     tab = browser_mock.add_response(
-        opened_url="https://provide_token?response_type=custom_token&state=da5ed86c8443102b3d318731e35c51a9d7d3fc8ab5ccfc138531399803c4d8f72268347e85db8b8953c8d5c97039af70f924fd0cb075e0c5876f7502d4e8ff79&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F&nonce=%5B%271%27%5D",
-        reply_url="http://localhost:5000",
+        opened_url=f"https://provide_token?response_type=custom_token&state=da5ed86c8443102b3d318731e35c51a9d7d3fc8ab5ccfc138531399803c4d8f72268347e85db8b8953c8d5c97039af70f924fd0cb075e0c5876f7502d4e8ff79&redirect_uri=http%3A%2F%2Flocalhost%3A{unused_tcp_port}%2F&nonce=%5B%271%27%5D",
+        reply_url=f"http://localhost:{unused_tcp_port}",
         data=f"custom_token={token}&state=da5ed86c8443102b3d318731e35c51a9d7d3fc8ab5ccfc138531399803c4d8f72268347e85db8b8953c8d5c97039af70f924fd0cb075e0c5876f7502d4e8ff79",
     )
     httpx_mock.add_response(
@@ -195,7 +204,7 @@ def test_oauth2_implicit_flow_token_is_reused_if_only_nonce_differs(
 
 
 def test_oauth2_implicit_flow_token_can_be_requested_on_a_custom_server_port(
-    token_cache, httpx_mock: HTTPXMock, browser_mock: BrowserMock
+    token_cache, httpx_mock: HTTPXMock, browser_mock: BrowserMock, unused_tcp_port: int
 ):
     # TODO Should use a method to retrieve a free port instead
     available_port = 5002
@@ -226,9 +235,11 @@ def test_oauth2_implicit_flow_token_can_be_requested_on_a_custom_server_port(
 
 
 def test_oauth2_implicit_flow_post_token_is_sent_in_authorization_header_by_default(
-    token_cache, httpx_mock: HTTPXMock, browser_mock: BrowserMock
+    token_cache, httpx_mock: HTTPXMock, browser_mock: BrowserMock, unused_tcp_port: int
 ):
-    auth = httpx_auth.OAuth2Implicit("https://provide_token")
+    auth = httpx_auth.OAuth2Implicit(
+        "https://provide_token", redirect_uri_port=unused_tcp_port
+    )
     expiry_in_1_hour = datetime.datetime.now(
         datetime.timezone.utc
     ) + datetime.timedelta(hours=1)
@@ -240,8 +251,8 @@ def test_oauth2_implicit_flow_post_token_is_sent_in_authorization_header_by_defa
         "secret",
     )
     tab = browser_mock.add_response(
-        opened_url="https://provide_token?response_type=token&state=bee505cb6ceb14b9f6ac3573cd700b3b3e965004078d7bb57c7b92df01e448c992a7a46b4804164fc998ea166ece3f3d5849ca2405c4a548f43b915b0677231c&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F",
-        reply_url="http://localhost:5000",
+        opened_url=f"https://provide_token?response_type=token&state=bee505cb6ceb14b9f6ac3573cd700b3b3e965004078d7bb57c7b92df01e448c992a7a46b4804164fc998ea166ece3f3d5849ca2405c4a548f43b915b0677231c&redirect_uri=http%3A%2F%2Flocalhost%3A{unused_tcp_port}%2F",
+        reply_url=f"http://localhost:{unused_tcp_port}",
         data=f"access_token={token}&state=bee505cb6ceb14b9f6ac3573cd700b3b3e965004078d7bb57c7b92df01e448c992a7a46b4804164fc998ea166ece3f3d5849ca2405c4a548f43b915b0677231c",
     )
     httpx_mock.add_response(
@@ -259,9 +270,11 @@ def test_oauth2_implicit_flow_post_token_is_sent_in_authorization_header_by_defa
 
 
 def test_oauth2_implicit_flow_post_token_is_expired_after_30_seconds_by_default(
-    token_cache, httpx_mock: HTTPXMock, browser_mock: BrowserMock
+    token_cache, httpx_mock: HTTPXMock, browser_mock: BrowserMock, unused_tcp_port: int
 ):
-    auth = httpx_auth.OAuth2Implicit("https://provide_token")
+    auth = httpx_auth.OAuth2Implicit(
+        "https://provide_token", redirect_uri_port=unused_tcp_port
+    )
     # Add a token that expires in 29 seconds, so should be considered as expired when issuing the request
     expiry_in_29_seconds = datetime.datetime.now(
         datetime.timezone.utc
@@ -277,8 +290,8 @@ def test_oauth2_implicit_flow_post_token_is_expired_after_30_seconds_by_default(
     ) + datetime.timedelta(hours=1)
     token = create_token(expiry_in_1_hour)
     tab = browser_mock.add_response(
-        opened_url="https://provide_token?response_type=token&state=bee505cb6ceb14b9f6ac3573cd700b3b3e965004078d7bb57c7b92df01e448c992a7a46b4804164fc998ea166ece3f3d5849ca2405c4a548f43b915b0677231c&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F",
-        reply_url="http://localhost:5000",
+        opened_url=f"https://provide_token?response_type=token&state=bee505cb6ceb14b9f6ac3573cd700b3b3e965004078d7bb57c7b92df01e448c992a7a46b4804164fc998ea166ece3f3d5849ca2405c4a548f43b915b0677231c&redirect_uri=http%3A%2F%2Flocalhost%3A{unused_tcp_port}%2F",
+        reply_url=f"http://localhost:{unused_tcp_port}",
         data=f"access_token={token}&state=bee505cb6ceb14b9f6ac3573cd700b3b3e965004078d7bb57c7b92df01e448c992a7a46b4804164fc998ea166ece3f3d5849ca2405c4a548f43b915b0677231c",
     )
     httpx_mock.add_response(
@@ -296,7 +309,7 @@ def test_oauth2_implicit_flow_post_token_is_expired_after_30_seconds_by_default(
 
 
 def test_oauth2_implicit_flow_post_token_custom_expiry(
-    token_cache, httpx_mock: HTTPXMock, browser_mock: BrowserMock
+    token_cache, httpx_mock: HTTPXMock, browser_mock: BrowserMock, unused_tcp_port: int
 ):
     auth = httpx_auth.OAuth2Implicit("https://provide_token", early_expiry=28)
     # Add a token that expires in 29 seconds, so should be considered as not expired when issuing the request
@@ -321,10 +334,16 @@ def test_oauth2_implicit_flow_post_token_custom_expiry(
         client.get("https://authorized_only", auth=auth)
 
 
-def test_browser_opening_failure(token_cache, httpx_mock: HTTPXMock, monkeypatch):
+def test_browser_opening_failure(
+    token_cache, httpx_mock: HTTPXMock, monkeypatch, unused_tcp_port: int
+):
     import httpx_auth._oauth2.authentication_responses_server
 
-    auth = httpx_auth.OAuth2Implicit("https://provide_token", timeout=0.1)
+    auth = httpx_auth.OAuth2Implicit(
+        "https://provide_token",
+        timeout=0.1,
+        redirect_uri_port=unused_tcp_port,
+    )
 
     class FakeBrowser:
         def open(self, url, new):
@@ -338,7 +357,7 @@ def test_browser_opening_failure(token_cache, httpx_mock: HTTPXMock, monkeypatch
 
     httpx_mock.add_response(
         method="GET",
-        url="https://provide_token?response_type=token&state=bee505cb6ceb14b9f6ac3573cd700b3b3e965004078d7bb57c7b92df01e448c992a7a46b4804164fc998ea166ece3f3d5849ca2405c4a548f43b915b0677231c&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F",
+        url=f"https://provide_token?response_type=token&state=bee505cb6ceb14b9f6ac3573cd700b3b3e965004078d7bb57c7b92df01e448c992a7a46b4804164fc998ea166ece3f3d5849ca2405c4a548f43b915b0677231c&redirect_uri=http%3A%2F%2Flocalhost%3A{unused_tcp_port}%2F",
     )
 
     with httpx.Client() as client:
@@ -353,10 +372,16 @@ def test_browser_opening_failure(token_cache, httpx_mock: HTTPXMock, monkeypatch
     assert isinstance(exception_info.value, httpx.HTTPError)
 
 
-def test_browser_error(token_cache, httpx_mock: HTTPXMock, monkeypatch):
+def test_browser_error(
+    token_cache, httpx_mock: HTTPXMock, monkeypatch, unused_tcp_port: int
+):
     import httpx_auth._oauth2.authentication_responses_server
 
-    auth = httpx_auth.OAuth2Implicit("https://provide_token", timeout=0.1)
+    auth = httpx_auth.OAuth2Implicit(
+        "https://provide_token",
+        timeout=0.1,
+        redirect_uri_port=unused_tcp_port,
+    )
 
     class FakeBrowser:
         def open(self, url, new):
@@ -372,7 +397,7 @@ def test_browser_error(token_cache, httpx_mock: HTTPXMock, monkeypatch):
 
     httpx_mock.add_response(
         method="GET",
-        url="https://provide_token?response_type=token&state=bee505cb6ceb14b9f6ac3573cd700b3b3e965004078d7bb57c7b92df01e448c992a7a46b4804164fc998ea166ece3f3d5849ca2405c4a548f43b915b0677231c&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F",
+        url=f"https://provide_token?response_type=token&state=bee505cb6ceb14b9f6ac3573cd700b3b3e965004078d7bb57c7b92df01e448c992a7a46b4804164fc998ea166ece3f3d5849ca2405c4a548f43b915b0677231c&redirect_uri=http%3A%2F%2Flocalhost%3A{unused_tcp_port}%2F",
     )
     with httpx.Client() as client:
         with pytest.raises(httpx_auth.TimeoutOccurred) as exception_info:
@@ -386,15 +411,19 @@ def test_browser_error(token_cache, httpx_mock: HTTPXMock, monkeypatch):
     assert isinstance(exception_info.value, httpx.HTTPError)
 
 
-def test_state_change(token_cache, httpx_mock: HTTPXMock, browser_mock: BrowserMock):
-    auth = httpx_auth.OAuth2Implicit("https://provide_token")
+def test_state_change(
+    token_cache, httpx_mock: HTTPXMock, browser_mock: BrowserMock, unused_tcp_port: int
+):
+    auth = httpx_auth.OAuth2Implicit(
+        "https://provide_token", redirect_uri_port=unused_tcp_port
+    )
     expiry_in_1_hour = datetime.datetime.now(
         datetime.timezone.utc
     ) + datetime.timedelta(hours=1)
     token = create_token(expiry_in_1_hour)
     tab = browser_mock.add_response(
-        opened_url="https://provide_token?response_type=token&state=bee505cb6ceb14b9f6ac3573cd700b3b3e965004078d7bb57c7b92df01e448c992a7a46b4804164fc998ea166ece3f3d5849ca2405c4a548f43b915b0677231c&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F",
-        reply_url="http://localhost:5000",
+        opened_url=f"https://provide_token?response_type=token&state=bee505cb6ceb14b9f6ac3573cd700b3b3e965004078d7bb57c7b92df01e448c992a7a46b4804164fc998ea166ece3f3d5849ca2405c4a548f43b915b0677231c&redirect_uri=http%3A%2F%2Flocalhost%3A{unused_tcp_port}%2F",
+        reply_url=f"http://localhost:{unused_tcp_port}",
         data=f"access_token={token}&state=123456",
     )
     httpx_mock.add_response(
@@ -411,11 +440,15 @@ def test_state_change(token_cache, httpx_mock: HTTPXMock, browser_mock: BrowserM
     tab.assert_success()
 
 
-def test_empty_token_is_invalid(token_cache, browser_mock: BrowserMock):
-    auth = httpx_auth.OAuth2Implicit("https://provide_token")
+def test_empty_token_is_invalid(
+    token_cache, browser_mock: BrowserMock, unused_tcp_port: int
+):
+    auth = httpx_auth.OAuth2Implicit(
+        "https://provide_token", redirect_uri_port=unused_tcp_port
+    )
     tab = browser_mock.add_response(
-        opened_url="https://provide_token?response_type=token&state=bee505cb6ceb14b9f6ac3573cd700b3b3e965004078d7bb57c7b92df01e448c992a7a46b4804164fc998ea166ece3f3d5849ca2405c4a548f43b915b0677231c&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F",
-        reply_url="http://localhost:5000",
+        opened_url=f"https://provide_token?response_type=token&state=bee505cb6ceb14b9f6ac3573cd700b3b3e965004078d7bb57c7b92df01e448c992a7a46b4804164fc998ea166ece3f3d5849ca2405c4a548f43b915b0677231c&redirect_uri=http%3A%2F%2Flocalhost%3A{unused_tcp_port}%2F",
+        reply_url=f"http://localhost:{unused_tcp_port}",
         data=f"access_token=&state=bee505cb6ceb14b9f6ac3573cd700b3b3e965004078d7bb57c7b92df01e448c992a7a46b4804164fc998ea166ece3f3d5849ca2405c4a548f43b915b0677231c",
     )
 
@@ -430,11 +463,15 @@ def test_empty_token_is_invalid(token_cache, browser_mock: BrowserMock):
     tab.assert_success()
 
 
-def test_token_without_expiry_is_invalid(token_cache, browser_mock: BrowserMock):
-    auth = httpx_auth.OAuth2Implicit("https://provide_token")
+def test_token_without_expiry_is_invalid(
+    token_cache, browser_mock: BrowserMock, unused_tcp_port: int
+):
+    auth = httpx_auth.OAuth2Implicit(
+        "https://provide_token", redirect_uri_port=unused_tcp_port
+    )
     tab = browser_mock.add_response(
-        opened_url="https://provide_token?response_type=token&state=bee505cb6ceb14b9f6ac3573cd700b3b3e965004078d7bb57c7b92df01e448c992a7a46b4804164fc998ea166ece3f3d5849ca2405c4a548f43b915b0677231c&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F",
-        reply_url="http://localhost:5000",
+        opened_url=f"https://provide_token?response_type=token&state=bee505cb6ceb14b9f6ac3573cd700b3b3e965004078d7bb57c7b92df01e448c992a7a46b4804164fc998ea166ece3f3d5849ca2405c4a548f43b915b0677231c&redirect_uri=http%3A%2F%2Flocalhost%3A{unused_tcp_port}%2F",
+        reply_url=f"http://localhost:{unused_tcp_port}",
         data=f"access_token={create_token(None)}&state=bee505cb6ceb14b9f6ac3573cd700b3b3e965004078d7bb57c7b92df01e448c992a7a46b4804164fc998ea166ece3f3d5849ca2405c4a548f43b915b0677231c",
     )
 
@@ -449,16 +486,18 @@ def test_token_without_expiry_is_invalid(token_cache, browser_mock: BrowserMock)
 
 
 def test_oauth2_implicit_flow_get_token_is_sent_in_authorization_header_by_default(
-    token_cache, httpx_mock: HTTPXMock, browser_mock: BrowserMock
+    token_cache, httpx_mock: HTTPXMock, browser_mock: BrowserMock, unused_tcp_port: int
 ):
-    auth = httpx_auth.OAuth2Implicit("https://provide_token")
+    auth = httpx_auth.OAuth2Implicit(
+        "https://provide_token", redirect_uri_port=unused_tcp_port
+    )
     expiry_in_1_hour = datetime.datetime.now(
         datetime.timezone.utc
     ) + datetime.timedelta(hours=1)
     token = create_token(expiry_in_1_hour)
     tab = browser_mock.add_response(
-        opened_url="https://provide_token?response_type=token&state=bee505cb6ceb14b9f6ac3573cd700b3b3e965004078d7bb57c7b92df01e448c992a7a46b4804164fc998ea166ece3f3d5849ca2405c4a548f43b915b0677231c&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F",
-        reply_url=f"http://localhost:5000#access_token={token}&state=bee505cb6ceb14b9f6ac3573cd700b3b3e965004078d7bb57c7b92df01e448c992a7a46b4804164fc998ea166ece3f3d5849ca2405c4a548f43b915b0677231c",
+        opened_url=f"https://provide_token?response_type=token&state=bee505cb6ceb14b9f6ac3573cd700b3b3e965004078d7bb57c7b92df01e448c992a7a46b4804164fc998ea166ece3f3d5849ca2405c4a548f43b915b0677231c&redirect_uri=http%3A%2F%2Flocalhost%3A{unused_tcp_port}%2F",
+        reply_url=f"http://localhost:{unused_tcp_port}#access_token={token}&state=bee505cb6ceb14b9f6ac3573cd700b3b3e965004078d7bb57c7b92df01e448c992a7a46b4804164fc998ea166ece3f3d5849ca2405c4a548f43b915b0677231c",
     )
     httpx_mock.add_response(
         url="https://authorized_only",
@@ -475,18 +514,21 @@ def test_oauth2_implicit_flow_get_token_is_sent_in_authorization_header_by_defau
 
 
 def test_oauth2_implicit_flow_token_is_sent_in_requested_field(
-    token_cache, httpx_mock: HTTPXMock, browser_mock: BrowserMock
+    token_cache, httpx_mock: HTTPXMock, browser_mock: BrowserMock, unused_tcp_port: int
 ):
     auth = httpx_auth.OAuth2Implicit(
-        "https://provide_token", header_name="Bearer", header_value="{token}"
+        "https://provide_token",
+        header_name="Bearer",
+        header_value="{token}",
+        redirect_uri_port=unused_tcp_port,
     )
     expiry_in_1_hour = datetime.datetime.now(
         datetime.timezone.utc
     ) + datetime.timedelta(hours=1)
     token = create_token(expiry_in_1_hour)
     tab = browser_mock.add_response(
-        opened_url="https://provide_token?response_type=token&state=bee505cb6ceb14b9f6ac3573cd700b3b3e965004078d7bb57c7b92df01e448c992a7a46b4804164fc998ea166ece3f3d5849ca2405c4a548f43b915b0677231c&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F",
-        reply_url="http://localhost:5000",
+        opened_url=f"https://provide_token?response_type=token&state=bee505cb6ceb14b9f6ac3573cd700b3b3e965004078d7bb57c7b92df01e448c992a7a46b4804164fc998ea166ece3f3d5849ca2405c4a548f43b915b0677231c&redirect_uri=http%3A%2F%2Flocalhost%3A{unused_tcp_port}%2F",
+        reply_url=f"http://localhost:{unused_tcp_port}",
         data=f"access_token={token}&state=bee505cb6ceb14b9f6ac3573cd700b3b3e965004078d7bb57c7b92df01e448c992a7a46b4804164fc998ea166ece3f3d5849ca2405c4a548f43b915b0677231c",
     )
     httpx_mock.add_response(
@@ -504,20 +546,21 @@ def test_oauth2_implicit_flow_token_is_sent_in_requested_field(
 
 
 def test_oauth2_implicit_flow_can_send_a_custom_response_type_and_expects_token_to_be_received_with_this_name(
-    token_cache, httpx_mock: HTTPXMock, browser_mock: BrowserMock
+    token_cache, httpx_mock: HTTPXMock, browser_mock: BrowserMock, unused_tcp_port: int
 ):
     auth = httpx_auth.OAuth2Implicit(
         "https://provide_token",
         response_type="custom_token",
         token_field_name="custom_token",
+        redirect_uri_port=unused_tcp_port,
     )
     expiry_in_1_hour = datetime.datetime.now(
         datetime.timezone.utc
     ) + datetime.timedelta(hours=1)
     token = create_token(expiry_in_1_hour)
     tab = browser_mock.add_response(
-        opened_url="https://provide_token?response_type=custom_token&state=da5ed86c8443102b3d318731e35c51a9d7d3fc8ab5ccfc138531399803c4d8f72268347e85db8b8953c8d5c97039af70f924fd0cb075e0c5876f7502d4e8ff79&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F",
-        reply_url="http://localhost:5000",
+        opened_url=f"https://provide_token?response_type=custom_token&state=da5ed86c8443102b3d318731e35c51a9d7d3fc8ab5ccfc138531399803c4d8f72268347e85db8b8953c8d5c97039af70f924fd0cb075e0c5876f7502d4e8ff79&redirect_uri=http%3A%2F%2Flocalhost%3A{unused_tcp_port}%2F",
+        reply_url=f"http://localhost:{unused_tcp_port}",
         data=f"custom_token={token}&state=da5ed86c8443102b3d318731e35c51a9d7d3fc8ab5ccfc138531399803c4d8f72268347e85db8b8953c8d5c97039af70f924fd0cb075e0c5876f7502d4e8ff79",
     )
     httpx_mock.add_response(
@@ -535,16 +578,20 @@ def test_oauth2_implicit_flow_can_send_a_custom_response_type_and_expects_token_
 
 
 def test_oauth2_implicit_flow_expects_token_in_id_token_if_response_type_is_id_token(
-    token_cache, httpx_mock: HTTPXMock, browser_mock: BrowserMock
+    token_cache, httpx_mock: HTTPXMock, browser_mock: BrowserMock, unused_tcp_port: int
 ):
-    auth = httpx_auth.OAuth2Implicit("https://provide_token", response_type="id_token")
+    auth = httpx_auth.OAuth2Implicit(
+        "https://provide_token",
+        response_type="id_token",
+        redirect_uri_port=unused_tcp_port,
+    )
     expiry_in_1_hour = datetime.datetime.now(
         datetime.timezone.utc
     ) + datetime.timedelta(hours=1)
     token = create_token(expiry_in_1_hour)
     tab = browser_mock.add_response(
-        opened_url="https://provide_token?response_type=id_token&state=4b7a43e14ff4940a513dba46a736b62890e0a568f3342412cecfa968af823feae7b3c56cd2ecf07d533df3990cdc7436b3c090f27e6fde42813a3c6510e077d9&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F",
-        reply_url="http://localhost:5000",
+        opened_url=f"https://provide_token?response_type=id_token&state=4b7a43e14ff4940a513dba46a736b62890e0a568f3342412cecfa968af823feae7b3c56cd2ecf07d533df3990cdc7436b3c090f27e6fde42813a3c6510e077d9&redirect_uri=http%3A%2F%2Flocalhost%3A{unused_tcp_port}%2F",
+        reply_url=f"http://localhost:{unused_tcp_port}",
         data=f"id_token={token}&state=4b7a43e14ff4940a513dba46a736b62890e0a568f3342412cecfa968af823feae7b3c56cd2ecf07d533df3990cdc7436b3c090f27e6fde42813a3c6510e077d9",
     )
     httpx_mock.add_response(
@@ -562,16 +609,19 @@ def test_oauth2_implicit_flow_expects_token_in_id_token_if_response_type_is_id_t
 
 
 def test_oauth2_implicit_flow_expects_token_in_id_token_if_response_type_in_url_is_id_token(
-    token_cache, httpx_mock: HTTPXMock, browser_mock: BrowserMock
+    token_cache, httpx_mock: HTTPXMock, browser_mock: BrowserMock, unused_tcp_port: int
 ):
-    auth = httpx_auth.OAuth2Implicit("https://provide_token?response_type=id_token")
+    auth = httpx_auth.OAuth2Implicit(
+        "https://provide_token?response_type=id_token",
+        redirect_uri_port=unused_tcp_port,
+    )
     expiry_in_1_hour = datetime.datetime.now(
         datetime.timezone.utc
     ) + datetime.timedelta(hours=1)
     token = create_token(expiry_in_1_hour)
     tab = browser_mock.add_response(
-        opened_url="https://provide_token?response_type=id_token&state=4b7a43e14ff4940a513dba46a736b62890e0a568f3342412cecfa968af823feae7b3c56cd2ecf07d533df3990cdc7436b3c090f27e6fde42813a3c6510e077d9&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F",
-        reply_url="http://localhost:5000",
+        opened_url=f"https://provide_token?response_type=id_token&state=4b7a43e14ff4940a513dba46a736b62890e0a568f3342412cecfa968af823feae7b3c56cd2ecf07d533df3990cdc7436b3c090f27e6fde42813a3c6510e077d9&redirect_uri=http%3A%2F%2Flocalhost%3A{unused_tcp_port}%2F",
+        reply_url=f"http://localhost:{unused_tcp_port}",
         data=f"id_token={token}&state=4b7a43e14ff4940a513dba46a736b62890e0a568f3342412cecfa968af823feae7b3c56cd2ecf07d533df3990cdc7436b3c090f27e6fde42813a3c6510e077d9",
     )
     httpx_mock.add_response(
@@ -589,16 +639,18 @@ def test_oauth2_implicit_flow_expects_token_in_id_token_if_response_type_in_url_
 
 
 def test_oauth2_implicit_flow_expects_token_to_be_stored_in_access_token_by_default(
-    token_cache, httpx_mock: HTTPXMock, browser_mock: BrowserMock
+    token_cache, httpx_mock: HTTPXMock, browser_mock: BrowserMock, unused_tcp_port: int
 ):
-    auth = httpx_auth.OAuth2Implicit("https://provide_token")
+    auth = httpx_auth.OAuth2Implicit(
+        "https://provide_token", redirect_uri_port=unused_tcp_port
+    )
     expiry_in_1_hour = datetime.datetime.now(
         datetime.timezone.utc
     ) + datetime.timedelta(hours=1)
     token = create_token(expiry_in_1_hour)
     tab = browser_mock.add_response(
-        opened_url="https://provide_token?response_type=token&state=bee505cb6ceb14b9f6ac3573cd700b3b3e965004078d7bb57c7b92df01e448c992a7a46b4804164fc998ea166ece3f3d5849ca2405c4a548f43b915b0677231c&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F",
-        reply_url="http://localhost:5000",
+        opened_url=f"https://provide_token?response_type=token&state=bee505cb6ceb14b9f6ac3573cd700b3b3e965004078d7bb57c7b92df01e448c992a7a46b4804164fc998ea166ece3f3d5849ca2405c4a548f43b915b0677231c&redirect_uri=http%3A%2F%2Flocalhost%3A{unused_tcp_port}%2F",
+        reply_url=f"http://localhost:{unused_tcp_port}",
         data=f"access_token={token}&state=bee505cb6ceb14b9f6ac3573cd700b3b3e965004078d7bb57c7b92df01e448c992a7a46b4804164fc998ea166ece3f3d5849ca2405c4a548f43b915b0677231c",
     )
     httpx_mock.add_response(
@@ -616,16 +668,18 @@ def test_oauth2_implicit_flow_expects_token_to_be_stored_in_access_token_by_defa
 
 
 def test_oauth2_implicit_flow_token_is_reused_if_not_expired(
-    token_cache, httpx_mock: HTTPXMock, browser_mock: BrowserMock
+    token_cache, httpx_mock: HTTPXMock, browser_mock: BrowserMock, unused_tcp_port: int
 ):
-    auth1 = httpx_auth.OAuth2Implicit("https://provide_token")
+    auth1 = httpx_auth.OAuth2Implicit(
+        "https://provide_token", redirect_uri_port=unused_tcp_port
+    )
     expiry_in_1_hour = datetime.datetime.now(
         datetime.timezone.utc
     ) + datetime.timedelta(hours=1)
     token = create_token(expiry_in_1_hour)
     tab = browser_mock.add_response(
-        opened_url="https://provide_token?response_type=token&state=bee505cb6ceb14b9f6ac3573cd700b3b3e965004078d7bb57c7b92df01e448c992a7a46b4804164fc998ea166ece3f3d5849ca2405c4a548f43b915b0677231c&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F",
-        reply_url="http://localhost:5000",
+        opened_url=f"https://provide_token?response_type=token&state=bee505cb6ceb14b9f6ac3573cd700b3b3e965004078d7bb57c7b92df01e448c992a7a46b4804164fc998ea166ece3f3d5849ca2405c4a548f43b915b0677231c&redirect_uri=http%3A%2F%2Flocalhost%3A{unused_tcp_port}%2F",
+        reply_url=f"http://localhost:{unused_tcp_port}",
         data=f"access_token={token}&state=bee505cb6ceb14b9f6ac3573cd700b3b3e965004078d7bb57c7b92df01e448c992a7a46b4804164fc998ea166ece3f3d5849ca2405c4a548f43b915b0677231c",
     )
     httpx_mock.add_response(
@@ -639,7 +693,9 @@ def test_oauth2_implicit_flow_token_is_reused_if_not_expired(
     with httpx.Client() as client:
         client.get("https://authorized_only", auth=auth1)
 
-    auth2 = httpx_auth.OAuth2Implicit("https://provide_token")
+    auth2 = httpx_auth.OAuth2Implicit(
+        "https://provide_token", redirect_uri_port=unused_tcp_port
+    )
 
     httpx_mock.add_response(
         url="https://authorized_only",
@@ -655,12 +711,14 @@ def test_oauth2_implicit_flow_token_is_reused_if_not_expired(
 
 
 def test_oauth2_implicit_flow_post_failure_if_token_is_not_provided(
-    token_cache, browser_mock: BrowserMock
+    token_cache, browser_mock: BrowserMock, unused_tcp_port: int
 ):
-    auth = httpx_auth.OAuth2Implicit("https://provide_token")
+    auth = httpx_auth.OAuth2Implicit(
+        "https://provide_token", redirect_uri_port=unused_tcp_port
+    )
     tab = browser_mock.add_response(
-        opened_url="https://provide_token?response_type=token&state=bee505cb6ceb14b9f6ac3573cd700b3b3e965004078d7bb57c7b92df01e448c992a7a46b4804164fc998ea166ece3f3d5849ca2405c4a548f43b915b0677231c&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F",
-        reply_url="http://localhost:5000",
+        opened_url=f"https://provide_token?response_type=token&state=bee505cb6ceb14b9f6ac3573cd700b3b3e965004078d7bb57c7b92df01e448c992a7a46b4804164fc998ea166ece3f3d5849ca2405c4a548f43b915b0677231c&redirect_uri=http%3A%2F%2Flocalhost%3A{unused_tcp_port}%2F",
+        reply_url=f"http://localhost:{unused_tcp_port}",
         data="",
     )
 
@@ -673,12 +731,14 @@ def test_oauth2_implicit_flow_post_failure_if_token_is_not_provided(
 
 
 def test_oauth2_implicit_flow_get_failure_if_token_is_not_provided(
-    token_cache, browser_mock: BrowserMock
+    token_cache, browser_mock: BrowserMock, unused_tcp_port: int
 ):
-    auth = httpx_auth.OAuth2Implicit("https://provide_token")
+    auth = httpx_auth.OAuth2Implicit(
+        "https://provide_token", redirect_uri_port=unused_tcp_port
+    )
     tab = browser_mock.add_response(
-        opened_url="https://provide_token?response_type=token&state=bee505cb6ceb14b9f6ac3573cd700b3b3e965004078d7bb57c7b92df01e448c992a7a46b4804164fc998ea166ece3f3d5849ca2405c4a548f43b915b0677231c&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F",
-        reply_url="http://localhost:5000",
+        opened_url=f"https://provide_token?response_type=token&state=bee505cb6ceb14b9f6ac3573cd700b3b3e965004078d7bb57c7b92df01e448c992a7a46b4804164fc998ea166ece3f3d5849ca2405c4a548f43b915b0677231c&redirect_uri=http%3A%2F%2Flocalhost%3A{unused_tcp_port}%2F",
+        reply_url=f"http://localhost:{unused_tcp_port}",
     )
 
     with httpx.Client() as client:
@@ -690,16 +750,18 @@ def test_oauth2_implicit_flow_get_failure_if_token_is_not_provided(
 
 
 def test_oauth2_implicit_flow_post_failure_if_state_is_not_provided(
-    token_cache, browser_mock: BrowserMock
+    token_cache, browser_mock: BrowserMock, unused_tcp_port: int
 ):
-    auth = httpx_auth.OAuth2Implicit("https://provide_token")
+    auth = httpx_auth.OAuth2Implicit(
+        "https://provide_token", redirect_uri_port=unused_tcp_port
+    )
     expiry_in_1_hour = datetime.datetime.now(
         datetime.timezone.utc
     ) + datetime.timedelta(hours=1)
     token = create_token(expiry_in_1_hour)
     tab = browser_mock.add_response(
-        opened_url="https://provide_token?response_type=token&state=bee505cb6ceb14b9f6ac3573cd700b3b3e965004078d7bb57c7b92df01e448c992a7a46b4804164fc998ea166ece3f3d5849ca2405c4a548f43b915b0677231c&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F",
-        reply_url="http://localhost:5000",
+        opened_url=f"https://provide_token?response_type=token&state=bee505cb6ceb14b9f6ac3573cd700b3b3e965004078d7bb57c7b92df01e448c992a7a46b4804164fc998ea166ece3f3d5849ca2405c4a548f43b915b0677231c&redirect_uri=http%3A%2F%2Flocalhost%3A{unused_tcp_port}%2F",
+        reply_url=f"http://localhost:{unused_tcp_port}",
         data=f"access_token={token}",
     )
 
@@ -717,16 +779,18 @@ def test_oauth2_implicit_flow_post_failure_if_state_is_not_provided(
 
 
 def test_oauth2_implicit_flow_get_failure_if_state_is_not_provided(
-    token_cache, browser_mock: BrowserMock
+    token_cache, browser_mock: BrowserMock, unused_tcp_port: int
 ):
-    auth = httpx_auth.OAuth2Implicit("https://provide_token")
+    auth = httpx_auth.OAuth2Implicit(
+        "https://provide_token", redirect_uri_port=unused_tcp_port
+    )
     expiry_in_1_hour = datetime.datetime.now(
         datetime.timezone.utc
     ) + datetime.timedelta(hours=1)
     token = create_token(expiry_in_1_hour)
     tab = browser_mock.add_response(
-        opened_url="https://provide_token?response_type=token&state=bee505cb6ceb14b9f6ac3573cd700b3b3e965004078d7bb57c7b92df01e448c992a7a46b4804164fc998ea166ece3f3d5849ca2405c4a548f43b915b0677231c&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F",
-        reply_url=f"http://localhost:5000#access_token={token}",
+        opened_url=f"https://provide_token?response_type=token&state=bee505cb6ceb14b9f6ac3573cd700b3b3e965004078d7bb57c7b92df01e448c992a7a46b4804164fc998ea166ece3f3d5849ca2405c4a548f43b915b0677231c&redirect_uri=http%3A%2F%2Flocalhost%3A{unused_tcp_port}%2F",
+        reply_url=f"http://localhost:{unused_tcp_port}#access_token={token}",
     )
 
     with httpx.Client() as client:
@@ -743,12 +807,14 @@ def test_oauth2_implicit_flow_get_failure_if_state_is_not_provided(
 
 
 def test_with_invalid_token_request_invalid_request_error(
-    token_cache, browser_mock: BrowserMock
+    token_cache, browser_mock: BrowserMock, unused_tcp_port: int
 ):
-    auth = httpx_auth.OAuth2Implicit("https://provide_token")
+    auth = httpx_auth.OAuth2Implicit(
+        "https://provide_token", redirect_uri_port=unused_tcp_port
+    )
     tab = browser_mock.add_response(
-        opened_url="https://provide_token?response_type=token&state=bee505cb6ceb14b9f6ac3573cd700b3b3e965004078d7bb57c7b92df01e448c992a7a46b4804164fc998ea166ece3f3d5849ca2405c4a548f43b915b0677231c&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F",
-        reply_url="http://localhost:5000#error=invalid_request",
+        opened_url=f"https://provide_token?response_type=token&state=bee505cb6ceb14b9f6ac3573cd700b3b3e965004078d7bb57c7b92df01e448c992a7a46b4804164fc998ea166ece3f3d5849ca2405c4a548f43b915b0677231c&redirect_uri=http%3A%2F%2Flocalhost%3A{unused_tcp_port}%2F",
+        reply_url=f"http://localhost:{unused_tcp_port}#error=invalid_request",
     )
 
     with httpx.Client() as client:
@@ -765,12 +831,14 @@ def test_with_invalid_token_request_invalid_request_error(
 
 
 def test_with_invalid_token_request_invalid_request_error_and_error_description(
-    token_cache, browser_mock: BrowserMock
+    token_cache, browser_mock: BrowserMock, unused_tcp_port: int
 ):
-    auth = httpx_auth.OAuth2Implicit("https://provide_token")
+    auth = httpx_auth.OAuth2Implicit(
+        "https://provide_token", redirect_uri_port=unused_tcp_port
+    )
     tab = browser_mock.add_response(
-        opened_url="https://provide_token?response_type=token&state=bee505cb6ceb14b9f6ac3573cd700b3b3e965004078d7bb57c7b92df01e448c992a7a46b4804164fc998ea166ece3f3d5849ca2405c4a548f43b915b0677231c&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F",
-        reply_url="http://localhost:5000#error=invalid_request&error_description=desc",
+        opened_url=f"https://provide_token?response_type=token&state=bee505cb6ceb14b9f6ac3573cd700b3b3e965004078d7bb57c7b92df01e448c992a7a46b4804164fc998ea166ece3f3d5849ca2405c4a548f43b915b0677231c&redirect_uri=http%3A%2F%2Flocalhost%3A{unused_tcp_port}%2F",
+        reply_url=f"http://localhost:{unused_tcp_port}#error=invalid_request&error_description=desc",
     )
 
     with httpx.Client() as client:
@@ -782,12 +850,14 @@ def test_with_invalid_token_request_invalid_request_error_and_error_description(
 
 
 def test_with_invalid_token_request_invalid_request_error_and_error_description_and_uri(
-    token_cache, browser_mock: BrowserMock
+    token_cache, browser_mock: BrowserMock, unused_tcp_port: int
 ):
-    auth = httpx_auth.OAuth2Implicit("https://provide_token")
+    auth = httpx_auth.OAuth2Implicit(
+        "https://provide_token", redirect_uri_port=unused_tcp_port
+    )
     tab = browser_mock.add_response(
-        opened_url="https://provide_token?response_type=token&state=bee505cb6ceb14b9f6ac3573cd700b3b3e965004078d7bb57c7b92df01e448c992a7a46b4804164fc998ea166ece3f3d5849ca2405c4a548f43b915b0677231c&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F",
-        reply_url="http://localhost:5000#error=invalid_request&error_description=desc&error_uri=https://test_url",
+        opened_url=f"https://provide_token?response_type=token&state=bee505cb6ceb14b9f6ac3573cd700b3b3e965004078d7bb57c7b92df01e448c992a7a46b4804164fc998ea166ece3f3d5849ca2405c4a548f43b915b0677231c&redirect_uri=http%3A%2F%2Flocalhost%3A{unused_tcp_port}%2F",
+        reply_url=f"http://localhost:{unused_tcp_port}#error=invalid_request&error_description=desc&error_uri=https://test_url",
     )
 
     with httpx.Client() as client:
@@ -804,12 +874,14 @@ def test_with_invalid_token_request_invalid_request_error_and_error_description_
 
 
 def test_with_invalid_token_request_invalid_request_error_and_error_description_and_uri_and_other_fields(
-    token_cache, browser_mock: BrowserMock
+    token_cache, browser_mock: BrowserMock, unused_tcp_port: int
 ):
-    auth = httpx_auth.OAuth2Implicit("https://provide_token")
+    auth = httpx_auth.OAuth2Implicit(
+        "https://provide_token", redirect_uri_port=unused_tcp_port
+    )
     tab = browser_mock.add_response(
-        opened_url="https://provide_token?response_type=token&state=bee505cb6ceb14b9f6ac3573cd700b3b3e965004078d7bb57c7b92df01e448c992a7a46b4804164fc998ea166ece3f3d5849ca2405c4a548f43b915b0677231c&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F",
-        reply_url="http://localhost:5000#error=invalid_request&error_description=desc&error_uri=https://test_url&other=test",
+        opened_url=f"https://provide_token?response_type=token&state=bee505cb6ceb14b9f6ac3573cd700b3b3e965004078d7bb57c7b92df01e448c992a7a46b4804164fc998ea166ece3f3d5849ca2405c4a548f43b915b0677231c&redirect_uri=http%3A%2F%2Flocalhost%3A{unused_tcp_port}%2F",
+        reply_url=f"http://localhost:{unused_tcp_port}#error=invalid_request&error_description=desc&error_uri=https://test_url&other=test",
     )
 
     with httpx.Client() as client:
@@ -826,12 +898,14 @@ def test_with_invalid_token_request_invalid_request_error_and_error_description_
 
 
 def test_with_invalid_token_request_unauthorized_client_error(
-    token_cache, browser_mock: BrowserMock
+    token_cache, browser_mock: BrowserMock, unused_tcp_port: int
 ):
-    auth = httpx_auth.OAuth2Implicit("https://provide_token")
+    auth = httpx_auth.OAuth2Implicit(
+        "https://provide_token", redirect_uri_port=unused_tcp_port
+    )
     tab = browser_mock.add_response(
-        opened_url="https://provide_token?response_type=token&state=bee505cb6ceb14b9f6ac3573cd700b3b3e965004078d7bb57c7b92df01e448c992a7a46b4804164fc998ea166ece3f3d5849ca2405c4a548f43b915b0677231c&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F",
-        reply_url="http://localhost:5000#error=unauthorized_client",
+        opened_url=f"https://provide_token?response_type=token&state=bee505cb6ceb14b9f6ac3573cd700b3b3e965004078d7bb57c7b92df01e448c992a7a46b4804164fc998ea166ece3f3d5849ca2405c4a548f43b915b0677231c&redirect_uri=http%3A%2F%2Flocalhost%3A{unused_tcp_port}%2F",
+        reply_url=f"http://localhost:{unused_tcp_port}#error=unauthorized_client",
     )
 
     with httpx.Client() as client:
@@ -848,12 +922,14 @@ def test_with_invalid_token_request_unauthorized_client_error(
 
 
 def test_with_invalid_token_request_access_denied_error(
-    token_cache, browser_mock: BrowserMock
+    token_cache, browser_mock: BrowserMock, unused_tcp_port: int
 ):
-    auth = httpx_auth.OAuth2Implicit("https://provide_token")
+    auth = httpx_auth.OAuth2Implicit(
+        "https://provide_token", redirect_uri_port=unused_tcp_port
+    )
     tab = browser_mock.add_response(
-        opened_url="https://provide_token?response_type=token&state=bee505cb6ceb14b9f6ac3573cd700b3b3e965004078d7bb57c7b92df01e448c992a7a46b4804164fc998ea166ece3f3d5849ca2405c4a548f43b915b0677231c&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F",
-        reply_url="http://localhost:5000#error=access_denied",
+        opened_url=f"https://provide_token?response_type=token&state=bee505cb6ceb14b9f6ac3573cd700b3b3e965004078d7bb57c7b92df01e448c992a7a46b4804164fc998ea166ece3f3d5849ca2405c4a548f43b915b0677231c&redirect_uri=http%3A%2F%2Flocalhost%3A{unused_tcp_port}%2F",
+        reply_url=f"http://localhost:{unused_tcp_port}#error=access_denied",
     )
 
     with httpx.Client() as client:
@@ -870,12 +946,14 @@ def test_with_invalid_token_request_access_denied_error(
 
 
 def test_with_invalid_token_request_unsupported_response_type_error(
-    token_cache, browser_mock: BrowserMock
+    token_cache, browser_mock: BrowserMock, unused_tcp_port: int
 ):
-    auth = httpx_auth.OAuth2Implicit("https://provide_token")
+    auth = httpx_auth.OAuth2Implicit(
+        "https://provide_token", redirect_uri_port=unused_tcp_port
+    )
     tab = browser_mock.add_response(
-        opened_url="https://provide_token?response_type=token&state=bee505cb6ceb14b9f6ac3573cd700b3b3e965004078d7bb57c7b92df01e448c992a7a46b4804164fc998ea166ece3f3d5849ca2405c4a548f43b915b0677231c&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F",
-        reply_url="http://localhost:5000#error=unsupported_response_type",
+        opened_url=f"https://provide_token?response_type=token&state=bee505cb6ceb14b9f6ac3573cd700b3b3e965004078d7bb57c7b92df01e448c992a7a46b4804164fc998ea166ece3f3d5849ca2405c4a548f43b915b0677231c&redirect_uri=http%3A%2F%2Flocalhost%3A{unused_tcp_port}%2F",
+        reply_url=f"http://localhost:{unused_tcp_port}#error=unsupported_response_type",
     )
 
     with httpx.Client() as client:
@@ -892,12 +970,14 @@ def test_with_invalid_token_request_unsupported_response_type_error(
 
 
 def test_with_invalid_token_request_invalid_scope_error(
-    token_cache, browser_mock: BrowserMock
+    token_cache, browser_mock: BrowserMock, unused_tcp_port: int
 ):
-    auth = httpx_auth.OAuth2Implicit("https://provide_token")
+    auth = httpx_auth.OAuth2Implicit(
+        "https://provide_token", redirect_uri_port=unused_tcp_port
+    )
     tab = browser_mock.add_response(
-        opened_url="https://provide_token?response_type=token&state=bee505cb6ceb14b9f6ac3573cd700b3b3e965004078d7bb57c7b92df01e448c992a7a46b4804164fc998ea166ece3f3d5849ca2405c4a548f43b915b0677231c&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F",
-        reply_url="http://localhost:5000#error=invalid_scope",
+        opened_url=f"https://provide_token?response_type=token&state=bee505cb6ceb14b9f6ac3573cd700b3b3e965004078d7bb57c7b92df01e448c992a7a46b4804164fc998ea166ece3f3d5849ca2405c4a548f43b915b0677231c&redirect_uri=http%3A%2F%2Flocalhost%3A{unused_tcp_port}%2F",
+        reply_url=f"http://localhost:{unused_tcp_port}#error=invalid_scope",
     )
 
     with httpx.Client() as client:
@@ -914,12 +994,14 @@ def test_with_invalid_token_request_invalid_scope_error(
 
 
 def test_with_invalid_token_request_server_error_error(
-    token_cache, browser_mock: BrowserMock
+    token_cache, browser_mock: BrowserMock, unused_tcp_port: int
 ):
-    auth = httpx_auth.OAuth2Implicit("https://provide_token")
+    auth = httpx_auth.OAuth2Implicit(
+        "https://provide_token", redirect_uri_port=unused_tcp_port
+    )
     tab = browser_mock.add_response(
-        opened_url="https://provide_token?response_type=token&state=bee505cb6ceb14b9f6ac3573cd700b3b3e965004078d7bb57c7b92df01e448c992a7a46b4804164fc998ea166ece3f3d5849ca2405c4a548f43b915b0677231c&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F",
-        reply_url="http://localhost:5000#error=server_error",
+        opened_url=f"https://provide_token?response_type=token&state=bee505cb6ceb14b9f6ac3573cd700b3b3e965004078d7bb57c7b92df01e448c992a7a46b4804164fc998ea166ece3f3d5849ca2405c4a548f43b915b0677231c&redirect_uri=http%3A%2F%2Flocalhost%3A{unused_tcp_port}%2F",
+        reply_url=f"http://localhost:{unused_tcp_port}#error=server_error",
     )
 
     with httpx.Client() as client:
@@ -936,12 +1018,14 @@ def test_with_invalid_token_request_server_error_error(
 
 
 def test_with_invalid_token_request_temporarily_unavailable_error(
-    token_cache, browser_mock: BrowserMock
+    token_cache, browser_mock: BrowserMock, unused_tcp_port: int
 ):
-    auth = httpx_auth.OAuth2Implicit("https://provide_token")
+    auth = httpx_auth.OAuth2Implicit(
+        "https://provide_token", redirect_uri_port=unused_tcp_port
+    )
     tab = browser_mock.add_response(
-        opened_url="https://provide_token?response_type=token&state=bee505cb6ceb14b9f6ac3573cd700b3b3e965004078d7bb57c7b92df01e448c992a7a46b4804164fc998ea166ece3f3d5849ca2405c4a548f43b915b0677231c&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F",
-        reply_url="http://localhost:5000#error=temporarily_unavailable",
+        opened_url=f"https://provide_token?response_type=token&state=bee505cb6ceb14b9f6ac3573cd700b3b3e965004078d7bb57c7b92df01e448c992a7a46b4804164fc998ea166ece3f3d5849ca2405c4a548f43b915b0677231c&redirect_uri=http%3A%2F%2Flocalhost%3A{unused_tcp_port}%2F",
+        reply_url=f"http://localhost:{unused_tcp_port}#error=temporarily_unavailable",
     )
 
     with httpx.Client() as client:
@@ -958,11 +1042,15 @@ def test_with_invalid_token_request_temporarily_unavailable_error(
 
 
 def test_oauth2_implicit_flow_failure_if_token_is_not_received_within_the_timeout_interval(
-    token_cache, browser_mock: BrowserMock
+    token_cache, browser_mock: BrowserMock, unused_tcp_port: int
 ):
-    auth = httpx_auth.OAuth2Implicit("https://provide_token", timeout=0.1)
+    auth = httpx_auth.OAuth2Implicit(
+        "https://provide_token",
+        timeout=0.1,
+        redirect_uri_port=unused_tcp_port,
+    )
     browser_mock.add_response(
-        opened_url="https://provide_token?response_type=token&state=bee505cb6ceb14b9f6ac3573cd700b3b3e965004078d7bb57c7b92df01e448c992a7a46b4804164fc998ea166ece3f3d5849ca2405c4a548f43b915b0677231c&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F",
+        opened_url=f"https://provide_token?response_type=token&state=bee505cb6ceb14b9f6ac3573cd700b3b3e965004078d7bb57c7b92df01e448c992a7a46b4804164fc998ea166ece3f3d5849ca2405c4a548f43b915b0677231c&redirect_uri=http%3A%2F%2Flocalhost%3A{unused_tcp_port}%2F",
         # Simulate no redirect
         reply_url=None,
     )
@@ -978,17 +1066,19 @@ def test_oauth2_implicit_flow_failure_if_token_is_not_received_within_the_timeou
 
 
 def test_oauth2_implicit_flow_token_is_requested_again_if_expired(
-    token_cache, httpx_mock: HTTPXMock, browser_mock: BrowserMock
+    token_cache, httpx_mock: HTTPXMock, browser_mock: BrowserMock, unused_tcp_port: int
 ):
-    auth = httpx_auth.OAuth2Implicit("https://provide_token")
+    auth = httpx_auth.OAuth2Implicit(
+        "https://provide_token", redirect_uri_port=unused_tcp_port
+    )
     # This token will expires in 100 milliseconds
     expiry_in_1_second = datetime.datetime.now(
         datetime.timezone.utc
     ) + datetime.timedelta(milliseconds=100)
     first_token = create_token(expiry_in_1_second)
     tab1 = browser_mock.add_response(
-        opened_url="https://provide_token?response_type=token&state=bee505cb6ceb14b9f6ac3573cd700b3b3e965004078d7bb57c7b92df01e448c992a7a46b4804164fc998ea166ece3f3d5849ca2405c4a548f43b915b0677231c&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F",
-        reply_url="http://localhost:5000",
+        opened_url=f"https://provide_token?response_type=token&state=bee505cb6ceb14b9f6ac3573cd700b3b3e965004078d7bb57c7b92df01e448c992a7a46b4804164fc998ea166ece3f3d5849ca2405c4a548f43b915b0677231c&redirect_uri=http%3A%2F%2Flocalhost%3A{unused_tcp_port}%2F",
+        reply_url=f"http://localhost:{unused_tcp_port}",
         data=f"access_token={first_token}&state=bee505cb6ceb14b9f6ac3573cd700b3b3e965004078d7bb57c7b92df01e448c992a7a46b4804164fc998ea166ece3f3d5849ca2405c4a548f43b915b0677231c",
     )
     httpx_mock.add_response(
@@ -1011,8 +1101,8 @@ def test_oauth2_implicit_flow_token_is_requested_again_if_expired(
     ) + datetime.timedelta(hours=1)
     second_token = create_token(expiry_in_1_hour)
     tab2 = browser_mock.add_response(
-        opened_url="https://provide_token?response_type=token&state=bee505cb6ceb14b9f6ac3573cd700b3b3e965004078d7bb57c7b92df01e448c992a7a46b4804164fc998ea166ece3f3d5849ca2405c4a548f43b915b0677231c&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2F",
-        reply_url="http://localhost:5000",
+        opened_url=f"https://provide_token?response_type=token&state=bee505cb6ceb14b9f6ac3573cd700b3b3e965004078d7bb57c7b92df01e448c992a7a46b4804164fc998ea166ece3f3d5849ca2405c4a548f43b915b0677231c&redirect_uri=http%3A%2F%2Flocalhost%3A{unused_tcp_port}%2F",
+        reply_url=f"http://localhost:{unused_tcp_port}",
         data=f"access_token={second_token}&state=bee505cb6ceb14b9f6ac3573cd700b3b3e965004078d7bb57c7b92df01e448c992a7a46b4804164fc998ea166ece3f3d5849ca2405c4a548f43b915b0677231c",
     )
     httpx_mock.add_response(
