@@ -797,7 +797,7 @@ class AWS4BotoAuth(AWS4Auth):
 
     def auth_flow(self, request):
         self.refresh_credentials()
-        yield super().auth_flow(request)
+        return super().auth_flow(request)
 
     def refresh_credentials(self):
         credentials = self.refreshable_credentials.get_frozen_credentials()
