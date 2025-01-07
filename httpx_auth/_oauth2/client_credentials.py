@@ -1,3 +1,4 @@
+import copy
 from hashlib import sha512
 from typing import Union, Iterable
 
@@ -67,7 +68,10 @@ class OAuth2ClientCredentials(OAuth2BaseAuth, SupportMultiAuth):
             self.data["scope"] = " ".join(scope) if isinstance(scope, list) else scope
         self.data.update(kwargs)
 
-        all_parameters_in_url = _add_parameters(self.token_url, self.data)
+        cache_data = copy.deepcopy(self.data)
+        cache_data["_httpx_auth_client_id"] = self.client_id
+        cache_data["_httpx_auth_client_secret"] = self.client_secret
+        all_parameters_in_url = _add_parameters(self.token_url, cache_data)
         state = sha512(all_parameters_in_url.encode("unicode_escape")).hexdigest()
 
         super().__init__(

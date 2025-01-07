@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Fixed
 - Bearer tokens with nested JSON string are now properly handled. Thanks to [`Patrick Rodrigues`](https://github.com/pythrick).
+- Client credentials auth instances will now use credentials (client_id and client_secret) as well to distinguish tokens. This was an issue when the only parameters changing were the credentials.
 
 ### Changed
 - Requires [`httpx`](https://www.python-httpx.org)==0.28.\*
