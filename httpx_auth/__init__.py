@@ -40,6 +40,7 @@ from httpx_auth._errors import (
     InvalidToken,
     TokenExpiryNotProvided,
     InvalidGrantRequest,
+    HttpxAuthException,
 )
 from httpx_auth.version import __version__
 
@@ -67,6 +68,7 @@ __all__ = [
     "JsonTokenFileCache",
     "TokenMemoryCache",
     "AWS4Auth",
+    "HttpxAuthException",
     "GrantNotProvided",
     "TimeoutOccurred",
     "AuthenticationFailed",
