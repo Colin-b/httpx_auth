@@ -179,6 +179,13 @@ def test_oauth2_implicit_flow_token_is_reused_if_only_nonce_differs(
         token_field_name="custom_token",
     )
 
+    httpx_mock.add_response(
+        url="https://authorized_only",
+        method="GET",
+        match_headers={
+            "Authorization": f"Bearer {token}",
+        },
+    )
     with httpx.Client() as client:
         client.get("https://authorized_only", auth=auth2)
 
@@ -616,6 +623,13 @@ def test_oauth2_implicit_flow_token_is_reused_if_not_expired(
 
     auth2 = httpx_auth.OAuth2Implicit("https://provide_token")
 
+    httpx_mock.add_response(
+        url="https://authorized_only",
+        method="GET",
+        match_headers={
+            "Authorization": f"Bearer {token}",
+        },
+    )
     with httpx.Client() as client:
         client.get("https://authorized_only", auth=auth2)
 
