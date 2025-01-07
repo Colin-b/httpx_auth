@@ -10,13 +10,13 @@ from httpx_auth._oauth2.tokens import to_expiry
 def test_okta_client_credentials_flow_uses_provided_client(
     token_cache, httpx_mock: HTTPXMock
 ):
-    client = httpx.Client(headers={"x-test": "Test value"})
+    headers = {"x-test": "Test value"}
     auth = httpx_auth.OktaClientCredentials(
         "test_okta",
         client_id="test_user",
         client_secret="test_pwd",
         scope="dummy",
-        client=client,
+        headers=headers,
     )
     httpx_mock.add_response(
         method="POST",

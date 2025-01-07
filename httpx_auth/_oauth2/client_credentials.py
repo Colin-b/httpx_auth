@@ -36,8 +36,7 @@ class OAuth2ClientCredentials(OAuth2BaseAuth, SupportMultiAuth):
         :param early_expiry: Number of seconds before actual token expiry where token will be considered as expired.
         Default to 30 seconds to ensure token will not expire between the time of retrieval and the time the request
         reaches the actual server. Set it to 0 to deactivate this feature and use the same token until actual expiry.
-        :param client: httpx.Client instance that will be used to request the token.
-        Use it to provide a custom proxying rule for instance.
+        :param headers: Additional headers to set when requesting or refreshing token.
         :param kwargs: all additional authorization parameters that should be put as query parameter in the token URL.
         """
         self.token_url = token_url
@@ -59,7 +58,7 @@ class OAuth2ClientCredentials(OAuth2BaseAuth, SupportMultiAuth):
         # Time is expressed in seconds
         self.timeout = int(kwargs.pop("timeout", None) or 60)
 
-        self.client = kwargs.pop("client", None)
+        self.token_headers = kwargs.pop("headers", {})
 
         # As described in https://tools.ietf.org/html/rfc6749#section-4.4.2
         self.data = {"grant_type": "client_credentials"}
@@ -82,23 +81,12 @@ class OAuth2ClientCredentials(OAuth2BaseAuth, SupportMultiAuth):
         )
 
     def request_new_token(self) -> tuple:
-        client = self.client or httpx.Client()
-        self._configure_client(client)
-        try:
-            # As described in https://tools.ietf.org/html/rfc6749#section-4.4.3
-            token, expires_in, _ = request_new_grant_with_post(
-                self.token_url, self.data, self.token_field_name, client
-            )
-        finally:
-            # Close client only if it was created by this module
-            if self.client is None:
-                client.close()
+        # As described in https://tools.ietf.org/html/rfc6749#section-4.4.3
+        token, expires_in, _ = yield from request_new_grant_with_post(
+            self.token_url, self.data, self.token_field_name, self.token_headers
+        )
         # Handle both Access and Bearer tokens
         return (self.state, token, expires_in) if expires_in else (self.state, token)
-
-    def _configure_client(self, client: httpx.Client):
-        client.auth = (self.client_id, self.client_secret)
-        client.timeout = self.timeout
 
 
 class OktaClientCredentials(OAuth2ClientCredentials):
@@ -135,7 +123,7 @@ class OktaClientCredentials(OAuth2ClientCredentials):
         :param early_expiry: Number of seconds before actual token expiry where token will be considered as expired.
         Default to 30 seconds to ensure token will not expire between the time of retrieval and the time the request
         reaches the actual server. Set it to 0 to deactivate this feature and use the same token until actual expiry.
-        :param client: httpx.Client instance that will be used to request the token.
+        :param headers: Additional headers to set when requesting or refreshing token.
         Use it to provide a custom proxying rule for instance.
         :param kwargs: all additional authorization parameters that should be put as query parameter in the token URL.
         """

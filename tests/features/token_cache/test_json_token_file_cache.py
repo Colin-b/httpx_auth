@@ -17,6 +17,13 @@ def token_cache(tmp_path):
     _token_cache.clear()
 
 
+def generator_return_val(generator):
+    try:
+        next(generator)
+    except StopIteration as si:
+        return si.value
+
+
 def test_add_bearer_tokens(token_cache):
     expiry_in_1_hour = datetime.datetime.now(
         datetime.timezone.utc
@@ -31,12 +38,12 @@ def test_add_bearer_tokens(token_cache):
     token_cache._add_bearer_token("key2", token2)
 
     # Assert that tokens can be retrieved properly even after other token were inserted
-    assert token_cache.get_token("key1") == token1
-    assert token_cache.get_token("key2") == token2
+    assert generator_return_val(token_cache.get_token("key1")) == token1
+    assert generator_return_val(token_cache.get_token("key2")) == token2
 
     # Assert that tokens are not removed from the cache on retrieval
-    assert token_cache.get_token("key1") == token1
-    assert token_cache.get_token("key2") == token2
+    assert generator_return_val(token_cache.get_token("key1")) == token1
+    assert generator_return_val(token_cache.get_token("key2")) == token2
 
 
 def test_save_bearer_tokens(token_cache, tmp_path):
@@ -53,8 +60,8 @@ def test_save_bearer_tokens(token_cache, tmp_path):
     token_cache._add_bearer_token("key2", token2)
 
     same_cache = httpx_auth.JsonTokenFileCache(tmp_path / "my_tokens.cache")
-    assert same_cache.get_token("key1") == token1
-    assert same_cache.get_token("key2") == token2
+    assert generator_return_val(same_cache.get_token("key1")) == token1
+    assert generator_return_val(same_cache.get_token("key2")) == token2
 
 
 def test_save_bearer_token_exception_handling(
@@ -77,7 +84,7 @@ def test_save_bearer_token_exception_handling(
 
     same_cache = httpx_auth.JsonTokenFileCache(tmp_path / "my_tokens.cache")
     with pytest.raises(httpx_auth.AuthenticationFailed) as exception_info:
-        same_cache.get_token("key1")
+        generator_return_val(same_cache.get_token("key1"))
     assert str(exception_info.value) == "User was not authenticated."
     assert isinstance(exception_info.value, httpx_auth.HttpxAuthException)
     assert isinstance(exception_info.value, httpx.HTTPError)
@@ -95,7 +102,7 @@ def test_save_bearer_token_exception_handling(
 def test_missing_token_on_empty_cache(token_cache, caplog):
     caplog.set_level(logging.DEBUG)
     with pytest.raises(httpx_auth.AuthenticationFailed):
-        token_cache.get_token("key1")
+        generator_return_val(token_cache.get_token("key1"))
     assert caplog.messages == [
         'Retrieving token with "key1" key.',
         "No token loaded. Token cache does not exists.",
@@ -113,7 +120,7 @@ def test_missing_token_on_non_empty_cache(token_cache, caplog):
 
     caplog.set_level(logging.DEBUG)
     with pytest.raises(httpx_auth.AuthenticationFailed):
-        token_cache.get_token("key1")
+        generator_return_val(token_cache.get_token("key1"))
     assert caplog.messages == [
         'Retrieving token with "key1" key.',
         "Token cannot be found in cache.",
@@ -126,8 +133,13 @@ def test_missing_token_function(token_cache):
         datetime.timezone.utc
     ) + datetime.timedelta(hours=1)
     token = jwt.encode({"exp": expiry_in_1_hour}, "secret")
-    retrieved_token = token_cache.get_token(
-        "key1", on_missing_token=lambda: ("key1", token)
+
+    def on_missing_token():
+        yield from ()
+        return "key1", token
+
+    retrieved_token = generator_return_val(
+        token_cache.get_token("key1", on_missing_token=on_missing_token)
     )
     assert retrieved_token == token
 
@@ -145,7 +157,7 @@ def test_token_without_refresh_token(token_cache):
     token_cache._save_tokens()
 
     # try to retrieve it
-    retrieved_token = token_cache.get_token("key1")
+    retrieved_token = generator_return_val(token_cache.get_token("key1"))
     assert token == retrieved_token
 
 
