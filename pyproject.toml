@@ -43,6 +43,7 @@ issues = "https://github.com/Colin-b/httpx_auth/issues"
 
 [project.optional-dependencies]
 testing = [
+    "pytest==8.3.4",
     # Used to generate test tokens
     "pyjwt==2.*",
     # Used to mock httpx
