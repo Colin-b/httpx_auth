@@ -843,3 +843,36 @@ async def test_aws_auth_without_path(httpx_mock: HTTPXMock):
 
     async with httpx.AsyncClient() as client:
         await client.get("https://authorized_only", auth=auth)
+
+
+@time_machine.travel("2018-10-11T15:05:05.663979+00:00", tick=False)
+@pytest.mark.asyncio
+async def test_aws_auth_with_payload_signing_disabled(httpx_mock: HTTPXMock):
+
+    auth = httpx_auth.AWS4Auth(
+        access_id="access_id",
+        secret_key="wJalrXUtnFEMI/K7MDENG+bPxRfiCYEXAMPLEKEY",
+        region="us-east-1",
+        service="vpc-lattice-svcs",
+        enable_payload_signing=False,
+        include_headers={"x-xyz-my-super-cool-header"},
+    )
+
+    httpx_mock.add_response(
+        url="https://authorized_only",
+        method="POST",
+        match_headers={
+            "x-amz-content-sha256": "UNSIGNED-PAYLOAD",
+            "Authorization": "AWS4-HMAC-SHA256 Credential=access_id/20181011/us-east-1/vpc-lattice-svcs/aws4_request, SignedHeaders=host;x-amz-content-sha256;x-amz-date;x-xyz-my-super-cool-header, Signature=1a9ad454247bd09ddaf8c096d4b1f767625c68fcb1f73aa2f8e1c9a80b9d2231",
+            "x-amz-date": "20181011T150505Z",
+            "x-xyz-my-super-cool-header": "1",
+        },
+    )
+
+    async with httpx.AsyncClient() as client:
+        await client.post(
+            "https://authorized_only",
+            auth=auth,
+            content="some-data-here",
+            headers={"x-xyz-my-super-cool-header": "1"},
+        )
