@@ -4,8 +4,17 @@ from httpx_auth._authentication import (
     QueryApiKey,
     SupportMultiAuth,
 )
-from httpx_auth._oauth2.browser import DisplaySettings
-from httpx_auth._oauth2.common import OAuth2
+from httpx_auth._aws import AWS4Auth
+from httpx_auth._errors import (
+    AuthenticationFailed,
+    GrantNotProvided,
+    HttpxAuthException,
+    InvalidGrantRequest,
+    InvalidToken,
+    StateNotProvided,
+    TimeoutOccurred,
+    TokenExpiryNotProvided,
+)
 from httpx_auth._oauth2.authorization_code import (
     OAuth2AuthorizationCode,
     OktaAuthorizationCode,
@@ -13,35 +22,28 @@ from httpx_auth._oauth2.authorization_code import (
 )
 from httpx_auth._oauth2.authorization_code_pkce import (
     OAuth2AuthorizationCodePKCE,
-    OktaAuthorizationCodePKCE,
+    OktaAuthorizationCodePKCE
 )
+from httpx_auth._oauth2.browser import DisplaySettings
 from httpx_auth._oauth2.client_credentials import (
     OAuth2ClientCredentials,
-    OktaClientCredentials,
+    OktaClientCredentials
 )
+from httpx_auth._oauth2.common import OAuth2
+from httpx_auth._oauth2.device_code import OAuth2DeviceCode
+from httpx_auth._oauth2.device_code_pkce import OAuth2DeviceCodePKCE
 from httpx_auth._oauth2.implicit import (
+    AzureActiveDirectoryImplicit,
+    AzureActiveDirectoryImplicitIdToken,
     OAuth2Implicit,
     OktaImplicit,
     OktaImplicitIdToken,
-    AzureActiveDirectoryImplicit,
-    AzureActiveDirectoryImplicitIdToken,
 )
 from httpx_auth._oauth2.resource_owner_password import (
     OAuth2ResourceOwnerPasswordCredentials,
     OktaResourceOwnerPasswordCredentials,
 )
 from httpx_auth._oauth2.tokens import JsonTokenFileCache, TokenMemoryCache
-from httpx_auth._aws import AWS4Auth
-from httpx_auth._errors import (
-    GrantNotProvided,
-    TimeoutOccurred,
-    AuthenticationFailed,
-    StateNotProvided,
-    InvalidToken,
-    TokenExpiryNotProvided,
-    InvalidGrantRequest,
-    HttpxAuthException,
-)
 from httpx_auth.version import __version__
 
 __all__ = [
@@ -58,6 +60,8 @@ __all__ = [
     "AzureActiveDirectoryImplicit",
     "AzureActiveDirectoryImplicitIdToken",
     "OAuth2AuthorizationCode",
+    "OAuth2DeviceCode",
+    "OAuth2DeviceCodePKCE",
     "OktaAuthorizationCode",
     "OAuth2ClientCredentials",
     "OktaClientCredentials",
