@@ -3,6 +3,8 @@ from hashlib import sha512
 from typing import Union, Iterable
 
 import httpx
+import urllib.parse
+
 from httpx_auth._authentication import SupportMultiAuth
 from httpx_auth._oauth2.common import (
     OAuth2BaseAuth,
@@ -97,7 +99,10 @@ class OAuth2ClientCredentials(OAuth2BaseAuth, SupportMultiAuth):
         return (self.state, token, expires_in) if expires_in else (self.state, token)
 
     def _configure_client(self, client: httpx.Client):
-        client.auth = (self.client_id, self.client_secret)
+        encoded_client = urllib.parse.quote(self.client_id, safe="")
+        encoded_secret = urllib.parse.quote(self.client_secret, safe="")
+
+        client.auth = (encoded_client, encoded_secret)
         client.timeout = self.timeout
 
 
