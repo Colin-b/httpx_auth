@@ -61,6 +61,18 @@ class HeaderApiKey(httpx.Auth, SupportMultiAuth):
         yield request
 
 
+class BearerToken(HeaderApiKey):
+    """Describes a Bearer Token requests authentication."""
+
+    def __init__(self, token: str):
+        """
+        :param token: The Bearer token that will be sent.
+        """
+        if not token:
+            raise Exception("Token is mandatory.")
+        super().__init__(f"Bearer {token}", "Authorization")
+
+
 class QueryApiKey(httpx.Auth, SupportMultiAuth):
     """Describes an API Key requests authentication."""
 

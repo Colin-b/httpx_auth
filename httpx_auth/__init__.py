@@ -1,5 +1,6 @@
 from httpx_auth._authentication import (
     Basic,
+    BearerToken,
     HeaderApiKey,
     QueryApiKey,
     SupportMultiAuth,
@@ -46,6 +47,7 @@ from httpx_auth.version import __version__
 
 __all__ = [
     "Basic",
+    "BearerToken",
     "HeaderApiKey",
     "QueryApiKey",
     "OAuth2",

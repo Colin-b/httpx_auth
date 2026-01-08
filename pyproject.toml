@@ -43,6 +43,7 @@ issues = "https://github.com/Colin-b/httpx_auth/issues"
 
 [project.optional-dependencies]
 testing = [
+    "pytest==8.3.4",
     # Used to generate test tokens
     "pyjwt==2.*",
     # Used to mock httpx
@@ -55,6 +56,11 @@ testing = [
     "pytest-asyncio==0.25.*",
 ]
 
+[tool.setuptools]
+py-modules = [
+    "httpx_auth"
+]
+
 [tool.setuptools.dynamic]
 version = {attr = "httpx_auth.version.__version__"}
 
@@ -62,5 +68,3 @@ version = {attr = "httpx_auth.version.__version__"}
 filterwarnings = [
     "error",
 ]
-# Silence deprecation warnings about option "asyncio_default_fixture_loop_scope"
-asyncio_default_fixture_loop_scope = "function"

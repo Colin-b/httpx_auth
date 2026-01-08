@@ -39,8 +39,13 @@ Before creating an issue please make sure that it was not already reported.
 #### Code
 
 1) Create a new branch based on `develop` branch.
+    * Optional: create and enable virtualenv:
+    ```
+    python3 -m venv myenv
+    source myenv/bin/activate
+    ```
 2) Fetch all dev dependencies.
-    * Install required python modules using `pip`: **python -m pip install .[testing]**
+    * Install required python modules using `pip`: **python -m pip install ".[testing]"**
 3) Ensure tests are ok by running them using [`pytest`](http://doc.pytest.org/en/latest/index.html).
 4) Add your changes.
 5) Follow [Black](https://black.readthedocs.io/en/stable/) code formatting.
