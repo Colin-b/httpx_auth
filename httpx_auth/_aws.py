@@ -8,7 +8,7 @@ import hashlib
 import hmac
 from collections import defaultdict
 from posixpath import normpath
-from typing import Generator
+from typing import Generator, Sequence, Optional
 from urllib.parse import quote
 
 import httpx
@@ -22,7 +22,15 @@ class AWS4Auth(httpx.Auth):
     requires_request_body = True
 
     def __init__(
-        self, access_id: str, secret_key: str, region: str, service: str, **kwargs
+        self,
+        access_id: str,
+        secret_key: str,
+        region: str,
+        service: str,
+        security_token: Optional[str] = None,
+        include_headers: Sequence[str] = tuple(),
+        enable_payload_signing: bool = True,
+        **kwargs,
     ):
         """
 
@@ -34,6 +42,9 @@ class AWS4Auth(httpx.Auth):
         :param service: The name of the service you're connecting to, as per endpoints at:
         http://docs.aws.amazon.com/general/latest/gr/rande.html
         e.g. elasticbeanstalk.
+        :param enable_payload_signing: Whether to include payload hash in signature
+        AWS Lattice service does not support payload signing - https://docs.aws.amazon.com/vpc-lattice/latest/ug/sigv4-authenticated-requests.html
+        Setting this parameter to False will set x-amz-content-sha256 header value to "UNSIGNED-PAYLOAD"
         :param security_token: Used for the x-amz-security-token header, for use with STS temporary credentials.
         :param include_headers: Set of headers to include in the canonical and signed headers, in addition to:
          * host
@@ -48,12 +59,9 @@ class AWS4Auth(httpx.Auth):
         self.access_id = access_id
         self.region = region
         self.service = service
-
-        self.security_token = kwargs.get("security_token")
-
-        self.include_headers = {
-            header.lower() for header in kwargs.get("include_headers", [])
-        }
+        self.enable_payload_signing = enable_payload_signing
+        self.security_token = security_token
+        self.include_headers = {header.lower() for header in include_headers}
 
     def auth_flow(
         self, request: httpx.Request
@@ -69,9 +77,13 @@ class AWS4Auth(httpx.Auth):
         # The x-amz-content-sha256 header is required for all AWS Signature Version 4 requests.
         # It provides a hash of the request payload.
         # If there is no payload, you must provide the hash of an empty string.
-        request.headers["x-amz-content-sha256"] = hashlib.sha256(
-            request.read()
-        ).hexdigest()
+        # This does not apply to AWS Lattice which does not support payload signing.
+        # In this case the value of this header must be set to "UNSIGNED-PAYLOAD".
+        if self.enable_payload_signing:
+            content_hash_digest = hashlib.sha256(request.read()).hexdigest()
+        else:
+            content_hash_digest = "UNSIGNED-PAYLOAD"
+        request.headers["x-amz-content-sha256"] = content_hash_digest
 
         # https://docs.aws.amazon.com/AmazonS3/latest/API/sig-v4-header-based-auth.html
         # if you are using temporary security credentials, you need to include x-amz-security-token in your request.
