@@ -903,9 +903,10 @@ Testing the code using `httpx_auth` authentication classes can be achieved using
 ### token_cache_mock
 
 ```python
-from httpx_auth.testing import token_cache_mock, token_mock
+import pytest
 
-def test_something(token_cache_mock):
+@pytest.mark.usefixture("token_cache_mock")
+def test_something():
     # perform code using authentication
     pass
 ```
@@ -933,15 +934,14 @@ You can however return your custom token by providing your own `token_mock` fixt
 ```python
 import pytest
 
-from httpx_auth.testing import token_cache_mock
-
 
 @pytest.fixture
 def token_mock() -> str:
     return "MyCustomTokenValue"
 
 
-def test_something(token_cache_mock):
+@pytest.mark.usefixtures("token_cache_mock")
+def test_something():
     # perform code using authentication
     pass
 ```
@@ -952,7 +952,8 @@ Note that [`pyjwt`](https://pypi.org/project/PyJWT/) is a required dependency in
 
 ```python
 import pytest
-from httpx_auth.testing import token_cache_mock, create_token
+
+from httpx_auth.testing import create_token
 
 
 @pytest.fixture
@@ -961,7 +962,8 @@ def token_mock() -> str:
     return create_token(expiry)
 
 
-def test_something(token_cache_mock):
+@pytest.mark.usefixtures("token_cache_mock")
+def test_something():
     # perform code using authentication
     pass
 ```
@@ -973,9 +975,10 @@ def test_something(token_cache_mock):
 This [`pytest`][6] fixture will return the token cache and ensure it is reset at the end of the test case.
 
 ```python
-from httpx_auth.testing import token_cache
+import pytest
 
-def test_something(token_cache):
+@pytest.mark.usefixture("token_cache")
+def test_something():
     # perform code using authentication
     pass
 ```
@@ -991,7 +994,7 @@ With this [`pytest`][6] fixture you will be allowed to fine tune your authentica
 ```python
 import datetime
 
-from httpx_auth.testing import browser_mock, BrowserMock, create_token
+from httpx_auth.testing import BrowserMock, create_token
 
 def test_something(browser_mock: BrowserMock):
     token_expiry = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(hours=1)

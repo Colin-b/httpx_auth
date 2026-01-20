@@ -55,6 +55,9 @@ testing = [
     "pytest-asyncio==0.25.*",
 ]
 
+[project.entry-points.pytest11]
+httpx_auth = "httpx_auth.testing"
+
 [tool.setuptools.dynamic]
 version = {attr = "httpx_auth.version.__version__"}
 
