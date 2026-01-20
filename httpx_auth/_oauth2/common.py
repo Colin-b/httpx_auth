@@ -1,6 +1,6 @@
 import abc
 from typing import Callable, Generator, Optional, Union
-from urllib.parse import parse_qs, urlsplit, urlunsplit, urlencode
+from urllib.parse import parse_qs, urlencode, urlsplit, urlunsplit
 
 import httpx
 
@@ -82,6 +82,28 @@ def request_new_grant_with_post(
     if not token:
         raise GrantNotProvided(grant_name, content)
     return token, content.get("expires_in"), content.get("refresh_token")
+
+
+def request_device_code_with_post(
+    url: str, data, user_code_name: str, device_code_name: str, uri_name: str, client: httpx.Client
+) -> (str, str, str, str, int, int):
+    print(data)
+    response = client.post(url, data)
+
+    if response.is_error:
+        # As described in https://tools.ietf.org/html/rfc6749#section-5.2
+        raise InvalidGrantRequest(response)
+
+    content = _content_from_response(response)
+
+    return (
+        content.get(user_code_name),
+        content.get(device_code_name),
+        content.get(uri_name),
+        content.get("verification_uri_complete"),
+        content.get("expires_in"),
+        content.get("interval", 5),
+    )
 
 
 class OAuth2:
